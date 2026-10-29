@@ -17,6 +17,13 @@
 
 static const char *TAG = "scope_link";
 
+/*
+ * Enlace SPI esclavo. Dos tareas:
+ *  - spi_task:     queda bloqueada en spi_slave_transmit(); cada transacción
+ *                  entrega la respuesta preparada y recibe un comando.
+ *  - capture_task: se despierta con ARM, captura la ventana y marca READY.
+ * Máquina de estados: IDLE -> ARMED -> READY (o ERROR); RESET vuelve a IDLE.
+ */
 #define SPI_HOST SPI2_HOST
 
 /* Configuración (solo la modifica la tarea SPI, y nunca mientras hay captura en curso). */
@@ -37,6 +44,7 @@ static uint8_t *tx_buf;
 static uint8_t *rx_buf;
 static TaskHandle_t capture_task;
 
+/* INT en alto = transacción lista para el maestro; en bajo mientras se re-arma. */
 static void IRAM_ATTR post_setup_cb(spi_slave_transaction_t *trans)
 {
     gpio_set_level(PIN_HANDSHAKE, 1);
@@ -52,7 +60,11 @@ static void set_state(scope_state_t s)
     atomic_store(&state, (uint8_t)s);
 }
 
-/* Prepara la respuesta: cabecera de estado y, si hay captura lista, los datos. */
+/*
+ * Prepara la respuesta ANTES de la transacción: el esclavo SPI no puede
+ * calcularla mientras el maestro lee. Por eso un comando se ve reflejado en
+ * la cabecera de la transacción siguiente.
+ */
 static void prepare_tx(void)
 {
     uint8_t st = atomic_load(&state);
@@ -84,6 +96,7 @@ static void reject(void)
     last_err_flags |= SCOPE_FLAG_CMD_REJECTED;
 }
 
+/* Ejecuta el comando recibido. Los cambios de configuración se rechazan si hay captura en curso. */
 static void handle_command(const uint8_t *rx, size_t len)
 {
     scope_cmd_frame_t f;
@@ -217,10 +230,10 @@ esp_err_t scope_link_start(void)
         .sclk_io_num = PIN_SPI_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = SCOPE_MAX_FRAME,
+        .max_transfer_sz = SCOPE_MAX_FRAME, /* 4096 B = bufsiz por defecto de spidev */
     };
     spi_slave_interface_config_t slv = {
-        .mode = 0,
+        .mode = 0, /* CPOL=0, CPHA=0: debe coincidir con el maestro */
         .spics_io_num = PIN_SPI_CS,
         .queue_size = 1,
         .flags = 0,

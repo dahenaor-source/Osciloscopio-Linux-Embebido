@@ -19,9 +19,12 @@ Responsable: David Henao Rojas.
 
 Decisiones de diseño:
 
-- **Captura por ventana bajo demanda** (`ARM`): el refresco del dashboard es ≤ 1 Hz, así que no hace falta transmitir de forma continua. Cada captura usa el ADC con temporización por hardware, por lo que el muestreo es constante.
-- **ADC continuo (`adc_continuous`)**: la tasa de conversión la fija el hardware, no el software. Límites del ADC del ESP32-C6: 611 Sa/s a 83.333 Sa/s en total (verificado en `soc_caps.h` de ESP-IDF 5.4.1), de ahí el promediado en 100 Sa/s y el límite de 40 kSa/s por canal con 2 canales.
-- **Respuesta con cabecera de estado siempre presente**: evita el retraso de una transacción típico de los esclavos SPI.
+- **Captura bajo demanda (`ARM`)**: el dashboard refresca a ≤ 1 Hz, así que no se transmite en continuo. Cada captura arranca el ADC, llena la ventana y lo detiene.
+- **ADC continuo (`adc_continuous`)**: el hardware fija el periodo de conversión, lo que garantiza frecuencia de muestreo constante. Límites del ADC del C6: 611 a 83.333 Sa/s en total (`SOC_ADC_SAMPLE_FREQ_THRES_*` en ESP-IDF 5.4.1). Con 2 canales alternados, el máximo es 41,6 kSa/s por canal; el preset de 40 kSa/s usa 80 kSa/s en total.
+- **100 Sa/s**: queda bajo el mínimo del ADC, así que se convierte a 2 kSa/s y se promedian 10 conversiones por muestra (además reduce ruido).
+- **Cabecera de estado en toda respuesta**: el esclavo SPI debe preparar la respuesta antes de la transacción, por lo que un comando solo se refleja en la transacción siguiente. La cabecera permite al maestro confirmarlo.
+- **Prioridades**: `spi_link` (7) > `capture` (6), para atender el SPI aunque haya captura en curso.
+- **Memoria**: 2 buffers de captura (1020 × 2 B cada uno), TX y RX de 4096 B (DMA) y pool del ADC de 16 KiB.
 
 ## Instalación del entorno (WSL Ubuntu)
 
@@ -36,25 +39,28 @@ Cada terminal nueva: `. ~/esp/esp-idf/export.sh`
 
 ### Acceso al USB desde WSL (usbipd)
 
-En **PowerShell de Windows (administrador)**:
+En **PowerShell de Windows (administrador)**, una sola vez `bind` y en cada reconexión `attach`:
 
 ```powershell
 winget install usbipd
-usbipd list                      # identificar la ESP32-C6 (CP210x o "USB JTAG/serial")
+usbipd list                          # buscar "USB JTAG/serial debug unit" (VID:PID 303a:1001)
 usbipd bind --busid <BUSID>
 usbipd attach --wsl --busid <BUSID>
 ```
 
-En WSL aparece como `/dev/ttyUSB0` o `/dev/ttyACM0`. Si no hay permisos: `sudo usermod -aG dialout $USER` y reabrir la terminal.
+En WSL verificar con `ls /dev/ttyACM*` (en este equipo: `/dev/ttyACM0`). Si no hay permisos: `sudo usermod -aG dialout $USER` y reabrir la terminal. El `attach` se pierde al reiniciar la placa en modo descarga, o al desconectar el USB; hay que repetirlo.
 
 ## Compilar y flashear
 
 ```bash
+. ~/esp/esp-idf/export.sh
 cd firmware
-idf.py set-target esp32c6
+idf.py set-target esp32c6        # solo la primera vez
 idf.py build
-idf.py -p /dev/ttyUSB0 flash monitor
+idf.py -p /dev/ttyACM0 flash monitor     # salir del monitor: Ctrl+]
 ```
+
+Salida esperada en el monitor: `SPI esclavo listo (SCLK=6 MOSI=7 MISO=2 CS=10 HS=3)`.
 
 ## Tasas teóricas de transferencia SPI
 
@@ -71,7 +77,7 @@ Demanda real del sistema:
 | 10 kSa/s | 40 kB/s | 0,32 Mbit/s |
 | 40 kSa/s | 160 kB/s | 1,28 Mbit/s |
 
-Una ventana máxima (4096 B) tarda unos 0,8 ms a 40 MHz y 33 ms a 1 MHz. El enlace queda muy por encima de lo necesario si se alcanza una fracción del máximo teórico.
+Una ventana máxima (4096 B = 32.768 bits) tarda 0,82 ms a 40 MHz, 3,3 ms a 10 MHz y 33 ms a 1 MHz. Para el preset de 40 kSa/s, 256 muestras (1040 B) llegan al SBC en 0,2 ms a 40 MHz o 8 ms a 1 MHz: el SPI nunca es el cuello de botella; el ADC (83,3 kSa/s) sí.
 
 **Pendiente de verificar experimentalmente** (con analizador lógico y `tools/spi_master_test.py --bench`): velocidad máxima estable sin errores de datos, y caudal real medido. El `spidev` de Linux limita el caudal por la sobrecarga del sistema operativo, así que el valor real será menor al teórico.
 

@@ -17,6 +17,12 @@ static const char *TAG = "capture";
 /* Conversiones iniciales que se descartan mientras el ADC se estabiliza. */
 #define SETTLE_CONVERSIONS 16
 
+/*
+ * Captura con el ADC1 en modo continuo: el hardware temporiza las conversiones
+ * (frecuencia constante) y las entrega por DMA; la CPU solo las clasifica por
+ * canal. En modo TYPE2 cada resultado de 2 bytes trae el canal y el dato de 12 bits.
+ * El ADC convierte los 2 canales de forma alternada (rate->adc_total_hz en total).
+ */
 typedef struct {
     uint16_t *out;
     uint16_t count;
@@ -24,6 +30,7 @@ typedef struct {
     uint8_t acc;
 } chan_state_t;
 
+/* Se ejecuta en ISR: el pool del DMA se llenó antes de que lo leyéramos (se perdieron muestras). */
 static bool IRAM_ATTR on_pool_overflow(adc_continuous_handle_t handle,
                                        const adc_continuous_evt_data_t *edata, void *user_data)
 {
@@ -54,7 +61,7 @@ esp_err_t capture_run(const scope_rate_t *rate, uint16_t window,
     esp_err_t err;
 
     adc_continuous_handle_cfg_t handle_cfg = {
-        .max_store_buf_size = POOL_BYTES,
+        .max_store_buf_size = POOL_BYTES, /* pool grande: absorbe 80 kSa/s mientras la CPU atiende el SPI */
         .conv_frame_size = FRAME_BYTES,
     };
     ESP_RETURN_ON_ERROR(adc_continuous_new_handle(&handle_cfg, &handle), TAG, "new_handle");
@@ -89,6 +96,7 @@ esp_err_t capture_run(const scope_rate_t *rate, uint16_t window,
     chan_state_t st[SCOPE_NUM_CHANNELS] = {{.out = ch_a}, {.out = ch_b}};
     static uint8_t buf[FRAME_BYTES];
     uint32_t settle = SETTLE_CONVERSIONS;
+    /* Plazo = duración teórica de la ventana + 1 s de margen, para no bloquearse si el ADC falla. */
     int64_t deadline_us = esp_timer_get_time() +
                           ((int64_t)window * 1000000 / rate->fs_hz) + 1000000;
     err = ESP_OK;

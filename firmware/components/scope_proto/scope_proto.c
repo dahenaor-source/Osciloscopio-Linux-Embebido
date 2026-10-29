@@ -27,6 +27,7 @@ size_t scope_frame_len(uint16_t window)
     return SCOPE_HDR_LEN + (size_t)SCOPE_NUM_CHANNELS * window * 2;
 }
 
+/* Comando: [cmd, arg_lo, arg_hi, chk]. El checksum lleva una semilla para que un bus en 0x00 no parezca un NOP válido. */
 static uint8_t cmd_chk(uint8_t cmd, uint8_t lo, uint8_t hi)
 {
     return (uint8_t)(cmd ^ lo ^ hi ^ SCOPE_CMD_CHK_SEED);
@@ -59,6 +60,7 @@ static uint8_t xor_bytes(const uint8_t *p, size_t n)
     return x;
 }
 
+/* Cabecera de 16 bytes: magic + estado + parámetros + checksum XOR. Detecta lecturas hechas con el esclavo no listo. */
 void scope_header_pack(uint8_t out[SCOPE_HDR_LEN], const scope_header_t *h)
 {
     out[0] = SCOPE_HDR_MAGIC;
