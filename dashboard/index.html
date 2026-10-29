@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Osciloscopio SBC + ESP32-C6</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Osciloscopio · BeaglePlay + ESP32-C6</h1>
+    <span id="status" class="badge">detenido</span>
+  </header>
+
+  <main>
+    <section class="controls">
+      <button id="btn-toggle">▶ Start</button>
+
+      <label>Fuente
+        <select id="sel-source">
+          <option value="sim" selected>Simulada</option>
+          <option value="api">API real (/api/scope/frame)</option>
+        </select>
+      </label>
+
+      <label>Frecuencia de muestreo
+        <select id="sel-rate"></select>
+      </label>
+
+      <label>Refresco
+        <select id="sel-refresh">
+          <option value="4000" selected>0,25 Hz (4 s)</option>
+          <option value="2000">0,5 Hz (2 s)</option>
+          <option value="1000">1 Hz (1 s)</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="plot">
+      <canvas id="chart"></canvas>
+    </section>
+
+    <section class="stats">
+      <table>
+        <thead>
+          <tr><th>Canal</th><th>Mín (V)</th><th>Máx (V)</th><th>Pico-pico (V)</th><th>Prom (V)</th><th>RMS (V)</th></tr>
+        </thead>
+        <tbody>
+          <tr id="row-a"><td class="ch-a">CH A</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+          <tr id="row-b"><td class="ch-b">CH B</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+        </tbody>
+      </table>
+      <p id="info" class="info">Sin datos.</p>
+    </section>
+  </main>
+
+  <script src="vendor/chart.umd.js"></script>
+  <script src="scope.js"></script>
+</body>
+</html>

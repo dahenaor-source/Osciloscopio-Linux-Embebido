@@ -11,10 +11,13 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 | Parte | Responsable | Carpeta |
 |---|---|---|
 | Firmware del microcontrolador (ESP32-C6) | David Henao Rojas | [`firmware/`](firmware) |
-| Software del SBC (BeaglePlay, SPI maestro, HTTP) | Juan Camilo Giraldo, Daniela Barragán | por definir |
+| Dashboard web (HTML) | David Henao Rojas (primera versión) | [`dashboard/`](dashboard) |
+| Software del SBC (BeaglePlay, SPI maestro, backend, HTTP) | Juan Camilo Giraldo, Daniela Barragán | por definir |
 
 ## Documentación
 
+- [**Guía para el equipo del SBC (BeaglePlay)**](docs/guia-sbc.md): qué falta construir, contexto de la BeaglePlay y orden de pruebas. **Juan Camilo y Daniela, empezar aquí.**
+- [Dashboard](dashboard/README.md): página HTML con Chart.js (modo simulado) y contrato de la API.
 - [**Guía rápida para el equipo**](docs/guia-equipo.md): flashear el binario ya compilado y probar el SPI. **Empezar aquí.**
 - [Pinout y conexiones](docs/hardware-pinout.md): mikroBUS de la BeaglePlay ↔ ESP32-C6. **Punto de partida para el equipo del SBC.**
 - [Protocolo SPI](docs/protocolo-spi.md): comandos, formato de trama y secuencia de uso.
@@ -31,6 +34,14 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 
 ## Inicio rápido (firmware)
 
+Sin compilar: flashear el binario listo (ver [guía del equipo](docs/guia-equipo.md)):
+
+```bash
+pip install esptool
+esptool.py --chip esp32c6 -p /dev/ttyACM0 -b 460800 write_flash 0x0 release/osciloscopio_c6_v1.bin
+```
+
+Compilando desde el código fuente:
 ```bash
 . ~/esp/esp-idf/export.sh
 cd firmware
@@ -43,6 +54,8 @@ Detalles en [docs/firmware.md](docs/firmware.md).
 
 ## Estado
 
-- [x] Firmware compila (ESP-IDF 5.4.1) y el protocolo pasa sus pruebas unitarias en el PC.
-- [ ] Probado en hardware (SPI y ADC): pendiente de la placa y del cableado.
+- [x] Firmware compila (ESP-IDF 5.4.1), se flashea en la ESP32-C6 y arranca (SPI esclavo inicializado). El protocolo pasa sus pruebas unitarias en el PC.
+- [ ] Probado con un maestro SPI y con señales reales en el ADC.
+- [x] Dashboard HTML con datos simulados (sin backend real).
+- [ ] Backend en la BeaglePlay (SPI + API) y servidor HTTP.
 - [ ] Integración con la BeaglePlay.
