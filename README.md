@@ -15,6 +15,7 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 
 ## Documentación
 
+- [**Guía rápida para el equipo**](docs/guia-equipo.md): flashear el binario ya compilado y probar el SPI. **Empezar aquí.**
 - [Pinout y conexiones](docs/hardware-pinout.md): mikroBUS de la BeaglePlay ↔ ESP32-C6. **Punto de partida para el equipo del SBC.**
 - [Protocolo SPI](docs/protocolo-spi.md): comandos, formato de trama y secuencia de uso.
 - [Firmware del microcontrolador](docs/firmware.md): instalación, compilación, tasas teóricas de SPI, pruebas y matriz de verificación.
