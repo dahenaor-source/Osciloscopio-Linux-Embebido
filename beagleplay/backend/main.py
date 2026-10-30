@@ -70,8 +70,8 @@ def get_frame():
         if frame:
             return frame
 
-        print("[ERROR REST] Falla al capturar trama desde el driver SPI")
-        raise HTTPException(status_code=500, detail="Error de comunicación SPI con la ESP32-C6")
+        print(f"[ERROR REST] {spi_hw.last_error}")
+        raise HTTPException(status_code=500, detail=f"SPI: {spi_hw.last_error}")
 
 @app.post("/api/scope/config")
 def set_config(config: ConfigPayload):

@@ -13,6 +13,7 @@ class SPIDriver:
         self.speed_hz = speed_hz
         self.spi = None
         self._lock = threading.RLock()
+        self.last_error = ""
         self.retries = 0  # transacciones inválidas reintentadas (contador acumulado)
 
     def open(self) -> bool:
@@ -119,33 +120,53 @@ class SPIDriver:
 
     def capture_frame(self, window: Optional[int] = None) -> Optional[Dict[str, Any]]:
         """
-        ARM -> sondeo con NOP hasta READY -> lectura de 16 + 4*window bytes.
+        ARM -> espera sin tráfico SPI -> sondeo con NOP hasta READY -> lectura de 16 + 4*window bytes.
         La ventana se toma de la cabecera del esclavo (window se ignora).
-        El timeout se calcula como window/fs + margen.
+        Si falla devuelve None y deja la causa en self.last_error.
         """
         with self._lock:
+            self.last_error = ""
             retries0 = self.retries
-            header, _ = self._xfer_valid(0x03)  # ARM
-            if header is None:
-                return None
-
             header, _ = self._xfer_valid(0x00)
             if header is None:
+                self.last_error = "sin cabecera valida antes de ARM"
                 return None
+            seq0 = header["seq"]
             fs = max(header["fs_hz"], 1)
-            deadline = time.time() + header["window"] / fs + 2.0
-            while header["state"] != 2:
-                if header["state"] == 3 or time.time() > deadline:
+            duration = header["window"] / fs
+
+            for attempt in range(4):
+                if self._xfer_valid(0x03)[0] is None:  # ARM
+                    self.last_error = "ARM sin respuesta valida"
                     return None
-                time.sleep(0.01 if fs >= 1000 else 0.05)
-                header, _ = self._xfer_valid(0x00)
-                if header is None:
-                    return None
+                # Sin tráfico SPI mientras el ADC muestrea: el ruido de las líneas SPI se acopla a la entrada analógica.
+                time.sleep(duration * 0.9)
+
+                deadline = time.time() + duration + 2.0
+                header = None
+                while time.time() < deadline:
+                    header, _ = self._xfer_valid(0x00)
+                    if header is None:
+                        self.last_error = "sondeo sin cabecera valida"
+                        return None
+                    if header["state"] == 3:
+                        self.last_error = "el ESP32 reporta ERROR (fallo del ADC)"
+                        return None
+                    if header["state"] == 2:
+                        break
+                    time.sleep(0.002)
+                if header["state"] == 2 and header["seq"] == seq0:
+                    continue  # READY viejo: el ARM se perdio, se reenvia
+                break
+            if header["state"] != 2 or header["seq"] == seq0:
+                self.last_error = f"timeout esperando READY (estado={header['state']})"
+                return None
 
             w = header["window"]
             total = 16 + 4 * w
             header, rx = self._xfer_valid(0x00, 0, total)
             if header is None or header["state"] != 2 or len(rx) < total:
+                self.last_error = "lectura de datos invalida"
                 return None
 
             samples = struct.unpack(f"<{2 * w}H", rx[16:total])
