@@ -2,10 +2,12 @@ import time
 import math
 from pathlib import Path
 from typing import List
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+
+from spi_driver import SPIDriver
 
 app = FastAPI()
 
@@ -16,11 +18,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Bandera de simulación
 USE_MOCK = True
 
 seq_counter = 0
 current_rate_idx = 1
 RATES_HZ = [100, 1000, 10000, 40000]
+
+# Inicializar Driver SPI
+spi_hw = SPIDriver(bus=0, device=0)
+
+if not USE_MOCK:
+    spi_hw.open()
 
 class ConfigPayload(BaseModel):
     rate_idx: int
@@ -55,16 +64,23 @@ def generar_frame_simulado(window: int = 256):
 def get_frame():
     if USE_MOCK:
         return generar_frame_simulado()
+    else:
+        frame = spi_hw.capture_frame(window=256)
+        if frame:
+            return frame
+        raise HTTPException(status_code=500, detail="Error de comunicación SPI con la ESP32-C6")
 
 @app.post("/api/scope/config")
 def set_config(config: ConfigPayload):
     global current_rate_idx
     if 0 <= config.rate_idx <= 3:
         current_rate_idx = config.rate_idx
+        if not USE_MOCK:
+            spi_hw.set_rate(current_rate_idx)
         return {"status": "ok", "rate_idx": current_rate_idx}
-    return {"error": "rate_idx inválido"}, 400
+    raise HTTPException(status_code=400, detail="rate_idx inválido (debe ser de 0 a 3)")
 
-# Montar la carpeta del dashboard para servir HTML/JS en la raíz del servidor
+# Servir archivos estáticos del dashboard
 DASHBOARD_DIR = Path(__file__).parent.parent.parent / "dashboard"
 if DASHBOARD_DIR.exists():
     app.mount("/", StaticFiles(directory=str(DASHBOARD_DIR), html=True), name="dashboard")
