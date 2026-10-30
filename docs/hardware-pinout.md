@@ -2,6 +2,10 @@
 
 Conexión entre el puerto **mikroBUS de la BeaglePlay** (SPI maestro) y la **ESP32-C6-DevKitC-1** (SPI esclavo).
 
+## Diagrama de conexión
+
+![Conexión SPI entre la BeaglePlay y la ESP32-C6](img/conexion-spi.svg)
+
 ## Tabla de conexiones
 
 | Señal | mikroBUS (pin) | BeaglePlay | ESP32-C6-DevKitC-1 | Dirección |
@@ -34,6 +38,8 @@ La izquierda baja de 1 a 8 y la derecha sube de 9 (GND) a 16 (PWM). **Ante cualq
 > Todas las señales son de **3,3 V**. No conectar el pin +5V (10) del mikroBUS a ningún GPIO. La ESP32-C6 se alimenta por su puerto USB; solo se comparte GND con la BeaglePlay.
 
 ## Entradas analógicas (ADC1)
+
+![Conexión del generador de señales a la ESP32-C6](img/conexion-analogica.svg)
 
 | Canal | Pin ESP32-C6 | Uso |
 |---|---|---|
