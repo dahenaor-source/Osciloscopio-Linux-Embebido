@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # Bandera de simulación
-USE_MOCK = True
+USE_MOCK = False
 
 seq_counter = 0
 current_rate_idx = 1
