@@ -25,8 +25,8 @@ seq_counter = 0
 current_rate_idx = 1
 RATES_HZ = [100, 1000, 10000, 40000]
 
-# Inicializar Driver SPI
-spi_hw = SPIDriver(bus=0, device=0)
+# Inicializar Driver SPI a 100 kHz (igual que en prueba_directa_spi.py)
+spi_hw = SPIDriver(bus=0, device=0, speed_hz=100000)
 
 if not USE_MOCK:
     spi_hw.open()
@@ -68,6 +68,8 @@ def get_frame():
         frame = spi_hw.capture_frame(window=256)
         if frame:
             return frame
+
+        print("[ERROR REST] Falla al capturar trama desde el driver SPI")
         raise HTTPException(status_code=500, detail="Error de comunicación SPI con la ESP32-C6")
 
 @app.post("/api/scope/config")

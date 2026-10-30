@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any
 MAGIC_HEADER = 0xE5
 
 class SPIDriver:
-    def __init__(self, bus: int = 0, device: int = 0, speed_hz: int = 1000000):
+    def __init__(self, bus: int = 0, device: int = 0, speed_hz: int = 100000):
         self.bus = bus
         self.device = device
         self.speed_hz = speed_hz
@@ -19,6 +19,9 @@ class SPIDriver:
             self.spi.open(self.bus, self.device)
             self.spi.max_speed_hz = self.speed_hz
             self.spi.mode = 0
+            
+            # Transacción "dummy" inicial para limpiar el buffer
+            self.spi.xfer2([0x00] * 16)
             return True
         except Exception as e:
             print(f"[SPI Driver Error] No se pudo abrir la interfaz SPI: {e}")
