@@ -1,5 +1,7 @@
+import os
 import time
 import struct
+import threading
 from typing import Optional, Dict, Any
 
 MAGIC_HEADER = 0xE5
@@ -10,6 +12,7 @@ class SPIDriver:
         self.device = device
         self.speed_hz = speed_hz
         self.spi = None
+        self._lock = threading.RLock()
 
     def open(self) -> bool:
         """Inicializa la interfaz SPI de la BeaglePlay en Modo 0."""
@@ -86,58 +89,69 @@ class SPIDriver:
             "fw_version": fw_ver
         }
 
-    def set_rate(self, rate_idx: int) -> bool:
-        """Envía el comando SET_RATE (0x01) para cambiar el preset de muestreo."""
-        rx = self._transact(cmd=0x01, arg=rate_idx, read_len=16)
-        header = self._parse_header(rx)
-        return header is not None and header["flags"] & 0x02 == 0
-
-    def capture_frame(self, window: int = 256) -> Optional[Dict[str, Any]]:
+    def _xfer_valid(self, cmd: int, arg: int = 0, read_len: int = 16, tries: int = 12):
         """
-        Ejecuta la secuencia completa de lectura:
-        1. ARM (0x03)
-        2. Polling con NOP (0x00) hasta state == READY (2)
-        3. Lectura de 16 + (4 * window) bytes
-        4. Desempaquetado de muestras de 12 bits para Canales A y B
+        Transacción con reintentos hasta recibir una cabecera válida.
+        El ESP32-C6 pierde parte de las transacciones (responde 0xFF o datos
+        desplazados) y en esos casos recibe un comando corrupto que descarta por
+        checksum. Por eso una respuesta válida implica que el comando se ejecutó
+        exactamente una vez; reintentar es seguro.
+        Devuelve (cabecera, bytes_rx) o (None, b"").
         """
-        # 1. Armar captura
-        self._transact(cmd=0x03, arg=0, read_len=16)
-
-        # 2. Consultar estado mediante polling
-        header = None
-        for _ in range(50):  # Reintentos de espera
-            rx = self._transact(cmd=0x00, arg=0, read_len=16)
+        for _ in range(tries):
+            rx = self._transact(cmd, arg, read_len)
             header = self._parse_header(rx)
-            if header and header["state"] == 2:  # state == READY
-                break
+            if header is not None:
+                return header, rx
             time.sleep(0.005)
+        return None, b""
 
-        if not header or header["state"] != 2:
-            return None
+    def set_rate(self, rate_idx: int) -> bool:
+        """SET_RATE y verificación en la transacción siguiente (la respuesta va un paso atrasada)."""
+        with self._lock:
+            if self._xfer_valid(0x01, rate_idx)[0] is None:
+                return False
+            header, _ = self._xfer_valid(0x00)
+            return (header is not None and header["rate_idx"] == rate_idx
+                    and header["flags"] & 0x02 == 0)
 
-        # 3. Leer cabecera + bloque de datos
-        total_bytes = 16 + (4 * window)
-        rx_full = self._transact(cmd=0x00, arg=0, read_len=total_bytes)
+    def capture_frame(self, window: Optional[int] = None) -> Optional[Dict[str, Any]]:
+        """
+        ARM -> sondeo con NOP hasta READY -> lectura de 16 + 4*window bytes.
+        La ventana se toma de la cabecera del esclavo (window se ignora).
+        El timeout se calcula como window/fs + margen.
+        """
+        with self._lock:
+            header, _ = self._xfer_valid(0x03)  # ARM
+            if header is None:
+                return None
 
-        header = self._parse_header(rx_full[:16])
-        if not header or header["state"] != 2:
-            return None
+            header, _ = self._xfer_valid(0x00)
+            if header is None:
+                return None
+            fs = max(header["fs_hz"], 1)
+            deadline = time.time() + header["window"] / fs + 2.0
+            while header["state"] != 2:
+                if header["state"] == 3 or time.time() > deadline:
+                    return None
+                time.sleep(0.01 if fs >= 1000 else 0.05)
+                header, _ = self._xfer_valid(0x00)
+                if header is None:
+                    return None
 
-        # 4. Desempaquetar datos
-        data_bytes = rx_full[16:total_bytes]
-        actual_window = header["window"]
+            w = header["window"]
+            total = 16 + 4 * w
+            header, rx = self._xfer_valid(0x00, 0, total)
+            if header is None or header["state"] != 2 or len(rx) < total:
+                return None
 
-        # uint16 little-endian: primero A, luego B
-        samples = struct.unpack(f"<{2 * actual_window}H", data_bytes[:4 * actual_window])
-        a_samples = list(samples[:actual_window])
-        b_samples = list(samples[actual_window:2 * actual_window])
-
-        return {
-            "seq": header["seq"],
-            "rate_idx": header["rate_idx"],
-            "fs_hz": header["fs_hz"],
-            "window": header["window"],
-            "flags": header["flags"],
-            "a": a_samples,
-            "b": b_samples
-        }
+            samples = struct.unpack(f"<{2 * w}H", rx[16:total])
+            return {
+                "seq": header["seq"],
+                "rate_idx": header["rate_idx"],
+                "fs_hz": header["fs_hz"],
+                "window": w,
+                "flags": header["flags"],
+                "a": list(samples[:w]),
+                "b": list(samples[w:]),
+            }
