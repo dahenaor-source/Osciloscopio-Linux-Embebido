@@ -1,43 +1,78 @@
-import asyncio
-import math
 import time
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-import spidev
+import math
+from typing import List
+from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# True = Simulación activa | False = Lectura real por SPI
+# Permitir peticiones desde el dashboard web (CORS)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# MODO DE TRABAJO: True = Datos simulados | False = Lectura real por SPI
 USE_MOCK = True
 
-if not USE_MOCK:
-    try:
-        spi = spidev.SpiDev()
-        spi.open(0, 0)
-        spi.max_speed_hz = 1000000
-        spi.mode = 0
-    except Exception as e:
-        print(f"Error al abrir SPI: {e}")
+# Estado global del osciloscopio
+seq_counter = 0
+current_rate_idx = 1
+RATES_HZ = [100, 1000, 10000, 40000] # Frecuencias asociadas a los presets (0..3)
 
-def leer_datos():
+class ConfigPayload(BaseModel):
+    rate_idx: int
+
+def generar_frame_simulado(window: int = 256):
+    """Genera 256 muestras de 12 bits (0 a 4095) para el Canal A y B."""
+    global seq_counter
+    seq_counter += 1
+    t_now = time.time()
+    
+    a_samples: List[int] = []
+    b_samples: List[int] = []
+    
+    fs = RATES_HZ[current_rate_idx]
+    
+    for i in range(window):
+        t = t_now + (i / fs)
+        # Senoidal en Canal A (alrededor de 2048, amplitud ~1500)
+        val_a = int(2048 + 1500 * math.sin(2 * math.pi * 5 * t))
+        # Cuadrada/Cos en Canal B
+        val_b = int(2048 + 1200 * math.cos(2 * math.pi * 2 * t))
+        
+        # Limitar valores entre 0 y 4095 (12 bits)
+        a_samples.append(max(0, min(4095, val_a)))
+        b_samples.append(max(0, min(4095, val_b)))
+        
+    return {
+        "seq": seq_counter,
+        "rate_idx": current_rate_idx,
+        "fs_hz": fs,
+        "window": window,
+        "flags": 0,
+        "a": a_samples,
+        "b": b_samples
+    }
+
+@app.get("/api/scope/frame")
+def get_frame():
+    """Entrega la última ventana capturada según el contrato de la API."""
     if USE_MOCK:
-        t = time.time()
-        ch_a = int((math.sin(2 * math.pi * 5 * t) + 1) * 2047.5)  # Senoidal 5 Hz
-        ch_b = int((math.cos(2 * math.pi * 2 * t) + 1) * 2047.5)  # Senoidal 2 Hz
-        return {"ch_a": ch_a, "ch_b": ch_b}
+        return generar_frame_simulado()
     else:
-        bytes_recibidos = spi.xfer2([0x00, 0x00, 0x00, 0x00])
-        ch_a = (bytes_recibidos[0] << 8) | bytes_recibidos[1]
-        ch_b = (bytes_recibidos[2] << 8) | bytes_recibidos[3]
-        return {"ch_a": ch_a, "ch_b": ch_b}
+        # TODO: Implementar lectura real de 256 muestras desde el SPI
+        pass
 
-@app.websocket("/ws/data")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    print("Cliente web conectado para streaming de datos.")
-    try:
-        while True:
-            datos = leer_datos()
-            await websocket.send_json(datos)
-            await asyncio.sleep(0.01)  # Muestreo cada 10 ms
-    except WebSocketDisconnect:
-        print("Cliente web desconectado.")
+@app.post("/api/scope/config")
+def set_config(config: ConfigPayload):
+    """Ajusta el preset de frecuencia de muestreo."""
+    global current_rate_idx
+    if 0 <= config.rate_idx <= 3:
+        current_rate_idx = config.rate_idx
+        # Si USE_MOCK es False, aquí se enviaría la instrucción SET_RATE por SPI al ESP32
+        return {"status": "ok", "rate_idx": current_rate_idx}
+    return {"error": "rate_idx inválido"}, 400
