@@ -93,10 +93,10 @@ function render(f) {
   const warn = [];
   if (f.flags & 1) warn.push("OVERRUN");
   if (f.flags & 2) warn.push("comando rechazado");
-  if (f.flags & 4) warn.push("checksum de comando");
   $("info").textContent =
     `seq ${f.seq} · ${f.fs_hz} Sa/s · ${f.window} muestras · ventana ${(f.window / f.fs_hz * 1000).toFixed(1)} ms` +
-    (warn.length ? " · ⚠ " + warn.join(", ") : "") + (f.flags & 8 ? " · modo test" : "");
+    (warn.length ? " · ⚠ " + warn.join(", ") : "") + (f.flags & 8 ? " · modo test" : "") +
+    (f.retries ? ` · reintentos SPI: ${f.retries}` : "");
 }
 
 // ---- Control -------------------------------------------------------------

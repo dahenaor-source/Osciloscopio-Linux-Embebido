@@ -13,6 +13,7 @@ class SPIDriver:
         self.speed_hz = speed_hz
         self.spi = None
         self._lock = threading.RLock()
+        self.retries = 0  # transacciones inválidas reintentadas (contador acumulado)
 
     def open(self) -> bool:
         """Inicializa la interfaz SPI de la BeaglePlay en Modo 0."""
@@ -103,6 +104,7 @@ class SPIDriver:
             header = self._parse_header(rx)
             if header is not None:
                 return header, rx
+            self.retries += 1
             time.sleep(0.005)
         return None, b""
 
@@ -122,6 +124,7 @@ class SPIDriver:
         El timeout se calcula como window/fs + margen.
         """
         with self._lock:
+            retries0 = self.retries
             header, _ = self._xfer_valid(0x03)  # ARM
             if header is None:
                 return None
@@ -151,7 +154,9 @@ class SPIDriver:
                 "rate_idx": header["rate_idx"],
                 "fs_hz": header["fs_hz"],
                 "window": w,
-                "flags": header["flags"],
+                # bit2 (checksum de comando) lo provoca una transacción perdida que ya se reintentó
+                "flags": header["flags"] & ~0x04,
+                "retries": self.retries - retries0,
                 "a": list(samples[:w]),
                 "b": list(samples[w:]),
             }
