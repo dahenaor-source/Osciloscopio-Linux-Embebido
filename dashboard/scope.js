@@ -112,6 +112,12 @@ async function tick() {
   const idx = Number($("sel-rate").value);
   try {
     const f = $("sel-source").value === "sim" ? simFrame(idx) : await apiFrame();
+    // El uC conserva su último preset: si no coincide con el seleccionado, se lo reenvía.
+    if ($("sel-source").value === "api" && f.rate_idx !== idx) {
+      await apiSetRate(idx);
+      setStatus("ajustando frecuencia...", "");
+      return;
+    }
     render(f);
     setStatus("capturando", "ok");
   } catch (e) {
