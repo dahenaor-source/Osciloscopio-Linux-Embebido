@@ -48,21 +48,21 @@ Presets de `SET_RATE`:
 |---|---|---|
 | 0 | `magic` | Siempre `0xE5` |
 | 1 | `state` | 0 `IDLE`, 1 `ARMED` (capturando), 2 `READY`, 3 `ERROR` |
-| 2 | `flags` | bit0 desbordamiento del ADC, bit1 último comando rechazado, bit2 checksum de comando inválido, bit3 modo de prueba |
+| 2 | `flags` | bit0 desbordamiento del ADC, bit1 último comando rechazado, bit2 checksum de comando inválido, bit3 modo de prueba, bit4 ADC sin calibrar (sin datos de eFuse; los mV son una recta aproximada) |
 | 3 | `rate_idx` | Preset actual |
 | 4–5 | `window` | Muestras por canal |
 | 6–7 | `seq` | Contador de capturas completadas |
 | 8–11 | `fs_hz` | Frecuencia de muestreo por canal (Hz) |
 | 12 | `n_channels` | 2 |
 | 13 | `bits` | 12 |
-| 14 | `fw_version` | Versión del protocolo (1) |
+| 14 | `fw_version` | Versión del protocolo (**2**) |
 | 15 | `checksum` | XOR de los bytes 0..14 |
 
 ### Datos (solo si `state = READY`)
 
-Formato plano: primero las `window` muestras del canal A y luego las del canal B, cada una como `uint16` little-endian con el valor de 12 bits (0..4095).
+Formato plano: primero las `window` muestras del canal A y luego las del canal B, cada una como `uint16` little-endian en **milivoltios calibrados** (0..~3100). El ADC es de 12 bits; la conversión a mV la hace el ESP32 con una tabla de 4096 entradas por canal, construida con la calibración curve-fitting de la eFuse (sin coste de CPU en la captura).
 
-Tamaño total = `16 + 4 × window` bytes (máximo 4096). Voltaje aproximado: `V ≈ valor / 4095 × 3,1`.
+Tamaño total = `16 + 4 × window` bytes (máximo 4096). Voltaje: `V = valor / 1000`. **Cambio v1 → v2:** en v1 las muestras eran el código crudo del ADC (0..4095).
 
 > Las dos señales se convierten alternadas por el mismo ADC, de modo que el canal B va retrasado medio periodo de muestreo del ADC respecto al A (por ejemplo, 12,5 µs en el preset de 40 kSa/s).
 

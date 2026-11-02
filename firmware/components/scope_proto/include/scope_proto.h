@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SCOPE_PROTO_VERSION 1
+#define SCOPE_PROTO_VERSION 2 /* v2: las muestras son milivoltios calibrados (v1: código crudo del ADC) */
 
 #define SCOPE_NUM_CHANNELS 2
 #define SCOPE_ADC_BITS 12
@@ -46,6 +46,7 @@ typedef enum {
 #define SCOPE_FLAG_CMD_REJECTED 0x02
 #define SCOPE_FLAG_BAD_CMD_CHK 0x04
 #define SCOPE_FLAG_TEST_MODE 0x08
+#define SCOPE_FLAG_UNCALIBRATED 0x10 /* sin calibración de eFuse: mV aproximados */
 
 typedef struct {
     uint32_t fs_hz;       /* frecuencia de muestreo por canal */

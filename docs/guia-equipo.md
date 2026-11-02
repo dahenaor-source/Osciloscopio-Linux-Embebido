@@ -20,7 +20,7 @@ Solo Python 3 y `esptool`:
 
 ```bash
 pip install esptool
-esptool.py --chip esp32c6 -p <PUERTO> -b 460800 write_flash 0x0 release/osciloscopio_c6_v1.bin
+esptool.py --chip esp32c6 -p <PUERTO> -b 460800 write_flash 0x0 release/osciloscopio_c6_v2.bin
 ```
 
 | Sistema | `<PUERTO>` |
@@ -31,7 +31,7 @@ esptool.py --chip esp32c6 -p <PUERTO> -b 460800 write_flash 0x0 release/oscilosc
 
 - Se flashea en el offset `0x0` (el binario ya incluye bootloader, tabla de particiones y aplicación).
 - Si no conecta: mantener pulsado **BOOT**, pulsar y soltar **RESET** y soltar BOOT; reintentar.
-- SHA-256 de `osciloscopio_c6_v1.bin`: `f5f793ba5b343073d21426c9ae5733cac80c51bb8b017f42e009a60cea5baa00`.
+- SHA-256 de `osciloscopio_c6_v2.bin`: `1c51a29df9c500cb06603873d2eb6444d1340b4ed6fb0c01d0ccdb8b76a5ac9c`.
 
 Comprobación: abrir el monitor serie a 115200 baudios (`python -m serial.tools.miniterm <PUERTO> 115200`) y pulsar RESET. Debe aparecer:
 
@@ -75,6 +75,6 @@ Empezar con `--speed 1000000` (1 MHz) y subir progresivamente.
 | Funciona a 1 MHz y falla a más | Cables largos, falta de GND común; bajar la velocidad |
 | `comando rechazado` | Se cambió configuración durante una captura (`ARMED`); enviar `RESET` primero |
 | `captura fallida, estado=3` | El ADC no entregó datos a tiempo; revisar con `--test-mode` si el SPI está bien |
-| Valores del ADC siempre 0 o 4095 | Señal fuera de 0 a 3,1 V o sin GND común con el generador |
+| Valores siempre 0 mV o ~3100 mV | Señal fuera de 0 a 3,1 V o sin GND común con el generador |
 
 Cualquier otro maestro SPI sirve para probar el firmware (Raspberry Pi, adaptador USB-SPI como FT232H), mientras use 3,3 V.

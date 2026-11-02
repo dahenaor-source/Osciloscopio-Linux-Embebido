@@ -23,7 +23,7 @@ ESP32-C6 ══SPI══► [backend en BeaglePlay] ──JSON──► nginx/ap
 1. **Habilitar el SPI de la mikroBUS** como `/dev/spidevX.Y` (sección 4).
 2. **Backend** (Python con `spidev`, o C) que cada 1–4 s: arma la secuencia ARM → espera READY → lee la trama → guarda la última ventana.
 3. **API HTTP** que el dashboard ya espera (contrato en [dashboard/README.md](../dashboard/README.md)):
-   - `GET /api/scope/frame` → `{seq, rate_idx, fs_hz, window, flags, a:[raw], b:[raw]}`
+   - `GET /api/scope/frame` → `{seq, rate_idx, fs_hz, window, flags, a:[mV], b:[mV]}`
    - `POST /api/scope/config` con `{"rate_idx": 0..3}` → envía `SET_RATE` por SPI.
 4. **nginx o apache** sirviendo `dashboard/` y haciendo proxy de `/api/` al backend.
 5. **Medir** la tasa real de SPI (el enunciado pide estimar la teórica y verificarla experimentalmente).
@@ -42,7 +42,7 @@ Detalle completo en [protocolo-spi.md](protocolo-spi.md).
 - Un comando surte efecto **después** de su transacción: se ve en el siguiente encabezado.
 - Esperar **≥ 2 ms entre transacciones** o usar la línea INT (GPIO3).
 - Trama completa = `16 + 4 × ventana` bytes, máx. 4096 (el `bufsiz` por defecto de spidev).
-- Voltaje: `V ≈ raw / 4095 × 3,1`.
+- Voltaje: `V = mV / 1000`. Desde el protocolo v2 el ESP32 entrega las muestras en **milivoltios calibrados**; no hay que convertir ni calibrar en el SBC.
 
 ## 4. Contexto de la BeaglePlay
 

@@ -1,7 +1,7 @@
 "use strict";
 
 // ---- Contrato con el backend (ver dashboard/README.md) -------------------
-const API_FRAME  = "/api/scope/frame";   // GET  -> {seq, rate_idx, fs_hz, window, flags, a:[raw], b:[raw]}
+const API_FRAME  = "/api/scope/frame";   // GET  -> {seq, rate_idx, fs_hz, window, flags, a:[mV], b:[mV]}
 const API_CONFIG = "/api/scope/config";  // POST <- {rate_idx}
 
 // Mismos presets que el firmware (docs/protocolo-spi.md)
@@ -11,12 +11,11 @@ const PRESETS = [
   { idx: 2, fs: 10000, label: "10.000 Sa/s" },
   { idx: 3, fs: 40000, label: "40.000 Sa/s" },
 ];
-const ADC_MAX = 4095;   // 12 bits
-const V_FULL  = 3.1;    // V ≈ raw / 4095 * 3,1 (atenuación 12 dB)
+// Protocolo v2: el ESP32 entrega milivoltios ya calibrados con la eFuse del ADC.
 const WINDOW  = 256;    // muestras por ventana en modo simulado
 
 const $ = (id) => document.getElementById(id);
-const toVolts = (raw) => (raw / ADC_MAX) * V_FULL;
+const toVolts = (mv) => mv / 1000;
 
 // ---- Fuente simulada: 2 senoidales con ruido, en la ventana pedida ------
 let simPhase = 0;
@@ -29,8 +28,8 @@ function simFrame(rateIdx) {
     const t = n / p.fs;
     const va = 1.55 + 1.2 * Math.sin(2 * Math.PI * fA * t + simPhase) + (Math.random() - 0.5) * 0.03;
     const vb = 1.0 + 0.8 * (((fB * t) % 1) < 0.5 ? 1 : -1) * 0.5 + (Math.random() - 0.5) * 0.03;
-    a.push(Math.round(va / V_FULL * ADC_MAX));
-    b.push(Math.round(vb / V_FULL * ADC_MAX));
+    a.push(Math.round(va * 1000));
+    b.push(Math.round(vb * 1000));
   }
   simPhase += 0.7;
   return { seq: (simFrame.seq = ((simFrame.seq || 0) + 1) & 0xffff), rate_idx: rateIdx,
@@ -93,6 +92,7 @@ function render(f) {
   const warn = [];
   if (f.flags & 1) warn.push("OVERRUN");
   if (f.flags & 2) warn.push("comando rechazado");
+  if (f.flags & 16) warn.push("ADC sin calibrar");
   $("info").textContent =
     `seq ${f.seq} · ${f.fs_hz} Sa/s · ${f.window} muestras · ventana ${(f.window / f.fs_hz * 1000).toFixed(1)} ms` +
     (warn.length ? " · ⚠ " + warn.join(", ") : "") + (f.flags & 8 ? " · modo test" : "") +

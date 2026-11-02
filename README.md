@@ -38,7 +38,7 @@ Sin compilar: flashear el binario listo (ver [guía del equipo](docs/guia-equipo
 
 ```bash
 pip install esptool
-esptool.py --chip esp32c6 -p /dev/ttyACM0 -b 460800 write_flash 0x0 release/osciloscopio_c6_v1.bin
+esptool.py --chip esp32c6 -p /dev/ttyACM0 -b 460800 write_flash 0x0 release/osciloscopio_c6_v2.bin
 ```
 
 Compilando desde el código fuente:

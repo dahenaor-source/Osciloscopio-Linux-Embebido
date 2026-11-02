@@ -30,6 +30,7 @@ static const char *TAG = "scope_link";
 static uint8_t cfg_rate_idx = 1;
 static uint16_t cfg_window = SCOPE_DEFAULT_WINDOW;
 static bool cfg_test_mode;
+static bool adc_calibrated;
 
 /* Estado compartido entre la tarea SPI y la tarea de captura. */
 static _Atomic uint8_t state = SCOPE_ST_IDLE;
@@ -71,7 +72,8 @@ static void prepare_tx(void)
     scope_header_t h = {
         .state = st,
         .flags = last_err_flags | (last_overrun ? SCOPE_FLAG_OVERRUN : 0) |
-                 (cfg_test_mode ? SCOPE_FLAG_TEST_MODE : 0),
+                 (cfg_test_mode ? SCOPE_FLAG_TEST_MODE : 0) |
+                 (adc_calibrated ? 0 : SCOPE_FLAG_UNCALIBRATED),
         .rate_idx = cfg_rate_idx,
         .window = cfg_window,
         .seq = seq,
@@ -211,6 +213,7 @@ static void capture_task_fn(void *arg)
 
 esp_err_t scope_link_start(void)
 {
+    adc_calibrated = capture_is_calibrated(); /* construye las tablas antes de lanzar las tareas */
     cap_a = heap_caps_calloc(SCOPE_MAX_WINDOW, sizeof(uint16_t), MALLOC_CAP_INTERNAL);
     cap_b = heap_caps_calloc(SCOPE_MAX_WINDOW, sizeof(uint16_t), MALLOC_CAP_INTERNAL);
     tx_buf = heap_caps_calloc(1, SCOPE_MAX_FRAME, MALLOC_CAP_DMA);

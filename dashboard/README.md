@@ -28,7 +28,7 @@ Abre `http://localhost:8080` → **Start**. Muestra 2 canales simulados, estadí
   "a": [2048, 2051, ...], "b": [1020, 1018, ...] }
 ```
 
-- `a`, `b`: valores crudos de 12 bits (0–4095) tal como los entrega el ESP32 (ver `docs/protocolo-spi.md`). El dashboard convierte a voltios: `V = raw / 4095 × 3,1`.
+- `a`, `b`: milivoltios (protocolo v2, ya calibrados en el ESP32 con la eFuse del ADC; ver `docs/protocolo-spi.md`). El dashboard convierte a voltios: `V = mV / 1000`.
 - `flags`: los del encabezado SPI (bit0 overrun, bit1 comando rechazado, bit2 checksum, bit3 modo test).
 
 **`POST /api/scope/config`** con `{"rate_idx": 0..3}` → el backend envía `SET_RATE` por SPI.

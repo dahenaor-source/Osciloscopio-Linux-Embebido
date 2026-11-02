@@ -46,10 +46,10 @@ def generar_frame_simulado(window: int = 256):
     
     for i in range(window):
         t = t_now + (i / fs)
-        val_a = int(2048 + 1500 * math.sin(2 * math.pi * 5 * t))
-        val_b = int(2048 + 1200 * math.cos(2 * math.pi * 2 * t))
-        a_samples.append(max(0, min(4095, val_a)))
-        b_samples.append(max(0, min(4095, val_b)))
+        val_a = int(1650 + 1200 * math.sin(2 * math.pi * 5 * t))
+        val_b = int(1650 + 1000 * math.cos(2 * math.pi * 2 * t))
+        a_samples.append(max(0, min(3300, val_a)))
+        b_samples.append(max(0, min(3300, val_b)))
         
     return {
         "seq": seq_counter,

@@ -21,6 +21,7 @@ Decisiones de diseño:
 
 - **Captura bajo demanda (`ARM`)**: el dashboard refresca a ≤ 1 Hz, así que no se transmite en continuo. Cada captura arranca el ADC, llena la ventana y lo detiene.
 - **ADC continuo (`adc_continuous`)**: el hardware fija el periodo de conversión, lo que garantiza frecuencia de muestreo constante. Límites del ADC del C6: 611 a 83.333 Sa/s en total (`SOC_ADC_SAMPLE_FREQ_THRES_*` en ESP-IDF 5.4.1). Con 2 canales alternados, el máximo es 41,6 kSa/s por canal; el preset de 40 kSa/s usa 80 kSa/s en total.
+- **Calibración (protocolo v2)**: el ADC del C6 no es lineal y su fondo de escala varía entre placas (en una placa real, 3,28 V se leían como 2,56 V con la conversión lineal ideal). Al arrancar se construye con `adc_cali_curve_fitting` (coeficientes de eFuse) una tabla código→mV de 4096 entradas por canal (16 KiB); la captura solo hace una lectura de tabla por muestra. Si la placa no tiene datos de eFuse se usa una recta aproximada y se activa el flag `UNCALIBRATED`.
 - **100 Sa/s**: queda bajo el mínimo del ADC, así que se convierte a 2 kSa/s y se promedian 10 conversiones por muestra (además reduce ruido).
 - **Cabecera de estado en toda respuesta**: el esclavo SPI debe preparar la respuesta antes de la transacción, por lo que un comando solo se refleja en la transacción siguiente. La cabecera permite al maestro confirmarlo.
 - **Prioridades**: `spi_link` (7) > `capture` (6), para atender el SPI aunque haya captura en curso.
@@ -111,11 +112,11 @@ python3 tools/spi_master_test.py --dev /dev/spidevX.Y --bench --speed 10000000
 | FW-08 | Frecuencia de muestreo real de cada preset | Analizador lógico / señal de frecuencia conocida | Experimental | ⏳ Pendiente |
 | FW-09 | Captura a 40 kSa/s sin desbordamiento (bonificación) | `flags` bit0 = 0 y señal conocida | Experimental | ⏳ Pendiente |
 | FW-10 | Velocidad máxima de SPI estable y caudal real | `--bench` a distintas velocidades | Experimental | ⏳ Pendiente |
-| FW-11 | Exactitud del ADC (0 V, mitad de escala, 3 V) | Voltímetro vs. valor leído | Experimental | ⏳ Pendiente |
+| FW-11 | Exactitud del ADC calibrado (0,25 / 0,5 / 1 / 1,5 / 2 / 2,5 / 3 V) | Multímetro vs. mV leídos (Prom del dashboard) | Experimental | ⏳ Pendiente: re-medir con firmware v2 (con v1 sin calibrar: 0,5→0,7 V, 1,3→1,0 V, 2,0→1,8 V, 3,28→2,56 V) |
 | FW-12 | Integración con el SBC y dashboard | Prueba de extremo a extremo | Integración | ⏳ Pendiente |
 
 ## Limitaciones conocidas
 
-- El ADC del ESP32-C6 tiene una no linealidad apreciable cerca de 0 V y de plena escala; para medidas precisas, calibrar o limitar el rango útil.
+- El ADC del ESP32-C6 tiene una no linealidad apreciable cerca de 0 V y de plena escala; el firmware v2 lo compensa con la calibración de eFuse, pero cerca de 0 V y de plena escala el error sigue siendo mayor.
 - Con 2 canales sobre un solo ADC, el canal B está desfasado medio periodo de conversión respecto al A.
 - Sin disparo (trigger): cada captura comienza al recibir `ARM`.
