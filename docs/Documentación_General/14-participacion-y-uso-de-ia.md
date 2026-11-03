@@ -30,8 +30,8 @@ Historial de commits: `git log --format='%h %an %ad %s' --date=short`.
 ### 2.1 Modelo y herramienta
 
 - Herramienta: asistente de IA integrado en VS Code (GitHub Copilot, modo agente con acceso a terminal y archivos) usado por **David Henao Rojas**.
-- Modelo: _por completar_ (el nombre exacto del modelo no está registrado en el repositorio ni lo informa la herramienta durante la sesión; consultar el selector de modelo de VS Code o el historial de la sesión).
-- Juan Camilo y Daniela: _declarar si usaron IA, qué herramienta y modelo, y para qué_.
+- Herramientas de IA usadas en el proyecto (declaradas por el equipo): **Copilot, Gemini y ChatGPT**. La versión exacta de cada modelo no está registrada: _por completar_ (selector de modelo de VS Code e historial de cada herramienta).
+- Qué herramienta usó cada integrante y para qué tarea: _por completar_ (en este repositorio, el firmware, el dashboard y estos documentos se hicieron con el asistente de VS Code).
 
 ### 2.2 Tareas en las que se usó la IA (lado David)
 
@@ -70,6 +70,6 @@ El enunciado pide incluir el contenido de las interacciones. **Por completar ant
 
 | Integrante | Archivo del chat | Herramienta y modelo |
 |---|---|---|
-| David Henao Rojas | _por completar_ | _por completar_ |
+| David Henao Rojas | _por completar_ | Copilot (VS Code); _confirmar si también Gemini o ChatGPT_ |
 | Juan Camilo Giraldo | _por completar_ | _por completar_ |
 | Daniela Barragán | _por completar_ | _por completar_ |
