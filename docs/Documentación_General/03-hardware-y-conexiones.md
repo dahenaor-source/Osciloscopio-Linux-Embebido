@@ -1,4 +1,4 @@
-# Pinout y conexiones
+# 03. Hardware y conexiones
 
 Conexión entre el puerto **mikroBUS de la BeaglePlay** (SPI maestro) y la **ESP32-C6-DevKitC-1** (SPI esclavo).
 
@@ -46,7 +46,7 @@ La izquierda baja de 1 a 8 y la derecha sube de 9 (GND) a 16 (PWM). **Ante cualq
 | CH A | **GPIO0** (ADC1_CH0) | Señal 1 del generador |
 | CH B | **GPIO1** (ADC1_CH1) | Señal 2 del generador |
 
-- Rango de entrada: **0 a ~3,1 V** (atenuación 12 dB). El ADC no mide voltajes negativos y puede dañarse por encima de 3,3 V.
+- Rango de entrada: **0 a ~3,1 V** (atenuación 12 dB). El ADC no mide voltajes negativos y puede dañarse por encima de 3,3 V. Con el firmware v2 la lectura sale en mV calibrados ([08-calibracion-adc.md](08-calibracion-adc.md)).
 - Configurar el generador de señales con **offset positivo** (por ejemplo, seno de 1,5 V de amplitud pico y 1,5 V de offset) y verificar con el osciloscopio/analizador antes de conectar.
 - Recomendado (opcional): resistencia de 1 kΩ en serie en cada entrada para limitar corriente.
 - Unir la tierra del generador con GND de la ESP32-C6.
@@ -57,9 +57,20 @@ La izquierda baja de 1 a 8 y la derecha sube de 9 (GND) a 16 (PWM). **Ante cualq
 - El CS nativo es el GPIO16, que es el TX de la UART de consola/flasheo de la DevKitC-1; por eso el CS usa GPIO10 (matriz de GPIO).
 - GPIO0 y GPIO1 son canales del ADC1 y no se solapan con el SPI. Se evitan los pines de arranque (GPIO4, 5, 8, 9, 15).
 
-## En la BeaglePlay (por definir por el equipo del SBC)
+## Montaje de prueba con potenciómetro (sin generador)
 
-- El puerto mikroBUS está gestionado por defecto por el driver `mikrobus`; para usar el SPI como `/dev/spidevX.Y` hay que deshabilitar ese driver o usar un overlay. **La ruta del dispositivo aún no está determinada.** Se obtiene con `ls /dev/spidev*` una vez configurado.
+Se usó mientras no hay generador de señales:
+
+- Potenciómetro entre **3V3 del ESP32-C6** y **GND del ESP32-C6** (ese 3V3 solo alimenta el potenciómetro; no se une al de la BeaglePlay).
+- Cursor (terminal central) a **GPIO0 (CH A)**. **GPIO1 (CH B)** va al mismo nodo a través de una resistencia de 1 kΩ, por lo que ambos canales leen lo mismo.
+- Un **condensador** entre el cursor y GND filtra el ruido (ver [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md), pruebas P-08 y P-09).
+- Un potenciómetro solo genera DC: valida el voltaje, no la frecuencia de muestreo. Para frecuencia hace falta una señal periódica.
+
+## En la BeaglePlay
+
+- El puerto mikroBUS está gestionado por defecto por el driver `mikrobus`. El equipo del SBC usa **`/dev/spidev0.0`** (bus 0, dispositivo 0) y con él ya se leyeron cabeceras válidas del ESP32-C6. ⚠️ **No está documentado cómo se habilitó ese spidev** (overlay, desactivar el driver, etc.); el equipo del SBC debe registrarlo en [12-guia-equipo-sbc.md](12-guia-equipo-sbc.md), sección 6.
 - Parámetros del maestro: **modo 0** (CPOL=0, CPHA=0), 8 bits por palabra, MSB primero.
+- Velocidades probadas: **100 kHz** y **2 MHz**.
 - Tamaño máximo de transacción: 4096 bytes, igual al `bufsiz` por defecto de `spidev`.
-- La línea INT (handshake) puede leerse con `libgpiod`. Si no se usa, esperar ≥ 2 ms entre transacciones.
+- La línea INT (handshake) puede leerse con `libgpiod`. Hoy el backend no la usa: espera ≥ 2 ms entre transacciones y reintenta.
+- ⚠️ La numeración de pines mikroBUS de este documento sigue la convención en U confirmada por el equipo; no se ha contrastado todavía con el esquemático de la BeaglePlay. Guiarse por la serigrafía.

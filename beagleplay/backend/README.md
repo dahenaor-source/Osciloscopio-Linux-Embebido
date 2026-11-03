@@ -11,7 +11,7 @@ El servidor unifica el acceso web, el driver de hardware y la transmisión de da
 ```
 beagleplay/backend/
 ├── main.py        # Servidor principal FastAPI, rutas API y servidor estático
-├── spi_driver.py  # Driver del bus SPI (Protocolo v1: cabeceras 16B, checksum XOR, Little-Endian)
+├── spi_driver.py  # Driver del bus SPI (cabeceras de 16 B, checksum XOR, little-endian; reintentos y candado)
 └── README.md      # Documentación técnica del módulo backend
 ```
 
@@ -23,7 +23,7 @@ El módulo `SPIDriver` implementa la comunicación Full-Duplex en **Modo SPI 0**
 
 * **Trama de comando (4 bytes):** Envío de instrucciones (`NOP`, `SET_RATE`, `ARM`, etc.) con cálculo de checksum `cmd ^ arg_lo ^ arg_hi ^ 0x5A`.
 * **Validación de respuesta:** Verificación del byte mágico (`0xE5`) y checksum de la cabecera de 16 bytes.
-* **Desempaquetado de datos:** Conversión de bytes crudos Little-Endian a muestras `uint16` de 12 bits (0–4095) para los Canales A y B.
+* **Desempaquetado de datos:** Conversión de bytes little-endian a muestras `uint16` para los Canales A y B. Desde el protocolo v2 son **milivoltios calibrados** por el ESP32-C6 (antes, código crudo de 12 bits).
 * **Tiempos de guarda:** Control de pausas (≥ 2 ms) entre transacciones SPI para estabilidad de enlace.
 
 ---
@@ -32,7 +32,7 @@ El módulo `SPIDriver` implementa la comunicación Full-Duplex en **Modo SPI 0**
 
 ### 1. Obtener Ventana de Muestras
 * **Ruta:** `GET /api/scope/frame`
-* **Descripción:** Devuelve la última ventana de 256 muestras de 12 bits para los Canales A y B.
+* **Descripción:** Captura y devuelve una ventana (256 muestras por defecto) en mV para los Canales A y B, más `retries` (transacciones SPI repetidas).
 * **Respuesta JSON (`200 OK`):**
 ```json
 {
@@ -41,8 +41,9 @@ El módulo `SPIDriver` implementa la comunicación Full-Duplex en **Modo SPI 0**
   "fs_hz": 1000,
   "window": 256,
   "flags": 0,
-  "a": [2048, 2051, 2055],
-  "b": [1020, 1018, 1015]
+  "retries": 0,
+  "a": [1650, 1655, 1661],
+  "b": [820, 818, 815]
 }
 ```
 
@@ -79,8 +80,10 @@ En `main.py` se controla el origen de los datos mediante la bandera global:
 
 ```bash
 cd beagleplay/backend
-python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
+
+`SPI_SPEED_HZ` (por defecto 100000) fija la velocidad del SPI; 2 MHz es la que funcionó. Reintentos, tiempos y diagnóstico de errores: [`docs/Documentación_General/06-backend-beagleplay.md`](../../docs/Documentación_General/06-backend-beagleplay.md).
 
 ### Accesos
 * **Dashboard Web:** `http://<IP_BEAGLEPLAY>:8000/`

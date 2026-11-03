@@ -1,18 +1,19 @@
-# Guía para el equipo del SBC (BeaglePlay)
+# 12. Guía para el equipo del SBC (BeaglePlay)
 
 Para **Juan Camilo Giraldo** y **Daniela Barragán**. Resume lo que ya existe, lo que falta y qué verificar en la BeaglePlay. Lo marcado con ⚠️ **no está verificado** en la placa real: confírmenlo y corrijan este documento.
 
-## 1. Estado actual
+## 1. Estado actual (actualizado 2026-11-03)
 
 | Parte | Estado | Dónde |
 |---|---|---|
-| Firmware ESP32-C6 (SPI esclavo + ADC) | Compila, se flashea y arranca. Sin probar con un maestro SPI | `firmware/`, `release/` |
-| Protocolo SPI | Definido y con pruebas unitarias en PC | [protocolo-spi.md](protocolo-spi.md) |
-| Cableado mikroBUS ↔ ESP32-C6 | Asignado | [hardware-pinout.md](hardware-pinout.md) |
-| Maestro SPI de referencia (Python) | Escrito, **nunca ejecutado en hardware** | `tools/spi_master_test.py` |
-| Dashboard HTML (Chart.js) | Funciona con datos simulados; falta el backend | `dashboard/` |
-| **Backend en el SBC** (lee SPI y expone la API) | **Por hacer** | — |
-| Servidor apache/nginx configurado | **Por hacer** | — |
+| Firmware ESP32-C6 (SPI esclavo + ADC, protocolo v2, calibración) | Probado con la BeaglePlay a 2 MHz. v2 compila; **sin flashear** | `firmware/`, `release/` |
+| Protocolo SPI | Definido, con pruebas unitarias en PC y probado en hardware | [04-protocolo-spi.md](04-protocolo-spi.md) |
+| Cableado mikroBUS ↔ ESP32-C6 | Asignado y funcionando | [03-hardware-y-conexiones.md](03-hardware-y-conexiones.md) |
+| Backend FastAPI + driver SPI | **Hecho** (Juan Camilo) y robustecido con reintentos | [06-backend-beagleplay.md](06-backend-beagleplay.md) |
+| Dashboard HTML (Chart.js) | Funciona con datos reales | [07-dashboard.md](07-dashboard.md) |
+| `/dev/spidev0.0` | Funciona; **método para habilitarlo sin documentar** | sección 6 |
+| Servidor **apache o nginx** | **Por hacer** (lo exige el enunciado) | — |
+| Preset 40 kSa/s | Con error; hay que capturar el mensaje | [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md) |
 
 ## 2. Qué hay que construir
 
@@ -20,19 +21,19 @@ Para **Juan Camilo Giraldo** y **Daniela Barragán**. Resume lo que ya existe, l
 ESP32-C6 ══SPI══► [backend en BeaglePlay] ──JSON──► nginx/apache ──HTTP──► navegador (dashboard/)
 ```
 
-1. **Habilitar el SPI de la mikroBUS** como `/dev/spidevX.Y` (sección 4).
-2. **Backend** (Python con `spidev`, o C) que cada 1–4 s: arma la secuencia ARM → espera READY → lee la trama → guarda la última ventana.
-3. **API HTTP** que el dashboard ya espera (contrato en [dashboard/README.md](../dashboard/README.md)):
+1. ✅ **Habilitar el SPI de la mikroBUS** como `/dev/spidevX.Y` (sección 4): funciona como `/dev/spidev0.0`; falta documentar cómo.
+2. ✅ **Backend** (hecho en Python con `spidev` y FastAPI) que cada 1–4 s: arma la secuencia ARM → espera READY → lee la trama → guarda la última ventana.
+3. ✅ **API HTTP** que el dashboard ya espera (contrato en [dashboard/README.md](../../dashboard/README.md)):
    - `GET /api/scope/frame` → `{seq, rate_idx, fs_hz, window, flags, a:[mV], b:[mV]}`
    - `POST /api/scope/config` con `{"rate_idx": 0..3}` → envía `SET_RATE` por SPI.
-4. **nginx o apache** sirviendo `dashboard/` y haciendo proxy de `/api/` al backend.
-5. **Medir** la tasa real de SPI (el enunciado pide estimar la teórica y verificarla experimentalmente).
+4. ⏳ **nginx o apache** sirviendo `dashboard/` y haciendo proxy de `/api/` al backend.
+5. ⏳ **Medir** la tasa real de SPI (el enunciado pide estimar la teórica y verificarla experimentalmente).
 
 Punto de partida del backend: `tools/spi_master_test.py` ya implementa el handshake, el checksum de comandos y la lectura de tramas. Léanlo antes de escribir el suyo.
 
 ## 3. Lo esencial del protocolo (resumen)
 
-Detalle completo en [protocolo-spi.md](protocolo-spi.md).
+Detalle completo en [04-protocolo-spi.md](04-protocolo-spi.md).
 
 - SPI **modo 0**, 8 bits, MSB primero. BeaglePlay = **maestro**; ESP32-C6 = **esclavo**.
 - Comando de 4 bytes: `[cmd, arg_lo, arg_hi, chk]`, con `chk = cmd ^ lo ^ hi ^ 0x5A`.
@@ -60,7 +61,7 @@ Datos generales de la placa (conocidos): SoC TI **AM625** (Cortex-A53), Linux (i
 | RST (opcional) | 2 | EN |
 | GND | 8 ó 9 | GND |
 
-Numeración en U (izquierda 1–8 hacia abajo, derecha 9–16 hacia arriba; ver tabla completa en [hardware-pinout.md](hardware-pinout.md)). La especificación mikroBUS no numera los pines, así que **guíense por el nombre de la serigrafía** y verifíquenlo contra el esquemático de la BeaglePlay antes de conectar. Fuentes: documentación y esquemático en <https://docs.beagleboard.org/boards/beagleplay/>.
+Numeración en U (izquierda 1–8 hacia abajo, derecha 9–16 hacia arriba; ver tabla completa en [03-hardware-y-conexiones.md](03-hardware-y-conexiones.md)). La especificación mikroBUS no numera los pines, así que **guíense por el nombre de la serigrafía** y verifíquenlo contra el esquemático de la BeaglePlay antes de conectar. Fuentes: documentación y esquemático en <https://docs.beagleboard.org/boards/beagleplay/>.
 
 ### Habilitar `/dev/spidev` ⚠️
 
@@ -92,12 +93,12 @@ sudo python3 tools/spi_master_test.py --dev /dev/spidevX.Y --test-mode
 
 ## 5. Primera prueba de integración (orden sugerido)
 
-1. Flashear la ESP32-C6 ([guia-equipo.md](guia-equipo.md)); el monitor serie debe mostrar `scope_link: SPI esclavo listo`.
+1. Flashear la ESP32-C6 ([11-guia-flasheo-esp32c6.md](11-guia-flasheo-esp32c6.md)); el monitor serie debe mostrar `scope_link: SPI esclavo listo`.
 2. Cablear según la tabla de la sección 4.
 3. Con **modo test** (`SET_TESTMODE`) el ESP32 envía un patrón conocido: sirve para validar el SPI **sin** señal analógica.
 4. Verificar encabezado: magic `0xE5`, checksum correcto, `seq` incrementando.
 5. Probar los 4 presets y comprobar `fs_hz` en el encabezado.
-6. Medir velocidad: subir `--speed` gradualmente (1, 5, 10, 20, 40 MHz) y registrar a cuál empiezan los errores. Ver tasas teóricas en [firmware.md](firmware.md).
+6. Medir velocidad: subir `--speed` gradualmente (1, 5, 10, 20, 40 MHz) y registrar a cuál empiezan los errores. Ver tasas teóricas en [05-firmware-esp32c6.md](05-firmware-esp32c6.md).
 7. Conectar el generador de señales (0–3,1 V, solo positivo) y comparar con el dashboard.
 
 Límites teóricos para el informe: el esclavo ESP32-C6 admite hasta **40 MHz** (5 MB/s); el SPI del AM62x como maestro ⚠️ debe confirmarse en su hoja de datos (se citó 50 MHz). El flujo real a 40 kSa/s con 2 canales es solo ~160 kB/s.
@@ -109,9 +110,9 @@ Completen esta tabla y hagan commit a `main` para que el resto tenga la informac
 | Dato | Valor |
 |---|---|
 | Imagen/versión de la BeaglePlay | _pendiente_ |
-| Ruta spidev | _pendiente_ |
-| Método para habilitarlo (overlay / driver) | _pendiente_ |
-| Velocidad SPI máx. sin errores | _pendiente_ |
+| Ruta spidev | `/dev/spidev0.0` (funciona, 2026-10-30) |
+| Método para habilitarlo (overlay / driver) | _pendiente: documentar_ |
+| Velocidad SPI probada | 100 kHz y 2 MHz; máximo sin errores: _pendiente_ |
 | Servidor HTTP elegido (apache/nginx) y config | _pendiente_ |
 
 ## 7. Notas

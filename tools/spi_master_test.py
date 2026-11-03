@@ -2,7 +2,7 @@
 """Maestro SPI de referencia para probar el firmware del ESP32-C6.
 
 Sirve para verificar el enlace desde la BeaglePlay (o cualquier Linux con
-spidev) y como ejemplo del protocolo descrito en docs/protocolo-spi.md.
+spidev) y como ejemplo del protocolo descrito en docs/Documentación_General/04-protocolo-spi.md.
 
 Uso:
   python3 spi_master_test.py --dev /dev/spidev0.0 --test-mode      # integridad

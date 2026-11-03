@@ -1,7 +1,7 @@
 /*
  * Protocolo SPI del osciloscopio (ESP32-C6 esclavo <-> SBC maestro).
  * Sin dependencias de ESP-IDF: se puede compilar y probar en el PC.
- * Especificación completa: docs/protocolo-spi.md
+ * Especificación completa: docs/Documentación_General/04-protocolo-spi.md
  */
 #pragma once
 

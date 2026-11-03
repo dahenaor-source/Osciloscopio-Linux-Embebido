@@ -1,6 +1,6 @@
-# Guía rápida para el equipo: probar el ESP32-C6
+# 11. Guía rápida: flashear y probar el ESP32-C6
 
-El firmware ya está compilado y verificado. **No hace falta instalar ESP-IDF**: basta flashear el binario de [`release/`](../release) y conectar el SBC.
+El firmware (v2) está compilado y las pruebas del protocolo pasan; la v1 se probó con la BeaglePlay y la v2 está pendiente de flashear y medir. **No hace falta instalar ESP-IDF**: basta flashear el binario de [`release/`](../../release) y conectar el SBC.
 
 ## 1. Qué necesitas
 
@@ -12,7 +12,7 @@ El firmware ya está compilado y verificado. **No hace falta instalar ESP-IDF**:
 | Generador de señales (opcional) | Probar el ADC; máximo 0 a 3,1 V, solo positivo |
 | Analizador lógico (opcional) | Verificar reloj SPI y handshake |
 
-Conexiones: ver [hardware-pinout.md](hardware-pinout.md). Resumen: SCK `GPIO6`, MISO `GPIO2`, MOSI `GPIO7`, CS `GPIO10`, INT `GPIO3`, GND común. **No conectar 3,3 V ni 5 V entre las placas.**
+Conexiones: ver [03-hardware-y-conexiones.md](03-hardware-y-conexiones.md). Resumen: SCK `GPIO6`, MISO `GPIO2`, MOSI `GPIO7`, CS `GPIO10`, INT `GPIO3`, GND común. **No conectar 3,3 V ni 5 V entre las placas.**
 
 ## 2. Flashear el binario (sin ESP-IDF)
 
@@ -26,7 +26,7 @@ esptool.py --chip esp32c6 -p <PUERTO> -b 460800 write_flash 0x0 release/oscilosc
 | Sistema | `<PUERTO>` |
 |---|---|
 | Linux | `/dev/ttyACM0` |
-| WSL | `/dev/ttyACM0` (antes hacer `usbipd attach`, ver [firmware.md](firmware.md)) |
+| WSL | `/dev/ttyACM0` (antes hacer `usbipd attach`, ver [05-firmware-esp32c6.md](05-firmware-esp32c6.md)) |
 | Windows | `COMx` (ver Administrador de dispositivos) |
 
 - Se flashea en el offset `0x0` (el binario ya incluye bootloader, tabla de particiones y aplicación).
@@ -64,8 +64,15 @@ Empezar con `--speed 1000000` (1 MHz) y subir progresivamente.
 
 1. **Habilitar el SPI de mikroBUS como `/dev/spidev*`** en la BeaglePlay. Por defecto lo gestiona el driver `mikrobus`; hay que desactivarlo o crear un overlay de device tree. La ruta final no está determinada.
 2. Usar **modo SPI 0**, 8 bits, MSB primero, y esperar **≥ 2 ms entre transacciones** (o leer la línea INT con `libgpiod`).
-3. Implementar el protocolo de [protocolo-spi.md](protocolo-spi.md). `tools/spi_master_test.py` sirve como referencia ya funcional (funciones `cmd_frame`, `parse_header` y `Scope.capture`).
+3. Implementar el protocolo de [04-protocolo-spi.md](04-protocolo-spi.md). `tools/spi_master_test.py` sirve como referencia ya funcional (funciones `cmd_frame`, `parse_header` y `Scope.capture`).
 4. Elegir la ventana para cumplir el refresco del dashboard (entre 1 y 4 s por gráfica): a 100 Sa/s, 256 muestras tardan 2,56 s.
+
+## 4.1 Notas de las pruebas con la BeaglePlay
+
+- El **modo de prueba persiste** hasta reiniciar el ESP32-C6 (botón RESET) o enviar `SET_TESTMODE 0`. Si el dashboard muestra «modo test» y dos líneas casi planas (≈ 0 V y ≈ 3,1 V), es ese modo, no el ADC.
+- Usar **2 MHz** como velocidad SPI; a 100 kHz se pierden más transacciones.
+- Con el firmware v2 las muestras van en **mV**; con la v1, en código crudo. Backend y dashboard deben ser de la misma versión.
+- Para ver errores del ADC o del SPI esclavo, abrir el monitor serie (el USB debe estar conectado al PC o a WSL con `usbipd attach`).
 
 ## 5. Si algo falla
 

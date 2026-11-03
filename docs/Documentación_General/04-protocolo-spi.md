@@ -1,4 +1,4 @@
-# Protocolo SPI (versión 1)
+# 04. Protocolo SPI (versión 2)
 
 El SBC es el **maestro** y la ESP32-C6 el **esclavo**. Modo SPI 0, 8 bits, MSB primero. Los enteros multibyte van en **little-endian**.
 
@@ -27,7 +27,7 @@ Cada transacción es **full-duplex**: el maestro envía un **comando de 4 bytes*
 | 0x02 | `SET_WINDOW` | 64..1020 | Muestras por canal por ventana |
 | 0x03 | `ARM` | 0 | Inicia una captura única |
 | 0x04 | `RESET` | 0 | Aborta la captura y vuelve a `IDLE` |
-| 0x05 | `SET_TESTMODE` | 0 o 1 | 1 = datos sintéticos (rampas) para probar el SPI sin ADC |
+| 0x05 | `SET_TESTMODE` | 0 o 1 | 1 = datos sintéticos (rampas) para probar el SPI sin ADC. Canal A = `i`, canal B = `4095 − i` (se interpretan como mV; no pasan por la calibración) |
 
 Presets de `SET_RATE`:
 
@@ -79,12 +79,41 @@ Tamaño total = `16 + 4 × window` bytes (máximo 4096). Voltaje: `V = valor / 1
 
 Duración de una captura = `window / fs`. Ejemplos con 256 muestras: 2,56 s a 100 Sa/s, 256 ms a 1 kSa/s, 25,6 ms a 10 kSa/s, 6,4 ms a 40 kSa/s. Para refrescar el dashboard entre 1 y 4 s a 100 Sa/s, la ventana no debería superar unas 400 muestras.
 
+Implementación de referencia de esta secuencia con reintentos: `capture_frame()` en [`beagleplay/backend/spi_driver.py`](../../beagleplay/backend/spi_driver.py) ([06-backend-beagleplay.md](06-backend-beagleplay.md)).
+
 ## Temporización y handshake
 
 - La línea **INT** (GPIO3 del uC) está en alto mientras el esclavo tiene una transacción preparada, y en bajo mientras se re-arma tras cada transacción.
 - Si el maestro no usa INT, debe esperar **≥ 2 ms** entre transacciones.
 - Si el maestro inicia una transacción cuando el esclavo no está listo, la lectura no será válida: la cabecera fallará la verificación de `magic`/`checksum`. El maestro debe reintentar.
 
+## Comportamiento observado en hardware
+
+En las pruebas con la BeaglePlay real (2026-10-30, ver [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md)) **cerca de la mitad de las transacciones llegan inválidas** y la causa raíz no está identificada. Tres formas de respuesta inválida:
+
+| Respuesta | Interpretación |
+|---|---|
+| Todo `0xFF` | El esclavo no tenía la transacción preparada: **no recibió nada**, el comando no se ejecutó |
+| `0xFF…` seguido de bytes de cabecera desplazados | El esclavo se armó a mitad de la transacción; recibió un comando corrupto y lo descartó (flag bit2 en la respuesta siguiente) |
+| Cabecera válida con datos nuevos | Transacción correcta |
+
+Reglas que el maestro debe seguir:
+
+1. **Validar siempre** `magic = 0xE5` y el checksum de la cabecera antes de usar nada.
+2. **Reintentar** la misma transacción hasta recibir una cabecera válida. Es seguro porque un comando corrupto se descarta por checksum.
+3. **Comprobar `seq`** al capturar: si el `ARM` se perdió, el esclavo sigue en `READY` con la captura *anterior*; el maestro debe detectar que `seq` no avanzó y reenviar `ARM`.
+4. **Evitar tráfico SPI durante el muestreo** (mitigación aplicada, hipótesis no confirmada): en una prueba apareció ruido periódico en el canal A que podría deberse al tráfico SPI ([09](09-pruebas-y-resultados.md), P-08 y P-09). El backend espera el 90 % de la ventana antes de consultar.
+5. El flag bit2 (checksum de comando) queda pegado en las cabeceras siguientes a una transacción corrupta; el backend lo enmascara si ya reintentó con éxito y expone `retries` en su lugar.
+
+⚠️ Riesgo conocido: el checksum de comando es de 8 bits; un comando corrupto podría pasarlo por azar (≈ 1/256) y ejecutarse. Por eso el backend verifica `rate_idx` tras `SET_RATE` y `seq` tras `ARM`.
+
+## Historial de versiones
+
+| Versión | Cambio |
+|---|---|
+| 1 | Primera versión. Las muestras eran el código crudo del ADC (0..4095) |
+| 2 | Las muestras son **milivoltios calibrados**. Nuevo flag bit4 `ADC sin calibrar`. `fw_version = 2` en la cabecera |
+
 ## Referencia
 
-Implementación en el esclavo: [`firmware/components/scope_proto`](../firmware/components/scope_proto) y [`firmware/main/scope_link.c`](../firmware/main/scope_link.c). Maestro de ejemplo: [`tools/spi_master_test.py`](../tools/spi_master_test.py).
+Implementación en el esclavo: [`firmware/components/scope_proto`](../../firmware/components/scope_proto) y [`firmware/main/scope_link.c`](../../firmware/main/scope_link.c). Maestro de ejemplo: [`tools/spi_master_test.py`](../../tools/spi_master_test.py).

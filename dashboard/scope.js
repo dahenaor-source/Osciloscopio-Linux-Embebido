@@ -4,7 +4,7 @@
 const API_FRAME  = "/api/scope/frame";   // GET  -> {seq, rate_idx, fs_hz, window, flags, a:[mV], b:[mV]}
 const API_CONFIG = "/api/scope/config";  // POST <- {rate_idx}
 
-// Mismos presets que el firmware (docs/protocolo-spi.md)
+// Mismos presets que el firmware (docs/Documentación_General/04-protocolo-spi.md)
 const PRESETS = [
   { idx: 0, fs: 100,   label: "100 Sa/s" },
   { idx: 1, fs: 1000,  label: "1.000 Sa/s" },

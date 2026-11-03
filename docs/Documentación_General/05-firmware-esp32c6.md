@@ -1,6 +1,6 @@
-# Firmware del microcontrolador (ESP32-C6)
+# 05. Firmware del microcontrolador (ESP32-C6)
 
-Responsable: David Henao Rojas.
+Responsable: David Henao Rojas. Versión actual: **v2** (protocolo v2, muestras en mV calibrados). Binario: [`release/osciloscopio_c6_v2.bin`](../../release/osciloscopio_c6_v2.bin).
 
 ## Arquitectura
 
@@ -12,10 +12,10 @@ Responsable: David Henao Rojas.
 
 | Módulo | Archivo | Función |
 |---|---|---|
-| Protocolo | [`components/scope_proto`](../firmware/components/scope_proto) | Presets, comandos y cabecera. Sin dependencias de ESP-IDF, probado en el PC |
-| Captura | [`main/adc_capture.c`](../firmware/main/adc_capture.c) | ADC continuo con 2 canales, promediado para 100 Sa/s, detección de desbordamiento |
-| Enlace SPI | [`main/scope_link.c`](../firmware/main/scope_link.c) | SPI esclavo con DMA, máquina de estados `IDLE → ARMED → READY`, handshake |
-| Pines | [`main/board_config.h`](../firmware/main/board_config.h) | Asignación de pines |
+| Protocolo | [`components/scope_proto`](../../firmware/components/scope_proto) | Presets, comandos y cabecera. Sin dependencias de ESP-IDF, probado en el PC |
+| Captura | [`main/adc_capture.c`](../../firmware/main/adc_capture.c) | ADC continuo con 2 canales, promediado para 100 Sa/s, calibración por tabla, detección de desbordamiento |
+| Enlace SPI | [`main/scope_link.c`](../../firmware/main/scope_link.c) | SPI esclavo con DMA, máquina de estados `IDLE → ARMED → READY`, handshake |
+| Pines | [`main/board_config.h`](../../firmware/main/board_config.h) | Asignación de pines |
 
 Decisiones de diseño:
 
@@ -25,7 +25,9 @@ Decisiones de diseño:
 - **100 Sa/s**: queda bajo el mínimo del ADC, así que se convierte a 2 kSa/s y se promedian 10 conversiones por muestra (además reduce ruido).
 - **Cabecera de estado en toda respuesta**: el esclavo SPI debe preparar la respuesta antes de la transacción, por lo que un comando solo se refleja en la transacción siguiente. La cabecera permite al maestro confirmarlo.
 - **Prioridades**: `spi_link` (7) > `capture` (6), para atender el SPI aunque haya captura en curso.
-- **Memoria**: 2 buffers de captura (1020 × 2 B cada uno), TX y RX de 4096 B (DMA) y pool del ADC de 16 KiB.
+- **Memoria**: 2 buffers de captura (1020 × 2 B cada uno), TX y RX de 4096 B (DMA), pool del ADC de 16 KiB y 2 tablas de calibración de 4096 × 2 B (16 KiB). El binario ocupa 0x30170 B (≈ 19 % de la partición de 1 MiB).
+- **Modo de prueba**: `SET_TESTMODE 1` omite el ADC y devuelve rampas fijas; sirve para validar SPI y cableado sin señal. **Persiste hasta reiniciar** el ESP32-C6 o enviar `SET_TESTMODE 0`.
+- **Desbordamiento**: el callback `on_pool_ovf` del ADC levanta el flag `OVERRUN` si el DMA llenó el pool antes de leerlo.
 
 ## Instalación del entorno (WSL Ubuntu)
 
@@ -80,7 +82,7 @@ Demanda real del sistema:
 
 Una ventana máxima (4096 B = 32.768 bits) tarda 0,82 ms a 40 MHz, 3,3 ms a 10 MHz y 33 ms a 1 MHz. Para el preset de 40 kSa/s, 256 muestras (1040 B) llegan al SBC en 0,2 ms a 40 MHz o 8 ms a 1 MHz: el SPI nunca es el cuello de botella; el ADC (83,3 kSa/s) sí.
 
-**Pendiente de verificar experimentalmente** (con analizador lógico y `tools/spi_master_test.py --bench`): velocidad máxima estable sin errores de datos, y caudal real medido. El `spidev` de Linux limita el caudal por la sobrecarga del sistema operativo, así que el valor real será menor al teórico.
+**Experimental hasta ahora:** el enlace funcionó a **100 kHz** y a **2 MHz** (con pérdida de transacciones, ver [09](09-pruebas-y-resultados.md)). **Pendiente**: velocidad máxima estable sin errores de datos y caudal real medido (`spi_master_test.py --bench` o midiendo el tiempo de `xfer2` con `time.perf_counter()`; no requiere analizador lógico). El `spidev` de Linux limita el caudal por la sobrecarga del sistema operativo, así que el valor real será menor al teórico.
 
 ## Pruebas
 
@@ -92,31 +94,22 @@ make -C firmware/tests/host test
 
 ### Pruebas en hardware (con la ESP32-C6 y un maestro SPI)
 
+Además del script de referencia, en la BeaglePlay hay scripts de diagnóstico en [`beagleplay/backend/`](../../beagleplay/backend): `prueba_directa_spi.py` (una cabecera de NOP), `test_spi.py` y `diagnostico_captura.py` (paso a paso, imprime cada transacción y verifica las rampas del modo de prueba).
+
 ```bash
 python3 tools/spi_master_test.py --dev /dev/spidevX.Y --test-mode            # integridad de datos
 python3 tools/spi_master_test.py --dev /dev/spidevX.Y --rate 3 --window 256   # captura real
 python3 tools/spi_master_test.py --dev /dev/spidevX.Y --bench --speed 10000000
 ```
 
-## Matriz de verificación del firmware
+## Matriz de verificación
 
-| ID | Requisito / función | Prueba | Tipo | Estado |
-|---|---|---|---|---|
-| FW-01 | Codificación y verificación de comandos | `test_cmd_*` | Unitaria (PC) | ✅ Pasa |
-| FW-02 | Cabecera de estado con checksum | `test_header_*` | Unitaria (PC) | ✅ Pasa |
-| FW-03 | Presets 100/1000/10000/40000 Sa/s dentro de los límites del ADC | `test_rates` | Unitaria (PC) | ✅ Pasa |
-| FW-04 | Ventanas de 64 a 1020 muestras (≥ 64) | `test_window` | Unitaria (PC) | ✅ Pasa |
-| FW-05 | El firmware compila con ESP-IDF 5.4.1 | `idf.py build` | Compilación | ✅ Pasa |
-| FW-06 | Enlace SPI sin errores de datos (modo prueba) | `spi_master_test.py --test-mode` | Integración | ⏳ Pendiente de hardware |
-| FW-07 | Cambio de preset por SPI | `spi_master_test.py --rate N` y lectura de `fs_hz` | Integración | ⏳ Pendiente |
-| FW-08 | Frecuencia de muestreo real de cada preset | Analizador lógico / señal de frecuencia conocida | Experimental | ⏳ Pendiente |
-| FW-09 | Captura a 40 kSa/s sin desbordamiento (bonificación) | `flags` bit0 = 0 y señal conocida | Experimental | ⏳ Pendiente |
-| FW-10 | Velocidad máxima de SPI estable y caudal real | `--bench` a distintas velocidades | Experimental | ⏳ Pendiente |
-| FW-11 | Exactitud del ADC calibrado (0,25 / 0,5 / 1 / 1,5 / 2 / 2,5 / 3 V) | Multímetro vs. mV leídos (Prom del dashboard) | Experimental | ⏳ Pendiente: re-medir con firmware v2 (con v1 sin calibrar: 0,5→0,7 V, 1,3→1,0 V, 2,0→1,8 V, 3,28→2,56 V) |
-| FW-12 | Integración con el SBC y dashboard | Prueba de extremo a extremo | Integración | ⏳ Pendiente |
+Ver [10-matriz-de-verificacion.md](10-matriz-de-verificacion.md) (filas FW-01 a FW-12).
 
 ## Limitaciones conocidas
 
 - El ADC del ESP32-C6 tiene una no linealidad apreciable cerca de 0 V y de plena escala; el firmware v2 lo compensa con la calibración de eFuse, pero cerca de 0 V y de plena escala el error sigue siendo mayor.
 - Con 2 canales sobre un solo ADC, el canal B está desfasado medio periodo de conversión respecto al A.
 - Sin disparo (trigger): cada captura comienza al recibir `ARM`.
+- A 40 kSa/s se observó un error constante en las pruebas (causa sin diagnosticar; ver [09](09-pruebas-y-resultados.md) y [13](13-pendientes-y-riesgos.md)).
+- El esclavo SPI pierde parte de las transacciones; el maestro compensa con reintentos (causa raíz abierta).

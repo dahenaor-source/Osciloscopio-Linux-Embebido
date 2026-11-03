@@ -1,6 +1,6 @@
 #pragma once
 
-/* Pines del ESP32-C6-DevKitC-1. Ver docs/hardware-pinout.md */
+/* Pines del ESP32-C6-DevKitC-1. Ver docs/Documentación_General/03-hardware-y-conexiones.md */
 
 /* SPI2 (GPSPI2) con los pines nativos del IO_MUX, necesarios para alta velocidad en modo esclavo */
 #define PIN_SPI_SCLK 6   /* FSPICLK  <- mikroBUS SCK  */

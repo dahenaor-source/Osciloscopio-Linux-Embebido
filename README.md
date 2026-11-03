@@ -12,16 +12,30 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 |---|---|---|
 | Firmware del microcontrolador (ESP32-C6) | David Henao Rojas | [`firmware/`](firmware) |
 | Dashboard web (HTML) | David Henao Rojas (primera versión) | [`dashboard/`](dashboard) |
-| Software del SBC (BeaglePlay, SPI maestro, backend, HTTP) | Juan Camilo Giraldo, Daniela Barragán | por definir |
+| Software del SBC (BeaglePlay, SPI maestro, backend, HTTP) | Juan Camilo Giraldo, Daniela Barragán | [`beagleplay/backend/`](beagleplay/backend) |
 
 ## Documentación
 
-- [**Guía para el equipo del SBC (BeaglePlay)**](docs/guia-sbc.md): qué falta construir, contexto de la BeaglePlay y orden de pruebas. **Juan Camilo y Daniela, empezar aquí.**
-- [Dashboard](dashboard/README.md): página HTML con Chart.js (modo simulado) y contrato de la API.
-- [**Guía rápida para el equipo**](docs/guia-equipo.md): flashear el binario ya compilado y probar el SPI. **Empezar aquí.**
-- [Pinout y conexiones](docs/hardware-pinout.md): mikroBUS de la BeaglePlay ↔ ESP32-C6. **Punto de partida para el equipo del SBC.**
-- [Protocolo SPI](docs/protocolo-spi.md): comandos, formato de trama y secuencia de uso.
-- [Firmware del microcontrolador](docs/firmware.md): instalación, compilación, tasas teóricas de SPI, pruebas y matriz de verificación.
+Toda la documentación está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 14 documentos):
+
+| Documento | Contenido |
+|---|---|
+| [01 Descripción general](docs/Documentaci%C3%B3n_General/01-descripcion-general.md) | Objetivo, arquitectura, diagramas de bloques y de flujo |
+| [02 Requerimientos y restricciones](docs/Documentaci%C3%B3n_General/02-requerimientos-y-restricciones.md) | Requisitos del enunciado y su estado |
+| [03 Hardware y conexiones](docs/Documentaci%C3%B3n_General/03-hardware-y-conexiones.md) | Pinout mikroBUS ↔ ESP32-C6 y diagramas |
+| [04 Protocolo SPI](docs/Documentaci%C3%B3n_General/04-protocolo-spi.md) | Comandos y formato de trama (v2) |
+| [05 Firmware](docs/Documentaci%C3%B3n_General/05-firmware-esp32c6.md) | Arquitectura, compilación, tasas teóricas de SPI |
+| [06 Backend BeaglePlay](docs/Documentaci%C3%B3n_General/06-backend-beagleplay.md) | FastAPI, driver SPI y reintentos |
+| [07 Dashboard](docs/Documentaci%C3%B3n_General/07-dashboard.md) | Interfaz web y capturas |
+| [08 Calibración del ADC](docs/Documentaci%C3%B3n_General/08-calibracion-adc.md) | Error medido y calibración por eFuse |
+| [09 Pruebas y resultados](docs/Documentaci%C3%B3n_General/09-pruebas-y-resultados.md) | Bitácora con evidencia |
+| [10 Matriz de verificación](docs/Documentaci%C3%B3n_General/10-matriz-de-verificacion.md) | Requisito → prueba → resultado |
+| [11 Guía de flasheo](docs/Documentaci%C3%B3n_General/11-guia-flasheo-esp32c6.md) | Flashear y probar el ESP32-C6. **Empezar aquí** |
+| [12 Guía del equipo SBC](docs/Documentaci%C3%B3n_General/12-guia-equipo-sbc.md) | Contexto de la BeaglePlay. **Juan Camilo y Daniela** |
+| [13 Pendientes y riesgos](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md) | Qué falta |
+| [14 Participación y uso de IA](docs/Documentaci%C3%B3n_General/14-participacion-y-uso-de-ia.md) | Declaraciones (por completar) |
+
+Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README.md](beagleplay/backend/README.md).
 
 ## Requisitos del enunciado cubiertos por el firmware
 
@@ -34,7 +48,7 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 
 ## Inicio rápido (firmware)
 
-Sin compilar: flashear el binario listo (ver [guía del equipo](docs/guia-equipo.md)):
+Sin compilar: flashear el binario listo (ver [guía de flasheo](docs/Documentaci%C3%B3n_General/11-guia-flasheo-esp32c6.md)):
 
 ```bash
 pip install esptool
@@ -50,12 +64,18 @@ idf.py build flash monitor
 make -C tests/host test      # pruebas unitarias del protocolo en el PC
 ```
 
-Detalles en [docs/firmware.md](docs/firmware.md).
+Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware-esp32c6.md).
 
-## Estado
+## Estado (2026-11-03)
 
-- [x] Firmware compila (ESP-IDF 5.4.1), se flashea en la ESP32-C6 y arranca (SPI esclavo inicializado). El protocolo pasa sus pruebas unitarias en el PC.
-- [ ] Probado con un maestro SPI y con señales reales en el ADC.
-- [x] Dashboard HTML con datos simulados (sin backend real).
-- [ ] Backend en la BeaglePlay (SPI + API) y servidor HTTP.
-- [ ] Integración con la BeaglePlay.
+- [x] Firmware compila (ESP-IDF 5.4.1), se flashea y arranca. Protocolo con pruebas unitarias en el PC.
+- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz (con reintentos: se pierde ≈ 50 % de las transacciones).
+- [x] Dashboard con datos reales (modo de prueba y ADC con potenciómetro, 100 a 10.000 Sa/s).
+- [x] Backend FastAPI en la BeaglePlay (SPI + API) con reintentos.
+- [x] Firmware v2: calibración del ADC por eFuse (compila; **sin flashear ni medir**).
+- [ ] Preset de 40 kSa/s (bonificación) con error constante: sin diagnosticar.
+- [ ] Servidor apache/nginx.
+- [ ] Mediciones con instrumentos (frecuencia de muestreo, reloj SPI) y tasa máxima de SPI.
+- [ ] Video, declaración de participación y de uso de IA.
+
+Detalle en [13-pendientes-y-riesgos.md](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md).
