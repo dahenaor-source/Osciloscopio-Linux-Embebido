@@ -25,6 +25,7 @@ Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo
 
 ## Por dónde empezar
 
+- **Quiero armarlo desde cero, sin conocimientos previos:** [Instrucciones de uso](../Instrucciones_De_Uso/Instrucciones_De_Uso.md).
 - **Quiero entender el proyecto:** 01 → 02 → 03.
 - **Quiero flashear la placa y probar:** 11, luego 03 para el cableado.
 - **Soy del equipo del SBC:** 12, 06 y 04.

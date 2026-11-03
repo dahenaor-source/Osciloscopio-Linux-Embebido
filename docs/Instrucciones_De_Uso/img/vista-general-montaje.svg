@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#333"/></marker>
+  </defs>
+  <rect width="900" height="420" fill="#ffffff"/>
+  <text x="450" y="32" text-anchor="middle" font-size="20" font-weight="bold" fill="#111">Vista general del montaje</text>
+
+  <!-- PC -->
+  <rect x="30" y="70" width="210" height="150" rx="12" fill="#eef2ff" stroke="#4361ee" stroke-width="2.5"/>
+  <text x="135" y="100" text-anchor="middle" font-size="17" font-weight="bold" fill="#4361ee">Tu computador</text>
+  <text x="135" y="128" text-anchor="middle" font-size="13">Descarga el repositorio</text>
+  <text x="135" y="148" text-anchor="middle" font-size="13">Flashea el ESP32-C6</text>
+  <text x="135" y="168" text-anchor="middle" font-size="13">Entra por SSH a la BeaglePlay</text>
+  <text x="135" y="196" text-anchor="middle" font-size="13" font-weight="bold">Navegador: dashboard</text>
+
+  <!-- BeaglePlay -->
+  <rect x="330" y="230" width="230" height="150" rx="12" fill="#eef7ee" stroke="#2d7a2d" stroke-width="2.5"/>
+  <text x="445" y="260" text-anchor="middle" font-size="17" font-weight="bold" fill="#2d7a2d">BeaglePlay</text>
+  <text x="445" y="285" text-anchor="middle" font-size="13">Maestro SPI</text>
+  <text x="445" y="305" text-anchor="middle" font-size="13">Backend + servidor web</text>
+  <text x="445" y="325" text-anchor="middle" font-size="13">Puerto mikroBUS</text>
+  <text x="445" y="355" text-anchor="middle" font-size="12" fill="#555">IP por USB: 192.168.7.2</text>
+
+  <!-- ESP32 -->
+  <rect x="640" y="70" width="230" height="150" rx="12" fill="#fdf0e3" stroke="#c4600a" stroke-width="2.5"/>
+  <text x="755" y="100" text-anchor="middle" font-size="17" font-weight="bold" fill="#c4600a">ESP32-C6-DevKitC-1</text>
+  <text x="755" y="128" text-anchor="middle" font-size="13">Esclavo SPI</text>
+  <text x="755" y="148" text-anchor="middle" font-size="13">Mide 2 señales analógicas</text>
+  <text x="755" y="168" text-anchor="middle" font-size="13">GPIO0 = canal A, GPIO1 = canal B</text>
+
+  <!-- Potenciómetro -->
+  <rect x="700" y="300" width="170" height="80" rx="12" fill="#fff" stroke="#777" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="785" y="332" text-anchor="middle" font-size="14" font-weight="bold">Potenciómetro</text>
+  <text x="785" y="352" text-anchor="middle" font-size="12" fill="#555">(o generador)</text>
+
+  <!-- Enlaces -->
+  <line x1="240" y1="110" x2="640" y2="110" stroke="#4361ee" stroke-width="3" marker-start="url(#a)" marker-end="url(#a)"/>
+  <text x="440" y="100" text-anchor="middle" font-size="12" fill="#4361ee">USB-C (alimenta y flashea el ESP32-C6)</text>
+
+  <polyline points="135,220 135,310 330,310" fill="none" stroke="#2d7a2d" stroke-width="3" marker-end="url(#a)"/>
+  <text x="147" y="262" font-size="12" fill="#2d7a2d">USB-C: alimenta</text>
+  <text x="147" y="278" font-size="12" fill="#2d7a2d">la BeaglePlay y</text>
+  <text x="147" y="294" font-size="12" fill="#2d7a2d">le da red</text>
+
+  <polyline points="560,300 680,300 680,220" fill="none" stroke="#111" stroke-width="3" marker-start="url(#a)" marker-end="url(#a)"/>
+  <text x="572" y="246" font-size="12" fill="#111">5 cables SPI:</text>
+  <text x="572" y="262" font-size="12" fill="#111">SCK, MISO, MOSI,</text>
+  <text x="572" y="278" font-size="12" fill="#111">CS y GND</text>
+  <text x="572" y="326" font-size="12" fill="#555">(+ INT opcional)</text>
+
+  <line x1="785" y1="220" x2="785" y2="300" stroke="#c00" stroke-width="3" marker-end="url(#a)"/>
+  <text x="795" y="254" font-size="12" fill="#c00">GPIO0, GPIO1</text>
+  <text x="795" y="270" font-size="12" fill="#c00">3V3, GND</text>
+
+  <text x="450" y="406" text-anchor="middle" font-size="13" fill="#444">Entre las dos placas solo se une GND y las señales SPI. Nunca 3V3 ni 5V.</text>
+</svg>

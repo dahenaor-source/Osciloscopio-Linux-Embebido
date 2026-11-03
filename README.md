@@ -16,7 +16,9 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 
 ## Documentación
 
-Toda la documentación está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 14 documentos):
+**¿Quieres armarlo tú?** Sigue [**Instrucciones de uso**](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md): guía paso a paso desde cero (materiales, flasheo, montaje y uso).
+
+Toda la documentación técnica está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 14 documentos):
 
 | Documento | Contenido |
 |---|---|

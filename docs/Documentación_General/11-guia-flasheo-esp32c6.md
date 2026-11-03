@@ -8,7 +8,7 @@ El firmware (v2) está compilado y las pruebas del protocolo pasan; la v1 se pro
 |---|---|
 | ESP32-C6-DevKitC-1 + cable USB-C (puerto **UART/USB**) | Alimentar y flashear |
 | BeaglePlay con su SPI de mikroBUS accesible como `/dev/spidevX.Y` | Maestro SPI |
-| 5 cables dupont hembra-hembra | SCK, MISO, MOSI, CS y GND (INT opcional) |
+| 5 cables dupont macho-hembra (el mikroBUS de la BeaglePlay tiene orificios; los pines del ESP32-C6 son machos) | SCK, MISO, MOSI, CS y GND (INT opcional) |
 | Generador de señales (opcional) | Probar el ADC; máximo 0 a 3,1 V, solo positivo |
 | Analizador lógico (opcional) | Verificar reloj SPI y handshake |
 
