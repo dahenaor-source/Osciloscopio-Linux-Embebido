@@ -68,7 +68,7 @@ Se usó mientras no hay generador de señales:
 
 ## En la BeaglePlay
 
-- Sistema: **Debian GNU/Linux 13.7 «trixie»** (imagen del profesor). La placa se configuró por consola serie con **minicom**; se accede por SSH a `192.168.7.2` (USB) con el usuario `camilo`.
+- Sistema: **Debian GNU/Linux 13.7 «trixie»** (imagen del profesor). Se alimenta con un cable USB-C; se configuró por consola serie con **minicom** y un **adaptador USB a UART** (3,3 V, 115200 8N1); se accede a `192.168.7.2` por la red USB con el usuario `camilo`.
 - El puerto mikroBUS está gestionado por defecto por el driver `mikrobus`. El equipo del SBC usa **`/dev/spidev0.0`** (bus 0, dispositivo 0) y con él ya se leyeron cabeceras válidas del ESP32-C6. ⚠️ **No está documentado cómo se habilitó ese spidev** (overlay, desactivar el driver, etc.); el equipo del SBC debe registrarlo en [12-guia-equipo-sbc.md](12-guia-equipo-sbc.md), sección 6.
 - Parámetros del maestro: **modo 0** (CPOL=0, CPHA=0), 8 bits por palabra, MSB primero.
 - Velocidades probadas: **100 kHz** y **2 MHz**.

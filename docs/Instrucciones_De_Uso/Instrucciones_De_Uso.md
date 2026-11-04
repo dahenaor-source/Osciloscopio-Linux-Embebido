@@ -6,7 +6,7 @@ Tiempo estimado: 1 a 2 horas la primera vez.
 
 > **Estado del proyecto (2026-11-03).** El sistema funciona de extremo a extremo con 100, 1.000 y 10.000 muestras por segundo. Hay limitaciones conocidas que **no son errores tuyos**: el preset de 40.000 Sa/s falla, cerca de la mitad de las lecturas SPI se pierden y el software las reintenta, y la calibración del ADC de la versión actual del firmware (v2) todavía no se ha medido con instrumentos. Están explicadas en la sección 11.
 >
-> La BeaglePlay del equipo usa **Debian GNU/Linux 13.7 «trixie»** (imagen entregada por el profesor) y se configuró por consola serie con **minicom**. Los pasos marcados con ⚠️ son detalles que el equipo **no registró** (por ejemplo cómo se instalaron los paquetes de Python); se explican con el método estándar de Debian y se indica cómo comprobarlos.
+> La BeaglePlay del equipo usa **Debian GNU/Linux 13.7 «trixie»** (imagen entregada por el profesor). Se **alimenta con un cable USB-C** y se configuró por **consola serie con minicom** usando un **adaptador USB a UART**. Los pasos marcados con ⚠️ son detalles que no se han podido verificar; se indica cómo comprobarlos.
 
 ## Índice
 
@@ -72,6 +72,7 @@ Señal (0 a 3,1 V) ─► ESP32-C6 ══SPI══► BeaglePlay ──red──
 | 1 | 1 | **ESP32-C6-DevKitC-1** | Debe ser exactamente este modelo (los pines están asignados para él) |
 | 2 | 1 | **BeaglePlay** | Con la imagen **Debian 13.7 «trixie»** que entregó el profesor (la que usó el equipo). Debe traer habilitado `/dev/spidev0.0` |
 | 3 | 2 | Cables **USB-C de datos** | Uno para cada placa. Los de «solo carga» no sirven para flashear ni para la red |
+| 3b | 1 | **Adaptador USB a UART** de **3,3 V** (FTDI, CP2102 o CH340) con 3 cables | Es lo que usó el equipo para entrar a la consola de la BeaglePlay con minicom. **Debe ser de 3,3 V, no de 5 V**. Opcional si prefieres solo SSH por la red USB |
 | 4 | 6 | Cables Dupont **macho-hembra** | Para unir el conector mikroBUS de la BeaglePlay (hembra: tiene orificios) con los pines del ESP32-C6. Uno es opcional |
 | 5 | 1 | **Potenciómetro de 10 kΩ** | Señal de prueba (10 kΩ es el valor recomendado; el equipo no registró el que usó). Alternativa: un generador de señales (0 a 3,1 V, solo valores positivos) |
 | 6 | 1 | Resistencia de **1 kΩ** | Protege la entrada analógica |
@@ -215,11 +216,11 @@ VERSION_ID="13"
 DEBIAN_VERSION_FULL=13.7
 ```
 
-Si tu placa ya inicia Linux, comprueba su versión con ese mismo comando (la guía se probó con esta). Si tienes que grabar la imagen en una microSD, usa un programa como **balenaEtcher** con la imagen que te dé el profesor. ⚠️ El archivo exacto de la imagen (nombre y origen) no se registró; pídeselo al profesor.
+Si tu placa ya inicia Linux, comprueba su versión con ese mismo comando: la guía se probó con esta. Si tienes que grabar una imagen en una microSD, usa un programa como **balenaEtcher** con la imagen que te dé el profesor o una imagen Debian oficial para BeaglePlay de BeagleBoard.org.
 
 ### 5.2 Enciéndela y conéctate
 
-1. Conecta la BeaglePlay a tu PC con un cable **USB-C** al puerto USB-C de la placa. Eso la alimenta y crea una red USB entre ambos.
+1. Conecta la BeaglePlay a tu PC con un cable **USB-C** al puerto USB-C de la placa. Eso la **alimenta** y, según la documentación oficial de BeagleBoard.org, también crea una **red USB** entre ambos (el equipo abrió el dashboard en `192.168.7.2:8000` por este mismo cable).
 2. Espera **1 a 2 minutos** a que arranque Linux.
 3. Desde tu PC, conéctate por SSH. Por USB, la BeaglePlay tiene la dirección **192.168.7.2**:
 
@@ -233,22 +234,35 @@ Reemplaza `USUARIO` por el usuario de tu imagen. El equipo usó `camilo`; ⚠️
 
 **Si no responde:** en Windows puede faltar el driver de red USB (RNDIS/CDC); revisa el Administrador de dispositivos. Alternativa: conecta la BeaglePlay por cable **Ethernet** a tu router y busca su IP. Otra alternativa es la **consola serie** (siguiente apartado).
 
-#### Alternativa: consola serie con minicom
+#### Consola serie con minicom (lo que usó el equipo)
 
-El equipo configuró la BeaglePlay con **minicom**, un programa de terminal serie de Linux: sirve para entrar a la placa sin red (por ejemplo la primera vez, para crear el usuario, o cuando el SSH no responde).
+El equipo alimentó la placa con el cable USB-C y la configuró con **minicom** a través de un **adaptador USB a UART**. La consola serie funciona sin red, así que sirve la primera vez (para crear el usuario) o cuando el SSH no responde.
+
+**Conexión** (con la BeaglePlay **apagada**, sin USB-C):
+
+| Adaptador USB-UART | BeaglePlay (conector de depuración UART) |
+|---|---|
+| **GND** | **GND** |
+| **RX** | **TX** |
+| **TX** | **RX** |
+| VCC / 5 V / 3,3 V | **No conectar** (la placa se alimenta por su USB-C) |
+
+Los cables **se cruzan**: TX de uno va a RX del otro. El adaptador debe ser de **3,3 V**; uno de 5 V puede dañar la placa. Identifica los pines por lo impreso en la placa; según la documentación de BeagleBoard.org, el pin 1 (GND, cable negro de los adaptadores FTDI) es el marcado con un punto blanco. ⚠️ No se comprobó contra la serigrafía de la BeaglePlay del equipo: confírmalo en la placa y en <https://docs.beagleboard.org/boards/beagleplay/>.
+
+**En tu PC (Linux/WSL):**
 
 ```bash
-sudo apt install -y minicom                      # en tu PC (Linux/WSL)
-ls /dev/ttyUSB* /dev/ttyACM*                     # ¿qué puerto apareció al conectar la BeaglePlay?
+sudo apt install -y minicom
+ls /dev/ttyUSB* /dev/ttyACM*                     # conecta el adaptador y mira qué puerto aparece
 sudo minicom -D /dev/ttyUSB0 -b 115200           # cambia ttyUSB0 por tu puerto
 ```
 
-- Ajustes de la conexión: **115200 baudios, 8 bits, sin paridad, 1 bit de parada (8N1)**, sin control de flujo. Si lo pide, se cambian con `Ctrl+A`, luego `O` (*Configure minicom*) → *Serial port setup*.
-- Pulsa **Enter** para ver el prompt de acceso (`login:`). El equipo creó el usuario `camilo`.
+- Ajustes (los valores por defecto de las placas BeagleBoard.org): **115200 baudios, 8 bits, sin paridad, 1 bit de parada, sin control de flujo**. Se cambian con `Ctrl+A` y luego `O` (*Configure minicom* → *Serial port setup*). En minicom, desactiva el control de flujo por hardware si no puedes escribir.
+- Conecta ahora el USB-C de la BeaglePlay para encenderla: verás el arranque. Cuando aparezca `login:`, entra con tu usuario (el equipo usa `camilo`).
 - Salir de minicom: `Ctrl+A`, luego `X`.
-- En Windows puedes usar PuTTY (tipo *Serial*, el mismo `COMx`, 115200).
+- En Windows puedes usar PuTTY (tipo *Serial*, el `COMx` del adaptador, 115200) en lugar de minicom. En WSL, el adaptador necesita `usbipd attach` (ver [05](../Documentaci%C3%B3n_General/05-firmware-esp32c6.md)).
 
-⚠️ El equipo no registró **cómo** conectó la consola (si por el puerto USB-C de la BeaglePlay o por su conector serie de depuración con un adaptador USB-serie de 3,3 V) ni el nombre del puerto. Los ajustes anteriores son los habituales de las imágenes de BeagleBoard.org; **no se verificaron en esta placa**.
+⚠️ El nombre del puerto (`/dev/ttyUSB0` es lo habitual en Linux, según la documentación de BeagleBoard.org) depende de tu adaptador; el equipo no lo registró.
 
 ### 5.3 Copia el repositorio a la BeaglePlay
 
@@ -278,30 +292,30 @@ ls /dev/spidev*
 
 ⚠️ Si no existe, tu imagen no trae habilitado el SPI del mikroBUS. En la imagen del equipo ya venía habilitado y **no hubo que configurar nada**, por eso este paso no está documentado. Consulta con el profesor y revisa la sección 4 de [12-guia-equipo-sbc.md](../Documentaci%C3%B3n_General/12-guia-equipo-sbc.md); no continúes hasta que exista.
 
-### 5.5 Comprueba las dependencias de Python
+### 5.5 Instala y comprueba las dependencias de Python
 
-(Debian 13 trae Python 3.13.)
+(Debian 13 trae Python 3.13. Necesitas Internet en la BeaglePlay para este paso, una sola vez.)
 
-El backend necesita `fastapi`, `uvicorn` y `spidev`, y se ejecuta con `sudo`, así que `sudo python3` debe encontrarlos. Pruébalo:
-
-```bash
-sudo python3 -c "import fastapi, uvicorn, spidev; print('Todo instalado')"
-```
-
-- Si escribe `Todo instalado`: sigue al paso 6.
-- Si da `ModuleNotFoundError`, instálalos (necesitas Internet en la BeaglePlay):
+El backend necesita `fastapi`, `uvicorn` y `spidev`. El equipo los instaló así en la BeaglePlay (sesión SSH o minicom):
 
 ```bash
 sudo apt update
-sudo apt install -y python3-pip python3-spidev python3-fastapi python3-uvicorn
+sudo apt install python3-pip python3-dev -y
+
+pip3 install fastapi uvicorn spidev
+pip3 install fastapi uvicorn spidev --break-system-packages
+```
+
+**Por qué dos comandos `pip3`:** Debian 13 protege el Python del sistema (PEP 668). El primero normalmente termina en un error `externally-managed-environment`; el segundo, con `--break-system-packages`, sí instala. Puedes ejecutar solo el segundo. Se instalan para tu usuario, sin `sudo`.
+
+**Comprobación:**
+
+```bash
 sudo python3 -c "import fastapi, uvicorn, spidev; print('Todo instalado')"
 ```
 
-⚠️ El equipo no registró cómo instaló estos paquetes (el código de la BeaglePlay se hizo con apoyo de Gemini); estos comandos son el método estándar de Debian y **no se han ejecutado en su placa**. Si `apt` no encuentra algún paquete, usa pip. Debian 13 protege el Python del sistema (PEP 668), por eso pip exige la opción `--break-system-packages` (instala para todo el sistema, que es lo que necesita `sudo python3`):
-
-```bash
-sudo pip3 install --break-system-packages -r ~/Osciloscopio-Linux-Embebido/beagleplay/backend/requirements.txt
-```
+- Si escribe `Todo instalado`: sigue. (Con este mismo método el equipo ejecutó después `sudo python3 prueba_directa_spi.py` y el backend sin problemas.)
+- Si da `ModuleNotFoundError` con `sudo` pero los paquetes sí están instalados, prueba `sudo -E python3 ...` (conserva tu entorno, donde pip dejó los paquetes). Por eso el backend se arranca con `sudo -E`.
 
 ### 5.6 Apaga la BeaglePlay para el montaje
 
