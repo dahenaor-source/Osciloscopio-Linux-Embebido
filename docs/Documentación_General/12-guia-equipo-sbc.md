@@ -109,7 +109,9 @@ Completen esta tabla y hagan commit a `main` para que el resto tenga la informac
 
 | Dato | Valor |
 |---|---|
-| Imagen/versión de la BeaglePlay | _pendiente_ |
+| Imagen/versión de la BeaglePlay | **Debian GNU/Linux 13.7 «trixie»** (`/etc/os-release`, 2026-11-04). Archivo exacto de la imagen: _pendiente_ |
+| Acceso a la placa | Consola serie con `minicom` (puerto y método de conexión: _pendiente_); SSH por USB a `192.168.7.2`, usuario `camilo` |
+| Instalación de `fastapi`, `uvicorn`, `spidev` | _pendiente: registrar los comandos usados_ |
 | Ruta spidev | `/dev/spidev0.0` (funciona, 2026-10-30) |
 | Método para habilitarlo (overlay / driver) | _pendiente: documentar_ |
 | Velocidad SPI probada | 100 kHz y 2 MHz; máximo sin errores: _pendiente_ |
