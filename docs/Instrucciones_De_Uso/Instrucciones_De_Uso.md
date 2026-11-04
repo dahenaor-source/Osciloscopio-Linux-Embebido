@@ -557,7 +557,7 @@ Para que sepas qué esperar (todas están en [13-pendientes-y-riesgos.md](../Doc
 2. **Se pierde cerca de la mitad de las lecturas SPI.** El software las repite automáticamente; sólo notarás algo más de espera y el aviso `reintentos SPI`.
 3. **Precisión del voltaje.** El ADC del ESP32-C6 sin calibrar se equivocó hasta 0,7 V frente a un multímetro. El firmware v2 incluye calibración de fábrica, pero **aún no se ha medido en hardware**: no confíes en el valor absoluto sin compararlo con un multímetro.
 4. **Sin disparo (trigger):** cada captura empieza cuando se pide; una señal que cambia en el tiempo aparecerá en fases distintas en cada captura.
-5. **Servidor web:** el dashboard lo sirve el propio backend de Python, no apache ni nginx (el enunciado del proyecto pide uno de los dos; está pendiente).
+5. **Servidor web:** esta guía abre el dashboard con el propio backend de Python (puerto 8000). El equipo del SBC añadió una configuración de **nginx** (`beagleplay/nginx.conf`) para cumplir el enunciado, pero **aún no está probada**, por lo que no se usa en esta guía.
 6. **Rango de entrada:** de 0 a unos 3,1 V, solo positivo.
 
 ---
