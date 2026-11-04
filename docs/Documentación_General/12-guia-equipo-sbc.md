@@ -113,7 +113,7 @@ Completen esta tabla y hagan commit a `main` para que el resto tenga la informac
 | Alimentación y acceso | Cable USB-C (alimenta; el dashboard se abre en `192.168.7.2:8000`). Consola con **minicom** y un **adaptador USB-UART** (115200 8N1). Usuario `camilo` |
 | Instalación de dependencias | `sudo apt update` · `sudo apt install python3-pip python3-dev -y` · `pip3 install fastapi uvicorn spidev` · `pip3 install fastapi uvicorn spidev --break-system-packages` |
 | Ruta spidev | `/dev/spidev0.0` (funciona, 2026-10-30) |
-| Método para habilitarlo (overlay / driver) | _pendiente: documentar_ |
+| Método para habilitarlo (overlay / driver) | Según el equipo, ya venía habilitado en la imagen (no se configuró nada); _pendiente_ confirmarlo en una imagen limpia |
 | Velocidad SPI probada | 100 kHz y 2 MHz; máximo sin errores: _pendiente_ |
 | Servidor HTTP elegido (apache/nginx) y config | _pendiente_ |
 
