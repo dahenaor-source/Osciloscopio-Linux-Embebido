@@ -7,13 +7,14 @@ from typing import Optional, Dict, Any
 MAGIC_HEADER = 0xE5
 
 class SPIDriver:
-    def __init__(self, bus: int = 0, device: int = 0, speed_hz: int = 100000):
+    def __init__(self, bus: int = 0, device: int = 0, speed_hz: int = 2000000):
         self.bus = bus
         self.device = device
         self.speed_hz = speed_hz
         self.spi = None
         self._lock = threading.RLock()
         self.last_error = ""
+        self.last_rx = b""  # último RX inválido, para el diagnóstico
         self.retries = 0  # transacciones inválidas reintentadas (contador acumulado)
 
     def open(self) -> bool:
@@ -105,9 +106,14 @@ class SPIDriver:
             header = self._parse_header(rx)
             if header is not None:
                 return header, rx
+            self.last_rx = rx[:16]
             self.retries += 1
             time.sleep(0.005)
         return None, b""
+
+    def _no_header(self, what: str) -> str:
+        """Mensaje de error con el último RX: todo FF = el esclavo no responde; todo 00 = MISO a GND o sin conectar."""
+        return f"{what}; último RX={self.last_rx.hex(' ')}"
 
     def set_rate(self, rate_idx: int) -> bool:
         """SET_RATE y verificación en la transacción siguiente (la respuesta va un paso atrasada)."""
@@ -129,7 +135,7 @@ class SPIDriver:
             retries0 = self.retries
             header, _ = self._xfer_valid(0x00)
             if header is None:
-                self.last_error = "sin cabecera valida antes de ARM"
+                self.last_error = self._no_header("sin cabecera valida antes de ARM")
                 return None
             seq0 = header["seq"]
             fs = max(header["fs_hz"], 1)
@@ -137,7 +143,7 @@ class SPIDriver:
 
             for attempt in range(4):
                 if self._xfer_valid(0x03)[0] is None:  # ARM
-                    self.last_error = "ARM sin respuesta valida"
+                    self.last_error = self._no_header("ARM sin respuesta valida")
                     return None
                 # Sin tráfico SPI mientras el ADC muestrea: el ruido de las líneas SPI se acopla a la entrada analógica.
                 time.sleep(duration * 0.9)
@@ -147,7 +153,7 @@ class SPIDriver:
                 while time.time() < deadline:
                     header, _ = self._xfer_valid(0x00)
                     if header is None:
-                        self.last_error = "sondeo sin cabecera valida"
+                        self.last_error = self._no_header("sondeo sin cabecera valida")
                         return None
                     if header["state"] == 3:
                         self.last_error = "el ESP32 reporta ERROR (fallo del ADC)"

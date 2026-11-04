@@ -26,7 +26,7 @@ Código en [`beagleplay/backend/`](../../beagleplay/backend). Base escrita por *
 | Parámetro | Valor | Cómo cambiarlo |
 |---|---|---|
 | Dispositivo SPI | `/dev/spidev0.0` (bus 0, dispositivo 0) | `SPIDriver(bus, device)` en `main.py` |
-| Velocidad SPI | **100 kHz** por defecto | Variable de entorno `SPI_SPEED_HZ` |
+| Velocidad SPI | **2 MHz** por defecto (antes 100 kHz) | Variable de entorno `SPI_SPEED_HZ` |
 | Modo de datos | `USE_MOCK = False` (SPI real) | Editar `main.py`; `True` genera senoidales simuladas |
 | Puerto HTTP | 8000 | Argumento `--port` de uvicorn |
 
