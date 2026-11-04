@@ -74,6 +74,23 @@ Empezar con `--speed 1000000` (1 MHz) y subir progresivamente.
 - Con el firmware v2 las muestras van en **mV**; con la v1, en código crudo. Backend y dashboard deben ser de la misma versión.
 - Para ver errores del ADC o del SPI esclavo, abrir el monitor serie (el USB debe estar conectado al PC o a WSL con `usbipd attach`).
 
+## 4.2 Firmware de diagnóstico del enlace SPI
+
+`release/osciloscopio_c6_v2_diag.bin` (SHA-256 `ed18d2f32820e38aa03204ddcff11fd08362ee67348ca31d572707c30d8d3f51`) es el firmware v2 con un contador de transacciones. Se flashea igual que el normal. Solo sirve para averiguar por qué la BeaglePlay no recibe respuesta. En el monitor serie imprime:
+
+- las 10 primeras transacciones recibidas: `diag: transaccion #N len=16 B rx[0..3]=00 00 00 5A`;
+- cada 2 s: `diag: trans=N cmd_chk_malo=M len=min..max | niveles CS=a SCK=b MOSI=c | estado=e`.
+
+| Lo que se ve | Significa |
+|---|---|
+| `trans=0` siempre y `CS=1` | La BeaglePlay **no llega** al ESP32-C6: revisar CS, SCK y GND |
+| `trans=0` y `CS=0` fijo | CS está a GND (cable mal puesto o cruzado) |
+| `trans` crece y `rx[0..3]=00 00 00 5A` | El ESP32-C6 **sí recibe** el comando; el fallo está en el camino de vuelta (MISO) |
+| `trans` crece, `rx` son `FF` o `00` | El ESP32-C6 recibe basura: MOSI o SCK mal conectados, o la velocidad es alta |
+| `cmd_chk_malo` crece | Comandos corruptos que el firmware descarta |
+
+Se activa en el código fuente (`diag_task` en `firmware/main/scope_link.c`) con una carga de CPU mínima.
+
 ## 5. Si algo falla
 
 | Síntoma | Causa probable |

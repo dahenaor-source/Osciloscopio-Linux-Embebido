@@ -45,6 +45,16 @@ static uint8_t *tx_buf;
 static uint8_t *rx_buf;
 static TaskHandle_t capture_task;
 
+/*
+ * Diagnóstico del enlace SPI (se ve por el monitor serie). Cuenta las transacciones
+ * que el esclavo recibe del maestro y vigila el nivel de las líneas SPI: sirve para
+ * distinguir "el maestro no llega al ESP32" de "llega pero no responde bien".
+ */
+static volatile uint32_t diag_trans;      /* transacciones completadas (CS bajó y subió) */
+static volatile uint32_t diag_cmd_bad;    /* comandos con checksum inválido */
+static volatile uint32_t diag_len_min = UINT32_MAX;
+static volatile uint32_t diag_len_max;
+
 /* INT en alto = transacción lista para el maestro; en bajo mientras se re-arma. */
 static void IRAM_ATTR post_setup_cb(spi_slave_transaction_t *trans)
 {
@@ -178,8 +188,37 @@ static void spi_task(void *arg)
             .rx_buffer = rx_buf,
         };
         if (spi_slave_transmit(SPI_HOST, &t, portMAX_DELAY) == ESP_OK) {
-            handle_command(rx_buf, t.trans_len / 8);
+            size_t len = t.trans_len / 8;
+            diag_trans++;
+            if (len < diag_len_min) {
+                diag_len_min = len;
+            }
+            if (len > diag_len_max) {
+                diag_len_max = len;
+            }
+            scope_cmd_frame_t chk;
+            if (len >= SCOPE_CMD_LEN && !scope_cmd_decode(rx_buf, len, &chk)) {
+                diag_cmd_bad++;
+            }
+            if (diag_trans <= 10) {
+                ESP_LOGI(TAG, "diag: transaccion #%lu len=%u B rx[0..3]=%02X %02X %02X %02X", (unsigned long)diag_trans,
+                         (unsigned)len, rx_buf[0], rx_buf[1], rx_buf[2], rx_buf[3]);
+            }
+            handle_command(rx_buf, len);
         }
+    }
+}
+
+/* Cada 2 s: cuántas transacciones llegaron y el nivel actual de CS, SCK y MOSI (CS debe estar en 1 en reposo). */
+static void diag_task(void *arg)
+{
+    for (;;) {
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        ESP_LOGI(TAG, "diag: trans=%lu cmd_chk_malo=%lu len=%lu..%lu | niveles CS=%d SCK=%d MOSI=%d | estado=%d",
+                 (unsigned long)diag_trans, (unsigned long)diag_cmd_bad,
+                 (unsigned long)(diag_trans ? diag_len_min : 0), (unsigned long)diag_len_max,
+                 gpio_get_level(PIN_SPI_CS), gpio_get_level(PIN_SPI_SCLK), gpio_get_level(PIN_SPI_MOSI),
+                 (int)atomic_load(&state));
     }
 }
 
@@ -247,6 +286,7 @@ esp_err_t scope_link_start(void)
 
     xTaskCreate(capture_task_fn, "capture", 4096, NULL, 6, &capture_task);
     xTaskCreate(spi_task, "spi_link", 4096, NULL, 7, NULL);
+    xTaskCreate(diag_task, "diag", 3072, NULL, 1, NULL);
 
     ESP_LOGI(TAG, "SPI esclavo listo (SCLK=%d MOSI=%d MISO=%d CS=%d HS=%d)",
              PIN_SPI_SCLK, PIN_SPI_MOSI, PIN_SPI_MISO, PIN_SPI_CS, PIN_HANDSHAKE);
