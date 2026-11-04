@@ -17,7 +17,7 @@ Estado a 2026-11-03. Cada fila enlaza el requisito con la prueba y el resultado.
 | FW-09 | Captura a 40 kSa/s sin desbordamiento (bonificación) | `flags` bit0 = 0 y señal conocida | Experimental | ❌ Error constante a 40 kSa/s, sin diagnosticar | P-10 |
 | FW-10 | Velocidad máxima de SPI estable y caudal real | `--bench` a distintas velocidades | Experimental | 🟡 Funciona a 100 kHz y 2 MHz; máximo y caudal sin medir | P-05, P-06 |
 | FW-11 | Exactitud del ADC calibrado (0, 0,25 … 3 V) | Multímetro contra mV del dashboard | Experimental | 🟡 Sin calibrar (v1): error hasta 0,72 V. v2 sin medir | P-11, [08](08-calibracion-adc.md) |
-| FW-12 | Calibración del ADC por eFuse en el arranque | Log `curve-fitting (eFuse)` en el monitor serie | Experimental | ⏳ Pendiente de flashear v2 | P-12 |
+| FW-12 | Calibración del ADC por eFuse en el arranque | Log `curve-fitting (eFuse)` en el monitor serie | Experimental | ✅ Ambos canales, 2026-11-04 | P-13 |
 
 ## 2. SBC y backend
 

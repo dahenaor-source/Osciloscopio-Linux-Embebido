@@ -9,7 +9,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 | A-1 | **nginx configurado pero sin probar**: existe `beagleplay/nginx.conf` (2026-11-04), pero no consta que esté instalado ni sirviendo el dashboard; hoy lo sirve uvicorn | El requisito R-02 del enunciado no está demostrado | Instalar nginx, copiar la configuración, `nginx -t`, recargar y abrir `http://<IP>/`; comprobar permisos de lectura sobre `/home/camilo/...` (403) y documentar los comandos | Equipo SBC |
 | A-2 | **Preset de 40 kSa/s con error constante** | Sin él no hay bonificación (R-08) | Registrar el mensaje exacto: log del backend (`[ERROR REST] ...`), flag `OVERRUN` del dashboard y monitor serie del ESP32-C6 (`capture: captura fallida`) | Firmware (David) y SBC |
 | A-3 | **El esclavo SPI pierde ≈ 50 % de las transacciones** | Más latencia y riesgo de comandos corruptos; sin causa raíz | Añadir contador de transacciones y log de `trans_len` y primeros bytes en el firmware; probar la línea INT como sincronización; comparar velocidades y cables más cortos | Firmware (David) |
-| A-4 | **Calibración v2 sin flashear ni medir** | No se sabe si la placa trae datos de eFuse ni la mejora real | Flashear v2, ver `curve-fitting (eFuse)` en el monitor y repetir la tabla de [08](08-calibracion-adc.md) | David |
+| A-4 | **Calibración v2: falta medir la exactitud** (el arranque en hardware ya está verificado: calibra por eFuse en ambos canales) | No se sabe cuánto mejora el error | Repetir la tabla de [08](08-calibracion-adc.md) con multímetro | David |
 | A-5 | **Frecuencia de muestreo real sin medir** | R-04 y FW-08 sin evidencia experimental | Señal periódica conocida (generador, o PWM + filtro RC generado por el ESP32-C6) y contar muestras por periodo | Todos |
 | A-6 | **Tasa máxima de SPI y caudal sin medir** | R-07 sin verificación experimental | Medir `xfer2` a 1 a 20 MHz y registrar dónde aparecen errores | Equipo SBC |
 | A-7 | **Cómo se habilitó `/dev/spidev0.0` no está documentado** (según el equipo ya venía en la imagen Debian 13.7) | Si otra imagen no lo trae, el resto no puede reproducirlo | Comprobar `ls /dev/spidev*` en una imagen limpia y, si falta, documentar el overlay | Equipo SBC |
@@ -42,7 +42,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 
 ## 4. Próximos pasos sugeridos (en orden)
 
-1. Registrar el error de 40 kSa/s (A-2) y flashear la v2 (A-4).
+1. Recuperar el enlace SPI (P-14 en [09](09-pruebas-y-resultados.md)), registrar el error de 40 kSa/s (A-2) y medir la exactitud calibrada (A-4).
 2. Instalar y probar nginx con `beagleplay/nginx.conf` (A-1) y documentar los comandos.
 3. Medir SPI (A-6) y contar transacciones perdidas (A-3).
 4. Generar una señal periódica y medir fs (A-5).

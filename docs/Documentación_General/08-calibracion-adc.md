@@ -42,7 +42,8 @@ Impacto en el resto del sistema:
 ## 3. Estado de la verificación
 
 - ✅ El firmware v2 compila (ESP-IDF 5.4.1) y las pruebas del protocolo en el PC pasan.
-- ⏳ **No se ha flasheado ni medido en hardware.** No se sabe aún si esta placa trae datos de calibración en eFuse ni cuánto mejora el error.
+- ✅ **El firmware v2 arranca en una ESP32-C6 real** y el log confirma `calibracion curve-fitting (eFuse)` en los dos canales (2026-11-04, [09](09-pruebas-y-resultados.md), P-13): esa placa sí trae datos de calibración.
+- ⏳ **Falta medir la exactitud** frente al multímetro (procedimiento en la sección 4).
 - ⚠️ Cerca de 0 V y de plena escala el ADC del ESP32-C6 sigue siendo menos preciso, incluso calibrado.
 
 ## 4. Procedimiento para verificarla (FW-11)

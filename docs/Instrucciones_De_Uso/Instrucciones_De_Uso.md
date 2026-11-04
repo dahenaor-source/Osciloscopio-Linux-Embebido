@@ -195,7 +195,7 @@ Pulsa el botón **RESET** de la placa. Debes ver un mensaje que incluye:
 scope_link: SPI esclavo listo (SCLK=6 MOSI=7 MISO=2 CS=10 HS=3)
 ```
 
-Con el firmware v2 aparecen además líneas como `capture: canal 0: calibracion curve-fitting (eFuse)` (una por canal). ⚠️ Esas líneas de calibración **no se han verificado en una placa real todavía**; si en su lugar aparece un nombre de error, el sistema funciona igual, pero el dashboard mostrará «ADC sin calibrar» y los voltajes serán aproximados.
+Con el firmware v2 aparecen además líneas como `capture: canal 0: calibracion curve-fitting (eFuse)` (una por canal). Esas líneas se verificaron en una placa real (2026-11-04). Si en su lugar aparece un nombre de error, el sistema funciona igual, pero el dashboard mostrará «ADC sin calibrar» y los voltajes serán aproximados.
 
 Para salir del monitor: `Ctrl + ]`. Luego **desconecta el cable USB** para el montaje.
 

@@ -17,7 +17,9 @@ Bitácora cronológica de lo realizado hasta el 2026-11-03, con la evidencia dis
 | P-09 | 2026-10-30 | Condensador en la entrada | ✅ Señal plana y estable |
 | P-10 | 2026-10-30 | Presets de 10.000 y 40.000 Sa/s | ❌ Errores esporádicos a 10 kSa/s y constantes a 40 kSa/s |
 | P-11 | 2026-10-30 | Exactitud del ADC sin calibrar | ❌ Errores de hasta 0,72 V |
-| P-12 | 2026-11-01 | Firmware v2 con calibración | 🟡 Compila; no flasheado |
+| P-12 | 2026-11-01 | Firmware v2 con calibración | ✅ Compila (11-01); ✅ arranca en hardware con calibración de eFuse (P-13) |
+| P-13 | 2026-11-04 | Arranque del firmware v2 en una ESP32-C6 real | ✅ Arranca sin reinicios; calibración eFuse en ambos canales |
+| P-14 | 2026-11-04 | SPI con la BeaglePlay tras conectar el generador | ❌ Todo `00` en RX (en diagnóstico) |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
@@ -98,7 +100,31 @@ Multímetro contra dashboard (firmware v1): 0,50→0,70 V, 1,30→1,00 V, 2,00�
 
 ## P-12. Firmware v2
 
-Calibración por eFuse con tabla de 4096 entradas por canal; protocolo v2 (mV). Compila con ESP-IDF 5.4.1 y las pruebas unitarias pasan. **No se ha flasheado ni medido en hardware.**
+Calibración por eFuse con tabla de 4096 entradas por canal; protocolo v2 (mV). Compila con ESP-IDF 5.4.1 y las pruebas unitarias pasan (2026-11-01). El arranque en hardware se registra en P-13.
+
+## P-13. Arranque del firmware v2 en hardware (2026-11-04)
+
+Un integrante compiló el firmware desde el repositorio (versión `b3b4318`, compilado el 2026-11-04 12:36 con ESP-IDF 5.4.1), lo flasheó en una ESP32-C6 y abrió el monitor serie (`miniterm`, 115200). Salida relevante:
+
+```
+I (250) main: Osciloscopio ESP32-C6: esclavo SPI + ADC continuo
+I (269) capture: canal 0: calibracion curve-fitting (eFuse)
+I (285) capture: canal 1: calibracion curve-fitting (eFuse)
+I (285) gpio: GPIO[3]| InputEn: 0| OutputEn: 1| ...
+I (288) scope_link: SPI esclavo listo (SCLK=6 MOSI=7 MISO=2 CS=10 HS=3)
+I (294) main_task: Returned from app_main()
+```
+
+Conclusiones:
+- El firmware v2 **arranca sin reinicios ni errores** (descarta un desbordamiento de pila por la tabla de calibración).
+- **Esa placa sí trae los datos de calibración en la eFuse** (esquema curve-fitting en ambos canales). Revisión del chip v0.2, eFuse v0.3.
+- Se confirma la asignación de pines SPI y que INT = GPIO3 es una salida.
+- Pendiente: medir cuánto mejora la exactitud frente al multímetro ([08](08-calibracion-adc.md)).
+- Observación menor: el chip detectado tiene 16 MB de flash y el firmware usa 4 MB (el arranque lo avisa y usa 4 MB); no afecta.
+
+## P-14. SPI sin respuesta tras conectar el generador (2026-11-04, en diagnóstico)
+
+Con el backend a 100 kHz (valor por defecto antiguo): `[ERROR REST] sin cabecera valida antes de ARM` (HTTP 500). Con `prueba_directa_spi.py` las 5 pruebas devuelven **todos los bytes `00`** (el 2026-10-30 devolvían `FF` en las tramas perdidas y una cabecera válida en otras). Pulsar RESET en el ESP32-C6 no lo corrigió. El monitor serie (P-13) muestra que el firmware está activo y el esclavo SPI iniciado, por lo que se sospecha del cableado de MISO, GND o CS, o de la configuración de la BeaglePlay. `00` fijo significa MISO forzado a 0 V. Pruebas de aislamiento propuestas: desconectar MISO en el ESP32-C6 y repetir; bucle MISO-MOSI en el mikroBUS sin el ESP32-C6; medir GPIO3 (INT, ≈ 3,3 V en reposo si el esclavo está armado). Resultado pendiente.
 
 ## Hallazgos principales
 
