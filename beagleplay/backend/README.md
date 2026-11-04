@@ -83,7 +83,7 @@ cd beagleplay/backend
 SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-`SPI_SPEED_HZ` (por defecto 100000) fija la velocidad del SPI; 2 MHz es la que funcionó. Reintentos, tiempos y diagnóstico de errores: [`docs/Documentación_General/06-backend-beagleplay.md`](../../docs/Documentación_General/06-backend-beagleplay.md).
+`SPI_SPEED_HZ` (por defecto 2000000) fija la velocidad del SPI; 2 MHz es la que funcionó y a 100 kHz falla más. Reintentos, tiempos y diagnóstico de errores: [`docs/Documentación_General/06-backend-beagleplay.md`](../../docs/Documentación_General/06-backend-beagleplay.md).
 
 ### Accesos
 * **Dashboard Web:** `http://<IP_BEAGLEPLAY>:8000/`

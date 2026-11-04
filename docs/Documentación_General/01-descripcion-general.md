@@ -95,7 +95,7 @@ Detalle en [05-firmware-esp32c6.md](05-firmware-esp32c6.md).
 | Cabecera de estado en **toda** respuesta | El esclavo prepara la respuesta antes de la transacción; el efecto de un comando se ve en la transacción siguiente |
 | Línea **INT** (handshake) | Permite al maestro saber cuándo el esclavo está listo (hoy el backend usa pausas y reintentos) |
 | Muestras en **mV calibrados** (protocolo v2) | El ADC sin calibrar leía hasta 0,7 V de menos (ver [08](08-calibracion-adc.md)) |
-| Backend **FastAPI** que también sirve el dashboard | Un solo origen y puerto, sin problemas de CORS (el enunciado pide apache o nginx: ver [13](13-pendientes-y-riesgos.md)) |
+| Backend **FastAPI** que también sirve el dashboard | Un solo origen y puerto, sin problemas de CORS (el enunciado pide apache o nginx: hay un `nginx.conf` sin probar, ver [13](13-pendientes-y-riesgos.md)) |
 | Chart.js **local** (`dashboard/vendor`) | La BeaglePlay puede no tener Internet |
 
 ## 7. Alcance actual

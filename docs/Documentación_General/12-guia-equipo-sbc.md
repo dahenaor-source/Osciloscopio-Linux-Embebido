@@ -12,7 +12,7 @@ Para **Juan Camilo Giraldo** y **Daniela Barragán**. Resume lo que ya existe, l
 | Backend FastAPI + driver SPI | **Hecho** (Juan Camilo) y robustecido con reintentos | [06-backend-beagleplay.md](06-backend-beagleplay.md) |
 | Dashboard HTML (Chart.js) | Funciona con datos reales | [07-dashboard.md](07-dashboard.md) |
 | `/dev/spidev0.0` | Funciona; **método para habilitarlo sin documentar** | sección 6 |
-| Servidor **apache o nginx** | **Por hacer** (lo exige el enunciado) | — |
+| Servidor **apache o nginx** | Configuración de nginx escrita (`beagleplay/nginx.conf`); **sin instalar ni probar** | `beagleplay/nginx.conf` |
 | Preset 40 kSa/s | Con error; hay que capturar el mensaje | [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md) |
 
 ## 2. Qué hay que construir
@@ -26,7 +26,7 @@ ESP32-C6 ══SPI══► [backend en BeaglePlay] ──JSON──► nginx/ap
 3. ✅ **API HTTP** que el dashboard ya espera (contrato en [dashboard/README.md](../../dashboard/README.md)):
    - `GET /api/scope/frame` → `{seq, rate_idx, fs_hz, window, flags, a:[mV], b:[mV]}`
    - `POST /api/scope/config` con `{"rate_idx": 0..3}` → envía `SET_RATE` por SPI.
-4. ⏳ **nginx o apache** sirviendo `dashboard/` y haciendo proxy de `/api/` al backend.
+4. 🟡 **nginx** sirviendo `dashboard/` y haciendo proxy de `/api/` al backend: configuración en [`beagleplay/nginx.conf`](../../beagleplay/nginx.conf); falta instalarla y probarla.
 5. ⏳ **Medir** la tasa real de SPI (el enunciado pide estimar la teórica y verificarla experimentalmente).
 
 Punto de partida del backend: `tools/spi_master_test.py` ya implementa el handshake, el checksum de comandos y la lectura de tramas. Léanlo antes de escribir el suyo.
@@ -109,11 +109,13 @@ Completen esta tabla y hagan commit a `main` para que el resto tenga la informac
 
 | Dato | Valor |
 |---|---|
-| Imagen/versión de la BeaglePlay | _pendiente_ |
+| Imagen/versión de la BeaglePlay | **Debian GNU/Linux 13.7 «trixie»** (`/etc/os-release`, 2026-11-04). El archivo exacto de la imagen no se recuerda y no es necesario |
+| Alimentación y acceso | Cable USB-C (alimenta; el dashboard se abre en `192.168.7.2:8000`). Consola con **minicom** y un **adaptador USB-UART** (115200 8N1). Usuario `camilo` |
+| Instalación de dependencias | `sudo apt update` · `sudo apt install python3-pip python3-dev -y` · `pip3 install fastapi uvicorn spidev` · `pip3 install fastapi uvicorn spidev --break-system-packages` |
 | Ruta spidev | `/dev/spidev0.0` (funciona, 2026-10-30) |
-| Método para habilitarlo (overlay / driver) | _pendiente: documentar_ |
+| Método para habilitarlo (overlay / driver) | Según el equipo, ya venía habilitado en la imagen (no se configuró nada); _pendiente_ confirmarlo en una imagen limpia |
 | Velocidad SPI probada | 100 kHz y 2 MHz; máximo sin errores: _pendiente_ |
-| Servidor HTTP elegido (apache/nginx) y config | _pendiente_ |
+| Servidor HTTP elegido (apache/nginx) y config | nginx, [`beagleplay/nginx.conf`](../../beagleplay/nginx.conf); _pendiente_ confirmar que funciona |
 
 ## 7. Notas
 

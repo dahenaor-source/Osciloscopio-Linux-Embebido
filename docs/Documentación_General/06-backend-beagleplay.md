@@ -26,7 +26,7 @@ Código en [`beagleplay/backend/`](../../beagleplay/backend). Base escrita por *
 | Parámetro | Valor | Cómo cambiarlo |
 |---|---|---|
 | Dispositivo SPI | `/dev/spidev0.0` (bus 0, dispositivo 0) | `SPIDriver(bus, device)` en `main.py` |
-| Velocidad SPI | **100 kHz** por defecto | Variable de entorno `SPI_SPEED_HZ` |
+| Velocidad SPI | **2 MHz** por defecto (antes 100 kHz) | Variable de entorno `SPI_SPEED_HZ` |
 | Modo de datos | `USE_MOCK = False` (SPI real) | Editar `main.py`; `True` genera senoidales simuladas |
 | Puerto HTTP | 8000 | Argumento `--port` de uvicorn |
 
@@ -73,6 +73,6 @@ Detalles de `spi_driver.py` que no estaban en la versión inicial:
 - ❌ A **40.000 Sa/s** se observó un error constante; el mensaje exacto no se registró ([13](13-pendientes-y-riesgos.md)).
 - ⚠️ Con reintentos altos (24 a 39 por trama a 1 y 10 kSa/s) la latencia por captura sube; no se ha medido.
 - ⚠️ La línea INT no se usa; todo se resuelve con pausas y reintentos.
-- ⏳ **Falta apache o nginx**: el enunciado lo exige para servir el dashboard. Hoy lo hace uvicorn. Opción: nginx sirve `dashboard/` y hace `proxy_pass /api/` hacia `127.0.0.1:8000`.
+- 🟡 **nginx**: el enunciado exige apache o nginx. El equipo del SBC añadió [`beagleplay/nginx.conf`](../../beagleplay/nginx.conf) (2026-11-04): `location /` sirve `dashboard/` desde `/home/camilo/Osciloscopio-Linux-Embebido/dashboard` y `location /api/` hace `proxy_pass` a `http://127.0.0.1:8000`, con el puerto 80. ⚠️ No consta que se haya instalado ni probado. Puntos a comprobar: que el usuario de nginx (`www-data`) pueda leer `/home/camilo/...` (si no, error 403) y que el sitio por defecto de nginx no choque en el puerto 80. Mientras tanto uvicorn sigue sirviendo todo en el puerto 8000.
 - ⏳ Falta documentar cómo se habilitó `/dev/spidev0.0` y arrancar el backend como servicio (`systemd`).
 - Las pruebas en la BeaglePlay las ejecutó el equipo del SBC (Juan Camilo). Las correcciones de reintentos y tiempos se verificaron primero con un esclavo SPI simulado en el PC y después en la placa real.

@@ -76,7 +76,7 @@ Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware
 - [x] Backend FastAPI en la BeaglePlay (SPI + API) con reintentos.
 - [x] Firmware v2: calibración del ADC por eFuse (compila; **sin flashear ni medir**).
 - [ ] Preset de 40 kSa/s (bonificación) con error constante: sin diagnosticar.
-- [ ] Servidor apache/nginx.
+- [ ] Servidor nginx: configuración escrita en `beagleplay/nginx.conf`, falta instalarla y probarla.
 - [ ] Mediciones con instrumentos (frecuencia de muestreo, reloj SPI) y tasa máxima de SPI.
 - [ ] Video, declaración de participación y de uso de IA.
 

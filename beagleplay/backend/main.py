@@ -27,7 +27,7 @@ current_rate_idx = 1
 RATES_HZ = [100, 1000, 10000, 40000]
 
 # Inicializar Driver SPI a 100 kHz (igual que en prueba_directa_spi.py)
-spi_hw = SPIDriver(bus=0, device=0, speed_hz=int(os.environ.get("SPI_SPEED_HZ", "100000")))
+spi_hw = SPIDriver(bus=0, device=0, speed_hz=int(os.environ.get("SPI_SPEED_HZ", "2000000")))
 
 if not USE_MOCK:
     spi_hw.open()

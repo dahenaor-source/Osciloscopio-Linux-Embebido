@@ -6,13 +6,13 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 
 | # | Problema | Impacto | Próximo paso | Responsable sugerido |
 |---|---|---|---|---|
-| A-1 | **No hay servidor apache/nginx**: el dashboard lo sirve uvicorn | Incumple un requisito explícito del enunciado (R-02) | Instalar nginx, servir `dashboard/` y `proxy_pass /api/` a `127.0.0.1:8000`; documentar la configuración | Equipo SBC |
+| A-1 | **nginx configurado pero sin probar**: existe `beagleplay/nginx.conf` (2026-11-04), pero no consta que esté instalado ni sirviendo el dashboard; hoy lo sirve uvicorn | El requisito R-02 del enunciado no está demostrado | Instalar nginx, copiar la configuración, `nginx -t`, recargar y abrir `http://<IP>/`; comprobar permisos de lectura sobre `/home/camilo/...` (403) y documentar los comandos | Equipo SBC |
 | A-2 | **Preset de 40 kSa/s con error constante** | Sin él no hay bonificación (R-08) | Registrar el mensaje exacto: log del backend (`[ERROR REST] ...`), flag `OVERRUN` del dashboard y monitor serie del ESP32-C6 (`capture: captura fallida`) | Firmware (David) y SBC |
 | A-3 | **El esclavo SPI pierde ≈ 50 % de las transacciones** | Más latencia y riesgo de comandos corruptos; sin causa raíz | Añadir contador de transacciones y log de `trans_len` y primeros bytes en el firmware; probar la línea INT como sincronización; comparar velocidades y cables más cortos | Firmware (David) |
 | A-4 | **Calibración v2 sin flashear ni medir** | No se sabe si la placa trae datos de eFuse ni la mejora real | Flashear v2, ver `curve-fitting (eFuse)` en el monitor y repetir la tabla de [08](08-calibracion-adc.md) | David |
 | A-5 | **Frecuencia de muestreo real sin medir** | R-04 y FW-08 sin evidencia experimental | Señal periódica conocida (generador, o PWM + filtro RC generado por el ESP32-C6) y contar muestras por periodo | Todos |
 | A-6 | **Tasa máxima de SPI y caudal sin medir** | R-07 sin verificación experimental | Medir `xfer2` a 1 a 20 MHz y registrar dónde aparecen errores | Equipo SBC |
-| A-7 | **Método para habilitar `/dev/spidev0.0` sin documentar** | El resto del equipo no puede reproducir la configuración | Registrarlo en [12](12-guia-equipo-sbc.md), sección 6 | Equipo SBC |
+| A-7 | **Cómo se habilitó `/dev/spidev0.0` no está documentado** (según el equipo ya venía en la imagen Debian 13.7) | Si otra imagen no lo trae, el resto no puede reproducirlo | Comprobar `ls /dev/spidev*` en una imagen limpia y, si falta, documentar el overlay | Equipo SBC |
 | A-8 | Origen del ruido en CH A (¿tráfico SPI o falta de filtrado?) | Calidad de la medida | Repetir sin condensador y con/sin espera sin tráfico SPI para aislar la causa | David y SBC |
 | A-9 | Backend sin arranque automático ni prueba de concurrencia | Robustez en la demostración | Unidad `systemd`; prueba con `GET` y `POST` simultáneos | Equipo SBC |
 | A-10 | Numeración mikroBUS sin contrastar con el esquemático de la BeaglePlay | Posible error de cableado | Comparar con la serigrafía y el esquemático | Equipo SBC |
@@ -43,7 +43,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 ## 4. Próximos pasos sugeridos (en orden)
 
 1. Registrar el error de 40 kSa/s (A-2) y flashear la v2 (A-4).
-2. Montar nginx (A-1) y documentarlo.
+2. Instalar y probar nginx con `beagleplay/nginx.conf` (A-1) y documentar los comandos.
 3. Medir SPI (A-6) y contar transacciones perdidas (A-3).
 4. Generar una señal periódica y medir fs (A-5).
 5. Completar [10](10-matriz-de-verificacion.md), [14](14-participacion-y-uso-de-ia.md) y grabar el video.
