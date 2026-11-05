@@ -30,7 +30,7 @@ El profesor indicó que el SPI de la mikroBUS debe ofrecer al menos **2 Mbit/s**
 | D-01 | Voltajes entregados en mV calibrados | El ADC sin calibrar del ESP32-C6 no es lineal ([08](08-calibracion-adc.md)) |
 | D-02 | El maestro debe validar cada respuesta (magic `0xE5` y checksum) | Se pierden transacciones; sin validar, se leerían datos basura |
 | D-03 | El firmware debe poder probarse **sin señal analógica** | Modo de prueba con rampas conocidas (`SET_TESTMODE`) |
-| D-04 | Todo el equipo debe poder flashear sin instalar ESP-IDF | Binario en `release/` ([11](11-guia-flasheo-esp32c6.md)) |
+| D-04 | Todo el equipo debe poder flashear sin instalar ESP-IDF | Binario en `release/` ([11](../Instrucciones_De_Uso/Instrucciones_De_Uso.md)) |
 
 ## 3. Restricciones técnicas
 

@@ -18,7 +18,7 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 
 **¿Quieres armarlo tú?** Sigue [**Instrucciones de uso**](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md): guía paso a paso desde cero (materiales, flasheo, montaje y uso).
 
-Toda la documentación técnica está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 16 documentos):
+Toda la documentación técnica está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 12 documentos):
 
 | Documento | Contenido |
 |---|---|
@@ -32,12 +32,12 @@ Toda la documentación técnica está en [**`docs/Documentación_General/`**](do
 | [08 Calibración del ADC](docs/Documentaci%C3%B3n_General/08-calibracion-adc.md) | Error medido y calibración por eFuse |
 | [09 Pruebas y resultados](docs/Documentaci%C3%B3n_General/09-pruebas-y-resultados.md) | Bitácora con evidencia |
 | [10 Matriz de verificación](docs/Documentaci%C3%B3n_General/10-matriz-de-verificacion.md) | Requisito → prueba → resultado |
-| [11 Guía de flasheo](docs/Documentaci%C3%B3n_General/11-guia-flasheo-esp32c6.md) | Flashear y probar el ESP32-C6. **Empezar aquí** |
-| [12 Guía del equipo SBC](docs/Documentaci%C3%B3n_General/12-guia-equipo-sbc.md) | Contexto de la BeaglePlay. **Juan Camilo y Daniela** |
+| [11 Guía de flasheo](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md) | Flashear y probar el ESP32-C6. **Empezar aquí** |
+| [12 Guía del equipo SBC](docs/Documentación_General/06-backend-beagleplay.md) | Contexto de la BeaglePlay. **Juan Camilo y Daniela** |
 | [13 Pendientes y riesgos](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md) | Qué falta |
 | [14 Participación y uso de IA](docs/Documentaci%C3%B3n_General/14-participacion-y-uso-de-ia.md) | Declaraciones (por completar) |
-| [15 Verificación de flasheo V2](docs/Documentaci%C3%B3n_General/15-verificacion-flasheo-v2.md) | Compilación y arranque del firmware |
-| [16 Estado de validación main](docs/Documentaci%C3%B3n_General/16-estado-validacion-main.md) | Evidencias P-18, P-19, P-20 y pendientes |
+| [15 Verificación de flasheo V2](docs/Documentación_General/09-pruebas-y-resultados.md) | Compilación y arranque del firmware |
+| [16 Estado de validación main](docs/Documentación_General/10-matriz-de-verificacion.md) | Evidencias P-18, P-19, P-20 y pendientes |
 
 Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README.md](beagleplay/backend/README.md).
 
@@ -52,7 +52,7 @@ Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README
 
 ## Inicio rápido (firmware)
 
-Sin compilar: flashear el binario listo (ver [guía de flasheo](docs/Documentaci%C3%B3n_General/11-guia-flasheo-esp32c6.md)):
+Sin compilar: flashear el binario listo (ver [guía de flasheo](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md)):
 
 ```bash
 pip install esptool

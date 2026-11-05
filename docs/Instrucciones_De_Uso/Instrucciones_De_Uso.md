@@ -290,7 +290,7 @@ ls /dev/spidev*
 
 **Resultado esperado:** aparece `/dev/spidev0.0`. El software usa exactamente ese nombre.
 
-⚠️ Si no existe, tu imagen no trae habilitado el SPI del mikroBUS. En la imagen del equipo ya venía habilitado y **no hubo que configurar nada**, por eso este paso no está documentado. Consulta con el profesor y revisa la sección 4 de [12-guia-equipo-sbc.md](../Documentaci%C3%B3n_General/12-guia-equipo-sbc.md); no continúes hasta que exista.
+⚠️ Si no existe, tu imagen no trae habilitado el SPI del mikroBUS. En la imagen del equipo ya venía habilitado y **no hubo que configurar nada**, por eso este paso no está documentado. Consulta con el profesor y revisa la [documentación del backend](../Documentación_General/06-backend-beagleplay.md); no continúes hasta que exista.
 
 ### 5.5 Instala y comprueba las dependencias de Python
 
@@ -579,7 +579,7 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 | `Failed to connect` al flashear | La placa no entra en modo de descarga o el cable es solo de carga | Cambia el cable. Mantén **BOOT**, pulsa **RESET**, suelta **BOOT** y repite |
 | No aparece el puerto COM / `/dev/ttyACM0` | Cable sin datos, o WSL sin `usbipd` | Otro cable. En WSL, `usbipd attach` (ver [05](../Documentaci%C3%B3n_General/05-firmware-esp32c6.md)) |
 | `ssh` no conecta a 192.168.7.2 | La BeaglePlay no terminó de arrancar, o falta el driver de red USB | Espera 2 minutos. En Windows revisa el driver USB. O usa Ethernet |
-| No existe `/dev/spidev0.0` | La imagen no trae el SPI del mikroBUS habilitado | Consulta al profesor; ver [12](../Documentaci%C3%B3n_General/12-guia-equipo-sbc.md) |
+| No existe `/dev/spidev0.0` | La imagen no trae el SPI del mikroBUS habilitado | Consulta al profesor; ver [12](../Documentación_General/06-backend-beagleplay.md) |
 | `ModuleNotFoundError: fastapi` (o `spidev`, `uvicorn`) | Faltan paquetes de Python para `sudo python3` | Sección 5.5 |
 | `prueba_directa_spi.py` solo da `FF` en las 5 pruebas | Cable de MISO, MOSI, SCK o CS mal puesto; sin GND común; ESP32-C6 sin alimentar | Apaga todo, revisa la tabla de la sección 6.1 y repite |
 | Funciona y falla de forma intermitente | Problema conocido: se pierde cerca de la mitad de las lecturas SPI; el software reintenta | Normal. Usa cables cortos y bien insertados; usa **2 MHz** |

@@ -37,7 +37,7 @@ Impacto en el resto del sistema:
 | Protocolo | v1 → **v2**: las muestras son mV (ver [04](04-protocolo-spi.md)) |
 | Dashboard | `V = mV / 1000` |
 | Backend | Sin cambios: reenvía los valores tal cual |
-| Binario | `release/osciloscopio_c6_v2.bin` (SHA-256 en [11](11-guia-flasheo-esp32c6.md)) |
+| Binario | `release/osciloscopio_c6_v2.bin` (SHA-256 en [11](../Instrucciones_De_Uso/Instrucciones_De_Uso.md)) |
 
 ## 3. Estado de la verificación
 
@@ -48,7 +48,7 @@ Impacto en el resto del sistema:
 
 ## 4. Procedimiento para verificarla (FW-11)
 
-1. Flashear `release/osciloscopio_c6_v2.bin` ([11](11-guia-flasheo-esp32c6.md)) con el monitor serie abierto y confirmar `calibracion curve-fitting (eFuse)` en ambos canales. Si aparece otro mensaje, la placa no tiene calibración.
+1. Flashear `release/osciloscopio_c6_v2.bin` ([11](../Instrucciones_De_Uso/Instrucciones_De_Uso.md)) con el monitor serie abierto y confirmar `calibracion curve-fitting (eFuse)` en ambos canales. Si aparece otro mensaje, la placa no tiene calibración.
 2. Montar el potenciómetro ([03](03-hardware-y-conexiones.md)). Reiniciar el ESP32-C6 para salir del modo de prueba.
 3. Con el potenciómetro quieto en cada punto, anotar **a la vez** el multímetro (2 decimales) y el **Prom** del dashboard (3 decimales). Cubrir puntos desde 0 V hasta el máximo seguro de la entrada, incluyendo niveles intermedios.
 4. Calcular error absoluto y relativo por punto y dibujar la curva.
