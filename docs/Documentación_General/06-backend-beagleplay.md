@@ -1,6 +1,6 @@
 # 06. Backend en la BeaglePlay
 
-Código en [`beagleplay/backend/`](../../beagleplay/backend). Base escrita por **Juan Camilo Giraldo** (FastAPI, `spi_driver.py`, scripts de prueba); robustecida por David Henao Rojas (reintentos, candado, tiempos de espera, diagnóstico). Documentación propia del módulo: [`beagleplay/backend/README.md`](../../beagleplay/backend/README.md).
+Código del backend en [`beagleplay/backend/`](../../beagleplay/backend). La participación de los integrantes se documenta en [14. Participación y uso de IA](14-participacion-y-uso-de-ia.md). Documentación propia del módulo: [`beagleplay/backend/README.md`](../../beagleplay/backend/README.md).
 
 ## 1. Componentes
 
@@ -57,7 +57,7 @@ El script ([`beagleplay/instalar_servicio.sh`](../../beagleplay/instalar_servici
 | `Restart=always`, `RestartSec=3` | Si el backend se cae, vuelve a levantarse |
 | `SPI_SPEED_HZ=2000000` | La velocidad que funcionó |
 
-Con el arranque automático hubo que corregir el driver: antes, si `/dev/spidev0.0` no existía en el instante de arrancar, `open()` fallaba una vez y el SPI quedaba cerrado hasta reiniciar el proceso. Ahora `spi_driver.py` reintenta abrirlo (máximo una vez por segundo) y también se recupera si `xfer2` lanza un `OSError`. Se verificó con un `spidev` simulado en el PC (arranque sin dispositivo, aparición posterior, error a mitad de captura); **en la placa real está pendiente**.
+Con el arranque automático hubo que corregir el driver: antes, si `/dev/spidev0.0` no existía en el instante de arrancar, `open()` fallaba una vez y el SPI quedaba cerrado hasta reiniciar el proceso. Ahora `spi_driver.py` reintenta abrirlo (máximo una vez por segundo) y también se recupera si `xfer2` lanza un `OSError`. El mecanismo de reapertura se verificó con un `spidev` simulado en el PC (arranque sin dispositivo, aparición posterior y recuperación tras error). Las pruebas P-18, P-19 y P-22 verificaron el funcionamiento general del backend en la BeaglePlay. No se realizó una prueba específica de desconexión y recuperación del dispositivo SPI físico.
 
 Comandos útiles:
 

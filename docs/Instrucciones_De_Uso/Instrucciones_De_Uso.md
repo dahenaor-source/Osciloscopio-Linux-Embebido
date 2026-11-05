@@ -422,7 +422,7 @@ RX: ['E5', '00', '00', '01', '00', '01', '00', '00', 'E8', '03', ...]
 SPI OK: cabecera valida
 ```
 
-- **Es normal** que alguna lectura salga toda en `FF`: cerca de la mitad de las lecturas SPI se pierden (problema conocido). Lo importante es que **alguna** de las 5 diga `SPI OK: cabecera valida`.
+- **Es normal** que alguna lectura salga toda en `FF`: en versiones anteriores se observaron pérdidas SPI; las pruebas recientes P-18 y P-20 no registraron reintentos. Lo importante es que **alguna** de las 5 diga `SPI OK: cabecera valida`.
 - Si las 5 fallan: repite el comando 2 o 3 veces. Si siguen fallando, apaga todo y revisa los cables (sección 10).
 
 **Segunda prueba, con datos de ejemplo conocidos (opcional).** Pone al ESP32-C6 en «modo de prueba» y lee una captura de rampas:
@@ -599,7 +599,7 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 Para que sepas qué esperar (todas están en [13-pendientes-y-riesgos.md](../Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md)):
 
 1. **40.000 Sa/s:** el fallo de las primeras versiones no se reprodujo en P-20. Se registraron 15 capturas válidas, 5 con seno de 1 kHz. La prueba fue de corta duración.
-2. **Se pierde cerca de la mitad de las lecturas SPI.** El software las repite automáticamente; sólo notarás algo más de espera y el aviso `reintentos SPI`.
+2. **Comunicación SPI.** En las primeras pruebas se observaron pérdidas de transacciones. En P-18 y P-20 las capturas registradas fueron válidas y no requirieron reintentos. El sistema conserva un mecanismo de reintento ante errores.
 3. **Precisión del voltaje.** El ADC del ESP32-C6 sin calibrar se equivocó hasta 0,7 V frente a un multímetro. El firmware v2 incorpora calibración eFuse. En P-21 se comparó el canal A con un multímetro en cuatro puntos y se observaron errores absolutos entre 0,004 y 0,035 V. Estos resultados son preliminares y no constituyen una caracterización metrológica completa.
 4. **Sin disparo (trigger):** cada captura empieza cuando se pide; una señal que cambia en el tiempo aparecerá en fases distintas en cada captura.
 5. **Arranque automático verificado en la BeaglePlay (P-19):** el servicio de systemd que arranca el backend al encender (`beagleplay/instalar_servicio.sh`) está implementado y fue comprobado después de reiniciar la BeaglePlay. La sección 8.4 describe cómo comprobarlo. nginx sí está verificado: activo, habilitado y sirviendo el dashboard (2026-11-05).

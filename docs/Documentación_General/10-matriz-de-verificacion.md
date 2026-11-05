@@ -64,25 +64,32 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | FW-11 ADC | Cuatro puntos iniciales comparados en P-21; completar la tabla y repetir lecturas según [08](08-calibracion-adc.md), sección 4 |
 | Pérdida de transacciones | Contar transacciones inválidas por cada 1000 a distintas velocidades y con INT; añadir un contador de transacciones en el firmware |
 
-## 6. Verificaciones locales adicionales (2026-11-05)
+## 6. Evidencias complementarias de verificación
 
-| Prueba | Resultado | Alcance / limitación |
+Las pruebas P-01 a P-22 están registradas cronológicamente
+en [09. Pruebas y resultados](09-pruebas-y-resultados.md).
+Los resultados siguientes complementan las tablas de
+cumplimiento anteriores sin modificar su calificación.
+
+| Evidencia | Verificación realizada | Resultado y alcance |
 |---|---|---|
-| `make -C firmware/tests/host test` | ✅ Pasan todas las pruebas del protocolo | Repetición local en PC; no verifica el firmware ni el enlace SPI en hardware |
-| Servir `dashboard/` con `python3 -m http.server` y solicitar `/`, `/scope.js` y `/vendor/chart.umd.js` | ✅ HTTP 200 para los tres recursos; comprobada la presencia del dashboard y de la opción API real en el HTML | Smoke test de archivos estáticos; no ejecuta Nginx, no prueba `/api/` ni reemplaza la prueba funcional en navegador |
-| Captura real/API y validación de Nginx en la BeaglePlay | ✅ P-22: configuración Nginx válida; Nginx y backend activos/habilitados; dashboard HTTP 200; API por proxy devolvió una trama válida de 256 muestras/canal, `flags=0`, `retries=0` | Ejecutada por el usuario en la placa; no incluye inspección visual del navegador |
-| Exactitud de calibración ADC v2 (FW-11) | 🟡 Parcial | P-21 comparó 4 voltajes en CH A: error absoluto de 0,004–0,035 V; faltan puntos, repeticiones, CH B e incertidumbre del multímetro |
+| P-02 | Pruebas unitarias del protocolo en PC | Todas las pruebas ejecutadas pasaron. |
+| P-15 | Lógica de selección de preset y refresco | Verificada con reloj y entorno simulados; no es una medición de temporización en hardware. |
+| P-18 y P-22 | nginx, FastAPI y adquisición por API | HTTP 200; tramas válidas de 256 muestras por canal. |
+| P-19 | Arranque automático del backend | Funcionamiento después de reiniciar la BeaglePlay, según la verificación registrada. |
+| P-20 | Solicitudes concurrentes de captura y configuración | Diez pares completados; prueba funcional de corta duración. |
+| P-20 | Captura a 40 kSa/s | Quince capturas válidas, cinco con seno conocido de 1 kHz, sin flags ni reintentos. |
+| P-20 | Frecuencias de muestreo | Estimaciones de 100,0; 1.000,09; 10.004,06 y 40.307,74 Sa/s. La referencia del generador no tiene incertidumbre documentada. |
+| P-20 | Caudal SPI | 0,10; 0,18; 0,33; 0,47 y 0,54 MB/s para velocidades solicitadas de 1, 2, 5, 10 y 20 MHz. No representa una medición directa de SCLK. |
+| P-20 | Preset de 100 Sa/s | Una captura correcta en 2,617 s; también quedó documentada una inconsistencia anterior de selección de preset. |
+| P-21 | Comparación ADC V2 y multímetro | Cuatro puntos en CH A, con error absoluto de 0,004 a 0,035 V; caracterización parcial. |
 
-## 7. Pruebas reales adicionales en la BeaglePlay (2026-11-05)
+### Alcance de los resultados
 
-| Prueba | Resultado | Alcance / limitación |
-|---|---|---|
-| Concurrencia `GET /api/scope/frame` + `POST /api/scope/config` | ✅ 5/5 pares simultáneos al cambiar entre 1 y 10 kSa/s; tramas de 256 muestras válidas, sin flags ni reintentos, y el preset solicitado quedó aplicado al terminar cada par | Prueba de integración por la API real; no sustituye una prueba prolongada con carga de varios clientes |
-| Capturas a 40 kSa/s | ✅ 10/10 HTTP 200 sin señal y otras 5/5 con seno conocido de 1 kHz; 256 muestras, `flags=0`, `retries=0` | Prueba funcional corta; estrés prolongado expresamente fuera del alcance de esta etapa |
-| Frecuencia de muestreo por cruces ascendentes de una senoide | 🟡 100 Sa/s: 100,0; 1 kSa/s: 1.000,09; 10 kSa/s: 10.004,06; 40 kSa/s: 40.307,74 Sa/s | Generador nominal de 6,1 / 164 / 1.000 Hz, respectivamente; falta incluir tolerancia calibrada del generador |
-| Benchmark SPI `tools/spi_master_test.py --bench` | 🟡 0,10 / 0,18 / 0,33 / 0,47 / 0,54 MB/s a 1 / 2 / 5 / 10 / 20 MHz | 20 MHz fue el máximo probado; el benchmark mide caudal efectivo con sobrecarga, no el reloj con analizador lógico |
-| Captura a 100 Sa/s | ✅ HTTP 200, preset reportado 100 Sa/s, 256 muestras por canal, `flags=0`, `retries=0`, respuesta en 2,617 s | Latencia total de API, no medición instrumental de la frecuencia real del ADC |
-| Regresión de presets y restauración | ✅ Capturas válidas a 1 y 10 kSa/s; al terminar se restauró el preset habitual de 1 kSa/s | Una de tres capturas del primer bloque a 100 Sa/s respondió con preset 1; la prueba aislada posterior a 100 Sa/s sí coincidió con preset 0 |
-| Exactitud de calibración ADC v2 (FW-11) | 🟡 Parcial | Cuatro puntos iniciales registrados en P-21; falta ampliar la medición para concluir |
+Las pruebas de integración, simulación y medición
+experimental se identifican por separado. Los resultados
+P-20 y P-21 no constituyen certificación metrológica
+completa ni prueba de estabilidad prolongada.
 
-FW-08, FW-10 y FW-11 tienen mediciones experimentales parciales. Las pruebas de P-20 se ejecutaron contra la BeaglePlay accesible por USB.
+Los procedimientos, registros históricos y limitaciones
+se conservan en la bitácora P-01 a P-22.
