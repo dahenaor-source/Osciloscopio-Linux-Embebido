@@ -4,7 +4,7 @@ Esta guía te lleva **desde cero** hasta ver en tu navegador la gráfica de dos 
 
 Tiempo estimado: 1 a 2 horas la primera vez.
 
-> **Estado del proyecto (2026-11-05).** El sistema funciona de extremo a extremo con 100, 1.000 y 10.000 muestras por segundo. Hay limitaciones conocidas que **no son errores tuyos**: el preset de 40.000 Sa/s produjo 15 capturas válidas (5 con señal senoidal conocida), el enlace SPI funcionó sin reintentos en las pruebas recientes y el ADC v2 se comparó preliminarmente con un multímetro en cuatro puntos. Están explicadas en la sección 11.
+> **Estado del proyecto (2026-11-05).** El sistema funciona de extremo a extremo con 100, 1.000, 10.000 y 40.000 muestras por segundo en las pruebas realizadas. Los problemas iniciales de SPI y del preset de 40.000 Sa/s no se reprodujeron en las capturas posteriores a 2 MHz (15/15 válidas a 40 kSa/s); las pruebas prolongadas quedan fuera de esta etapa. La calibración ADC v2 tiene una comparación preliminar con multímetro, no una caracterización completa. Consulta la sección 11 para conocer el alcance y las limitaciones.
 >
 > La BeaglePlay del equipo usa **Debian GNU/Linux 13.7 «trixie»** (imagen entregada por el profesor). Se **alimenta con un cable USB-C** y se configuró por **consola serie con minicom** usando un **adaptador USB a UART**. Los pasos marcados con ⚠️ son detalles que no se han podido verificar; se indica cómo comprobarlos.
 
@@ -422,7 +422,7 @@ RX: ['E5', '00', '00', '01', '00', '01', '00', '00', 'E8', '03', ...]
 SPI OK: cabecera valida
 ```
 
-- **Es normal** que alguna lectura salga toda en `FF`: en versiones anteriores se observaron pérdidas SPI; las pruebas recientes P-18 y P-20 no registraron reintentos. Lo importante es que **alguna** de las 5 diga `SPI OK: cabecera valida`.
+- En el diagnóstico inicial algunas lecturas salieron toda en `FF`, pero eso no debe tratarse como comportamiento normal. Si aparece, repite la prueba y registra la salida; las capturas posteriores a 2 MHz fueron válidas con el backend y sus reintentos.
 - Si las 5 fallan: repite el comando 2 o 3 veces. Si siguen fallando, apaga todo y revisa los cables (sección 10).
 
 **Segunda prueba, con datos de ejemplo conocidos (opcional).** Pone al ESP32-C6 en «modo de prueba» y lee una captura de rampas:
@@ -582,7 +582,7 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 | No existe `/dev/spidev0.0` | La imagen no trae el SPI del mikroBUS habilitado | Consulta al profesor; ver [12](../Documentación_General/06-backend-beagleplay.md) |
 | `ModuleNotFoundError: fastapi` (o `spidev`, `uvicorn`) | Faltan paquetes de Python para `sudo python3` | Sección 5.5 |
 | `prueba_directa_spi.py` solo da `FF` en las 5 pruebas | Cable de MISO, MOSI, SCK o CS mal puesto; sin GND común; ESP32-C6 sin alimentar | Apaga todo, revisa la tabla de la sección 6.1 y repite |
-| Funciona y falla de forma intermitente | Problema conocido: se pierde cerca de la mitad de las lecturas SPI; el software reintenta | Normal. Usa cables cortos y bien insertados; usa **2 MHz** |
+| Lecturas SPI inválidas intermitentes | Hubo pérdidas en el diagnóstico histórico; el backend valida y reintenta | Usa cables cortos y bien insertados, configura **2 MHz** y revisa los logs si las capturas no se recuperan |
 | Dashboard con `error: HTTP 500` | Se agotaron los reintentos SPI o el ESP32-C6 no responde | Mira el mensaje `[ERROR REST] ...` en el registro (`sudo journalctl -u osciloscopio-backend -n 20 --no-pager`). Reinicia el ESP32-C6 (RESET) y recarga |
 | Dashboard con `error: HTTP 502` o la página abre pero sin datos tras encender | El servicio del backend no está activo | `systemctl status osciloscopio-backend`; si no existe, ejecuta la sección 8.1; si falla, `sudo journalctl -u osciloscopio-backend -n 30 --no-pager` |
 | Dashboard dice `modo test` y dos líneas casi planas | El ESP32-C6 sigue en modo de prueba | Pulsa **RESET** en el ESP32-C6 |
@@ -598,9 +598,9 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 
 Para que sepas qué esperar (todas están en [13-pendientes-y-riesgos.md](../Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md)):
 
-1. **40.000 Sa/s:** el fallo de las primeras versiones no se reprodujo en P-20. Se registraron 15 capturas válidas, 5 con seno de 1 kHz. La prueba fue de corta duración.
-2. **Comunicación SPI.** En las primeras pruebas se observaron pérdidas de transacciones. En P-18 y P-20 las capturas registradas fueron válidas y no requirieron reintentos. El sistema conserva un mecanismo de reintento ante errores.
-3. **Precisión del voltaje.** El ADC del ESP32-C6 sin calibrar se equivocó hasta 0,7 V frente a un multímetro. El firmware v2 incorpora calibración eFuse. En P-21 se comparó el canal A con un multímetro en cuatro puntos y se observaron errores absolutos entre 0,004 y 0,035 V. Estos resultados son preliminares y no constituyen una caracterización metrológica completa.
+1. **40.000 Sa/s:** hubo un error en una prueba inicial, pero no se reprodujo en P-20: 15/15 capturas válidas, incluidas cinco con seno de 1 kHz. No se hizo una prueba prolongada.
+2. **SPI:** un diagnóstico inicial encontró cerca de la mitad de transacciones inválidas; el backend incorpora reintentos y las capturas posteriores a 2 MHz fueron válidas. La causa raíz y la estabilidad prolongada no están caracterizadas; 100 kHz no es la velocidad de operación.
+3. **Precisión del voltaje:** el ADC v1 sin calibrar tuvo hasta 0,7 V de error. El firmware v2 incluye calibración eFuse; una comparación inicial en cuatro niveles de CH A mostró hasta 0,035 V de diferencia. Faltan más puntos, repeticiones y validar CH B.
 4. **Sin disparo (trigger):** cada captura empieza cuando se pide; una señal que cambia en el tiempo aparecerá en fases distintas en cada captura.
 5. **Arranque automático verificado en la BeaglePlay (P-19):** el servicio de systemd que arranca el backend al encender (`beagleplay/instalar_servicio.sh`) está implementado y fue comprobado después de reiniciar la BeaglePlay. La sección 8.4 describe cómo comprobarlo. nginx sí está verificado: activo, habilitado y sirviendo el dashboard (2026-11-05).
 6. **Rango de entrada:** de 0 a unos 3,1 V, solo positivo.

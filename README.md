@@ -69,10 +69,10 @@ Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware
 ## Estado verificado (2026-11-05)
 
 - [x] Firmware compila (ESP-IDF 5.4.1), se flashea y arranca. Protocolo con pruebas unitarias en el PC.
-- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz. Históricamente se observaron pérdidas de aproximadamente el 50 % de las transacciones (P-05), pero las pruebas recientes P-18 y P-20 no registraron reintentos. Falta comprobar la estabilidad prolongada.
+- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz. Históricamente se observaron pérdidas de aproximadamente el 50 % de las transacciones (P-05), pero las capturas recientes P-18, P-20 y P-22 fueron válidas, sin reintentos reportados. La prueba prolongada de integridad queda fuera del alcance de esta etapa.
 - [x] Dashboard con datos reales (modo de prueba y ADC con potenciómetro, 100 a 10.000 Sa/s).
 - [x] Backend FastAPI en la BeaglePlay (SPI + API) con reintentos.
-- [x] Firmware v2: calibración del ADC por eFuse (arranca en una placa real con calibración en ambos canales; falta medir la exactitud).
+- [x] Firmware v2: calibración del ADC por eFuse (arranque verificado en ambos canales; P-21 registró una comparación preliminar de cuatro puntos en CH A, aún falta completar la caracterización).
 - [x] Preset de 40 kSa/s: 15 capturas API válidas en P-20, incluidas 5 con seno conocido de 1 kHz; frecuencia estimada ≈ 40.308 Sa/s. Prueba prolongada fuera del alcance de esta etapa.
 - [x] Servidor nginx activo y sirviendo el dashboard en el puerto 80 (verificado el 2026-11-05); el proxy `/api/` fue verificado con HTTP 200 en P-18.
 - [x] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): verificado tras reiniciar la BeaglePlay (P-19).

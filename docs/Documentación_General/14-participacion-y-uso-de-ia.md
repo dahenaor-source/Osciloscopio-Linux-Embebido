@@ -107,47 +107,65 @@ resultados.
 
 ## 4. Uso de inteligencia artificial en el proyecto
 
-En el desarrollo se registró el uso de asistentes de IA,
-entre ellos GitHub Copilot, Gemini y ChatGPT.
+### 4.1 Herramienta y alcance
 
-Las actividades documentadas incluyen apoyo para:
+- Herramienta: asistente de IA integrado en VS Code (GitHub Copilot, modo agente con acceso a terminal y archivos), usado por **David Henao Rojas** y, para las tareas descritas en la sección 4.3, por **Juan Camilo Giraldo**.
+- Herramientas de IA declaradas por el equipo: **Copilot, Gemini y ChatGPT**. Para Juan Camilo consta el uso de Copilot en VS Code en esta colaboración; no hay información para atribuirle uso de Gemini o ChatGPT. El modelo/versión exactos no quedaron registrados.
+- La autoría Git identifica quién registró los commits, pero por sí sola no demuestra si se utilizó IA para escribir el código de esos commits. Por eso, la participación de IA de Juan Camilo se limita abajo a las tareas confirmadas en esta colaboración.
 
-- Implementación y revisión de firmware y protocolo SPI.
-- Desarrollo de herramientas de diagnóstico.
-- Elaboración y revisión de la interfaz web.
-- Interpretación de registros de pruebas.
-- Elaboración de diagramas y documentación técnica.
+### 4.2 Tareas en las que se usó la IA (lado David)
 
-El uso de estas herramientas no constituye por sí mismo
-evidencia de funcionamiento del sistema.
+| Tarea | Qué hizo la IA | Cómo se verificó |
+|---|---|---|
+| Firmware ESP32-C6 (SPI esclavo, ADC continuo, protocolo, presets) | Escribió el código en C y las pruebas del protocolo | Compilación con ESP-IDF 5.4.1; 7 pruebas unitarias en el PC; flasheo y arranque en la placa real; pruebas posteriores con la BeaglePlay |
+| Calibración del ADC (v2) | Propuso y programó la tabla con `adc_cali_curve_fitting` tras analizar las mediciones del equipo | Compila y pasa las pruebas unitarias; P-21 aporta una comparación preliminar hecha por Juan Camilo en CH A. La caracterización completa sigue pendiente |
+| Maestro SPI de referencia (`tools/spi_master_test.py`) | Escribió el script | Se ejecutó en la BeaglePlay para P-20; el benchmark midió caudal a 1–20 MHz, pero no validó cada respuesta de las 200 transferencias |
+| Dashboard HTML/JS | Escribió la interfaz y la fuente simulada | Servido por un servidor local; probado en el navegador por el equipo con datos reales. No se pasó por un analizador de sintaxis |
+| Análisis de los logs de las pruebas SPI | Interpretó las salidas de `prueba_directa_spi.py` y `diagnostico_captura.py` (conteo de válidas/inválidas, patrón alternado, flags) | Los datos los tomó el equipo en la BeaglePlay; los conteos se recalcularon sobre los textos pegados |
+| Driver SPI y backend (reintentos, candado, plazos) | Reescribió partes de `spi_driver.py` y `main.py` | Esclavo SPI simulado en el PC, luego pruebas del equipo en la placa real |
+| Pinout y diagramas (SVG, Mermaid y gráfico) | Generó los diagramas y corrigió la numeración mikroBUS a partir de la corrección del equipo | El equipo corrigió el error de INT (11 → 15); los SVG se renderizaron para revisarlos |
+| Documentación (.md) | Redactó y organizó esta documentación | Revisión por el equipo y contraste con los archivos y logs del repositorio |
+
+### 4.3 Tareas en las que se usó la IA (lado Juan Camilo)
+
+| Tarea | Qué hizo la IA | Cómo se verificó / participación humana |
+|---|---|---|
+| Revisión de resultados de pruebas de integración (P-05, P-06, P-08, P-10, P-11 y P-14) | Contrastó los resultados históricos con la evidencia posterior y propuso estados que distinguen fallas originales, mitigaciones y límites aún abiertos; actualizó la bitácora, matriz y documentos relacionados | Juan Camilo aportó el contexto y los resultados ejecutados en hardware. Se contrastaron los cambios con P-18, P-20, P-21 y P-22; las pruebas prolongadas y algunas causas raíz siguen explícitamente pendientes |
+| Registro de la comparación ADC v2 (P-21) | Organizó las cuatro parejas de lecturas, calculó diferencias y porcentajes y actualizó la sección de calibración y la matriz | Juan Camilo tomó las lecturas con el multímetro y el dashboard. Los cálculos se comprobaron; la caracterización sigue parcial |
+| Revalidación Nginx/API de la BeaglePlay (P-22) | Indicó comandos de comprobación, interpretó las salidas y registró la evidencia en la bitácora, la matriz y la guía de backend | Juan Camilo ejecutó los comandos en la BeaglePlay y compartió las salidas. Se verificaron HTTP 200, servicios activos/habilitados, 256 muestras por canal, `flags=0` y `retries=0`. La IA no accedió físicamente a la placa |
+| Documentación de resultados y revisión de coherencia en Git | Redactó actualizaciones de la documentación de pruebas y ayudó a alinear la matriz, el README y los documentos técnicos con la evidencia disponible | Juan Camilo revisó y solicitó los ajustes; se pasó `git diff --check` y los cambios se publicaron en `main` |
+
+El historial registra que Juan Camilo es autor de commits del backend, el driver SPI, su README y los scripts de prueba. Ese dato documenta su contribución de software, pero no basta para afirmar que la IA escribió originalmente esos componentes; la participación de IA en esa implementación debe confirmarla el integrante si desea declararla.
 
 ## 5. Verificación de resultados
 
-Los resultados generados o revisados con asistencia de IA
-se contrastaron, según el caso, mediante:
+- **Compilación y pruebas automáticas** donde fue posible (ESP-IDF, `make test`).
+- **Pruebas en hardware reales** hechas por personas (flasheo, SPI con la BeaglePlay, multímetro).
+- Para las pruebas P-18–P-22 reportadas por Juan Camilo, la ejecución física y la toma de lecturas fueron humanas; la IA ayudó a interpretar salidas compartidas y a registrar los resultados. No se deben presentar como mediciones ejecutadas autónomamente por la IA.
+- **Corrección humana de errores de la IA**: el equipo detectó la numeración de pines mikroBUS errónea (INT) y aportó los logs que mostraron que `ARM` se perdía; el desajuste de la lectura del ADC se descubrió comparando con un multímetro.
+- Lo **no verificado** se marca explícitamente como pendiente en [09](09-pruebas-y-resultados.md) y [10](10-matriz-de-verificacion.md).
 
-- Compilación del firmware con ESP-IDF.
-- Pruebas unitarias del protocolo.
-- Ejecución en ESP32-C6 y BeaglePlay.
-- Pruebas de integración SPI y API.
-- Verificación del servidor nginx y el arranque automático.
-- Mediciones con generador de señales y multímetro.
+## 6. Limitaciones de la documentación y de la IA
 
-La evidencia experimental y sus limitaciones se encuentran en:
+### Errores y límites conocidos de la IA
 
-- [09. Pruebas y resultados](09-pruebas-y-resultados.md).
-- [10. Matriz de verificación](10-matriz-de-verificacion.md).
+- Supuso un fondo de escala de 3,1 V para el ADC; la placa real no lo cumplía (ver [08](08-calibracion-adc.md)).
+- Numeró mal el pin INT de mikroBUS en la primera versión.
+- Los datos del AM62x (SPI maestro a 50 MHz) provienen de ejemplos de TI y **no se han confirmado** con la hoja de datos.
+- Las hipótesis sobre el ruido en CH A y las transacciones perdidas son explicaciones plausibles, **no probadas**.
 
-## 6. Limitaciones de la documentación
+### Chats e historiales pendientes
 
-La atribución individual de todas las intervenciones de IA,
-sus modelos específicos y sus historiales completos no
-puede reconstruirse únicamente a partir de los archivos
-actualmente publicados.
+El enunciado pide incluir el contenido de las interacciones. **Por completar antes de la entrega:**
 
-Los historiales de conversaciones no están incorporados
-como anexos en esta versión del repositorio.
+1. Exportar o copiar el historial de la conversación con el asistente y guardarlo en `docs/Documentación_General/chats/` (carpeta por crear).
+2. Cada integrante que haya usado IA debe añadir el suyo.
+3. No incluir credenciales ni datos personales en los archivos exportados.
 
-Las mediciones parciales se identifican como tales
-en la matriz y no se presentan como certificaciones
-metrológicas completas.
+La atribución individual de todas las interacciones históricas y sus modelos específicos no puede reconstruirse únicamente a partir de los archivos publicados. Las mediciones parciales se identifican como tales y no se presentan como certificaciones metrológicas completas.
+
+| Integrante | Archivo del chat | Herramienta y modelo |
+|---|---|---|
+| David Henao Rojas | _por completar_ | Copilot (VS Code); _confirmar si también Gemini o ChatGPT_ |
+| Juan Camilo Giraldo | _por completar_ | Copilot (VS Code); modelo/versión exactos por confirmar |
+| Daniela Barragán | _por completar_ | _por completar_ |

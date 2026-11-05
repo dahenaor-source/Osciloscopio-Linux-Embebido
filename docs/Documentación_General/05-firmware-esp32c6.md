@@ -112,4 +112,4 @@ Ver [10-matriz-de-verificacion.md](10-matriz-de-verificacion.md) (filas FW-01 a 
 - Con 2 canales sobre un solo ADC, el canal B está desfasado medio periodo de conversión respecto al A.
 - Sin disparo (trigger): cada captura comienza al recibir `ARM`.
 - En pruebas antiguas a 40 kSa/s se observó un error constante; en P-20 pasaron 15/15 capturas (5 con seno conocido de 1 kHz), sin overrun. Falta prueba de estrés prolongada.
-- Históricamente el esclavo SPI perdió parte de las transacciones; en P-18/P-20 no hubo reintentos, pero falta una prueba de duración y validación de datos a cada velocidad.
+- Históricamente el esclavo SPI perdió parte de las transacciones; las capturas P-18/P-20/P-22 no reportaron reintentos. La prueba prolongada de integridad y validación a cada velocidad queda fuera del alcance de esta etapa.

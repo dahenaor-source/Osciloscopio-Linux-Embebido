@@ -102,8 +102,8 @@ Detalles de `spi_driver.py` que no estaban en la versión inicial:
 
 ## 5. Estado y limitaciones
 
-- ✅ Lectura de cabeceras válidas, captura en modo de prueba y captura real a 100 y 1.000 Sa/s sin problemas, y a 10.000 Sa/s con errores esporádicos (mensajes no registrados), a través del dashboard.
-- ✅ En P-20 se registraron **15 capturas válidas a 40.000 Sa/s**, incluidas cinco con seno de 1 kHz. El fallo de versiones anteriores no se reprodujo; la prueba fue de corta duración ([13](13-pendientes-y-riesgos.md)).
+- ✅ Lectura de cabeceras válidas, captura en modo de prueba a 2 MHz y capturas reales por API a 1, 10 y 40 kSa/s; P-20 estimó la frecuencia en los cuatro presets y no registró flags ni reintentos en esas capturas.
+- 🟡 Los problemas históricos de 10 kSa/s y 40 kSa/s (P-10) no se reprodujeron en las capturas correspondientes de P-20; 40 kSa/s pasó 15/15 capturas. No se realizó una prueba prolongada y queda fuera del alcance de esta etapa.
 - ⚠️ Con reintentos altos (24 a 39 por trama a 1 y 10 kSa/s) la latencia por captura sube; no se ha medido.
 - ⚠️ La línea INT no se usa; todo se resuelve con pausas y reintentos.
 - 🟡 **nginx**: el enunciado exige apache o nginx. El equipo del SBC añadió [`beagleplay/nginx.conf`](../../beagleplay/nginx.conf) (2026-11-04): `location /` sirve `dashboard/` desde `/home/camilo/Osciloscopio-Linux-Embebido/dashboard` y `location /api/` hace `proxy_pass` a `http://127.0.0.1:8000`, con el puerto 80. **Verificado en la BeaglePlay el 2026-11-05:**

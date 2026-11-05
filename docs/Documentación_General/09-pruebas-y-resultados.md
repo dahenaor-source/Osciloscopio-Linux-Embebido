@@ -4,22 +4,24 @@ Bitácora cronológica de las pruebas, con la evidencia disponible. Lo que no se
 
 ## Resumen
 
+Los resultados P-05, P-06, P-08, P-10, P-11 y P-14 que siguen reflejan lo observado en sus fechas originales; no se sustituyen retrospectivamente por los resultados posteriores. Las pruebas posteriores citadas permiten actualizar la evaluación del estado actual, pero no equivalen a repetir íntegramente cada diagnóstico histórico.
+
 | ID | Fecha | Prueba | Resultado |
 |---|---|---|---|
 | P-01 | 2026-10-28 | Compilar, flashear y arrancar el firmware v1 | ✅ |
 | P-02 | 2026-10-28 | Pruebas unitarias del protocolo en el PC | ✅ 7 pruebas |
 | P-03 | 2026-10-30 | Revisión del pinout mikroBUS | ✅ Corregido INT 11 → 15 |
 | P-04 | 2026-10-30 | Primera lectura SPI desde la BeaglePlay (100 kHz) | ✅ Cabecera válida en la 2.ª transacción |
-| P-05 | 2026-10-30 | Diagnóstico de captura completa (100 kHz y 2 MHz) | ❌ Se pierde ≈ 50 % de las transacciones; `ARM` nunca surtió efecto |
-| P-06 | 2026-10-30 | Backend con reintentos: modo de prueba en el dashboard | ✅ a 2 MHz; ❌ a 100 kHz |
+| P-05 | 2026-10-30 | Diagnóstico de captura completa (100 kHz y 2 MHz) | 🟡 Prueba histórica: ≈ 50 % de transacciones inválidas y `ARM` perdido. La mitigación y capturas válidas a 2 MHz se verificaron después (P-06, P-18, P-20, P-22); causa raíz y estabilidad prolongada no determinadas |
+| P-06 | 2026-10-30 | Backend con reintentos: modo de prueba en el dashboard | ✅ Captura y datos de prueba válidos a 2 MHz; ❌ 100 kHz no completó la captura y no es la velocidad operativa |
 | P-07 | 2026-10-30 | Preset del dashboard contra el del ESP32-C6 | ✅ Corregido |
-| P-08 | 2026-10-30 | ADC real con potenciómetro | 🟡 Datos reales; ruido periódico en CH A |
+| P-08 | 2026-10-30 | ADC real con potenciómetro | 🟡 Lecturas reales; se observó ruido periódico en CH A. P-09 mostró señal plana tras añadir condensador y evitar tráfico durante el muestreo; la causa del ruido no quedó aislada |
 | P-09 | 2026-10-30 | Condensador en la entrada | ✅ Señal plana y estable |
-| P-10 | 2026-10-30 | Presets de 10.000 y 40.000 Sa/s | ❌ Errores esporádicos a 10 kSa/s y constantes a 40 kSa/s |
-| P-11 | 2026-10-30 | Exactitud del ADC sin calibrar | ❌ Errores de hasta 0,72 V |
+| P-10 | 2026-10-30 | Presets de 10.000 y 40.000 Sa/s | 🟡 Fallos históricos: checksum esporádico a 10 kSa/s y error a 40 kSa/s. En P-20 no se reportaron en las capturas válidas de medición; 40 kSa/s pasó 15/15 capturas. Operación prolongada no evaluada |
+| P-11 | 2026-10-30 | Exactitud del ADC v1 sin calibrar | 🟡 v1 tuvo hasta 0,72 V de error; P-21 midió v2 en cuatro puntos de CH A con error absoluto máximo de 0,035 V. El problema de v1 fue atendido con calibración eFuse; falta completar la caracterización v2 |
 | P-12 | 2026-11-01 | Firmware v2 con calibración | ✅ Compila (11-01); ✅ arranca en hardware con calibración de eFuse (P-13) |
 | P-13 | 2026-11-04 | Arranque del firmware v2 en una ESP32-C6 real | ✅ Arranca sin reinicios; calibración eFuse en ambos canales |
-| P-14 | 2026-11-04 | SPI con la BeaglePlay tras conectar el generador | ❌ Todo `00` en RX (en diagnóstico; el firmware está vivo, P-13) |
+| P-14 | 2026-11-04 | SPI sin respuesta tras conectar el generador | 🟡 Diagnóstico devolvió todo `00`; la ruta SPI volvió a operar en capturas API posteriores (P-18, P-20, P-22), pero no se identificó la causa raíz de ese síntoma |
 | P-15 | 2026-11-05 | Dashboard: preset enviado al iniciar y un solo bucle de sondeo | ✅ Lógica verificada con simulación de reloj virtual; ⏳ falta probarlo en el navegador con el hardware |
 | P-16 | 2026-11-05 | nginx en la BeaglePlay | ✅ Activo, habilitado y sirviendo el dashboard (HTTP 200); 🟡 proxy `/api/` con 502 por backend apagado |
 | P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | ✅ Servicio activo y habilitado; tras reiniciar la placa el dashboard volvió a medir sin intervención (P-19) |
@@ -88,12 +90,12 @@ Observaciones:
 - La cabecera válida es correcta incluso a 2 MHz: el problema no es la velocidad ni el cableado.
 - **Causa raíz no identificada.** Hipótesis por verificar: tiempo que tarda el esclavo en volver a armar la transacción tras cada una (`spi_slave_transmit` con cola de 1), integridad de señal en cables sueltos, o el comportamiento de CS en `spidev`.
 
-**Respuesta aplicada (en el maestro):** reintentos hasta cabecera válida, candado, comprobación de `seq`, plazo calculado ([06](06-backend-beagleplay.md)). El esclavo no se modificó.
+**Respuesta aplicada (en el maestro):** reintentos hasta cabecera válida, candado, comprobación de `seq`, plazo calculado ([06](06-backend-beagleplay.md)). El esclavo no se modificó. En las capturas posteriores del backend a 2 MHz hubo tramas completas válidas (P-06, P-18, P-20 y P-22), pero no se repitió el barrido diagnóstico de 400 sondeos ni se identificó la causa raíz. Por tanto, la pérdida inicial queda como observación histórica; la mitigación funcional está verificada, no la ausencia absoluta de pérdidas.
 
 ## P-06. Backend con reintentos y dashboard
 
 - **2 MHz:** sin errores en el servidor. El dashboard mostró las rampas del modo de prueba: CH A de 0 a 0,193 V y CH B de 3,100 a 2,907 V, que coincide con `i` y `4095 − i` (captura en [07](07-dashboard.md)). Valida el SPI, la cabecera, el desempaquetado y la API de extremo a extremo.
-- **100 kHz:** el dashboard seguía recibiendo `HTTP 500` (`[ERROR REST] Falla al capturar trama`). Con tantas transacciones perdidas a baja velocidad, los 12 reintentos por transacción no bastaron. Se adopta **2 MHz** como velocidad de trabajo, que además cumple los 2 Mbit/s que pidió el docente.
+- **100 kHz:** el dashboard seguía recibiendo `HTTP 500` (`[ERROR REST] Falla al capturar trama`). Con tantas transacciones perdidas a baja velocidad, los 12 reintentos por transacción no bastaron. Se adopta **2 MHz** como velocidad de trabajo, que además cumple los 2 Mbit/s que pidió el docente. Las verificaciones posteriores se realizaron a la velocidad operativa de 2 MHz; 100 kHz no es la configuración soportada.
 
 ## P-07. Preset desincronizado
 
@@ -104,6 +106,7 @@ La barra de estado decía `100 Sa/s · ventana 2560 ms` con el selector en 1.000
 - Sin señal: ≈ 0,12 V con ruido (pines flotantes). El firmware salió del modo de prueba al reiniciar.
 - Con potenciómetro (sin condensador): CH B estable en 2,556 V y **CH A con caídas periódicas** cada ≈ 26 ms hasta 0,666 V que se recuperaban exponencialmente; 39 reintentos SPI en esa captura (a 1 kSa/s).
 - **Hipótesis** (no confirmada): pulsos acoplados desde el tráfico SPI a una entrada de alta impedancia. Mitigación aplicada: el backend no consulta por SPI durante el muestreo.
+- En P-09, al añadir un condensador y evitar tráfico durante el muestreo, ambos canales quedaron planos (pico-pico 0,001 V). Como se cambiaron dos condiciones a la vez, no se aisló cuál mitigó el ruido. P-21 volvió a mostrar lecturas de CH A comparables con el multímetro en cuatro niveles; no incluyó una medición de ruido pico-pico. La causa del ruido periódico original sigue sin confirmarse y no hay evidencia de que continúe como fallo funcional.
 
 ## P-09. Condensador de filtrado
 
@@ -114,12 +117,12 @@ Con un condensador entre el cursor y GND (CH A en el cursor; CH B en el otro ext
 ## P-10. Presets de 10.000 y 40.000 Sa/s
 
 - A **100 y 1.000 Sa/s** todo correcto.
-- A **10.000 Sa/s** el dashboard mostró avisos esporádicos de «checksum de comando» (el flag bit2 pegado de una transacción perdida). Se enmascaró el flag y se expone `retries`.
-- A **40.000 Sa/s** el error es **constante**. El mensaje exacto no se registró. Se necesita el log del backend (`[ERROR REST] ...` ahora con la causa) y el monitor serie del ESP32-C6 (`capture: captura fallida: ...`). Causas posibles: overrun del ADC (flag `OVERRUN`), fallo del ADC a 80 kSa/s (cerca del límite de 83,3 kSa/s) o problema de SPI.
+- A **10.000 Sa/s** el dashboard mostró avisos esporádicos de «checksum de comando» (el flag bit2 pegado de una transacción perdida). Se enmascaró el flag y se expone `retries`. En las capturas posteriores de P-20 usadas para estimar la frecuencia no se informaron flags ni reintentos; el aviso original no se reproduce en esa evidencia, aunque no se hizo una prueba prolongada.
+- A **40.000 Sa/s** se observó entonces un error constante, sin guardar el mensaje exacto. En P-20 se obtuvieron 15/15 capturas válidas (10 sin señal y 5 con seno conocido de 1 kHz), con 256 muestras/canal, `flags=0` y `retries=0`, y se estimó `fs ≈ 40.308 Sa/s`. El fallo histórico no se reprodujo en esas capturas. No se ejecutó el estrés prolongado; la causa original no se determinó.
 
 ## P-11. Exactitud del ADC sin calibrar
 
-Multímetro contra dashboard (firmware v1): 0,50→0,70 V, 1,30→1,00 V, 2,00→1,80 V, 3,28→2,556 V. Respuesta **no lineal**, error hasta 0,72 V ([08](08-calibracion-adc.md)). El dashboard no limitaba el valor: el dato crudo ya era bajo.
+Multímetro contra dashboard (firmware v1): 0,50→0,70 V, 1,30→1,00 V, 2,00→1,80 V, 3,28→2,556 V. Respuesta **no lineal**, error hasta 0,72 V ([08](08-calibracion-adc.md)). El dashboard no limitaba el valor: el dato crudo ya era bajo. Este fallo corresponde a la conversión lineal de v1; el firmware v2 introdujo calibración eFuse y P-21 registró una comparación inicial de cuatro niveles (error absoluto máximo 0,035 V). No se considera que el problema de exactitud de v1 siga sin atender, aunque la caracterización del v2 aún es parcial.
 
 ## P-12. Firmware v2
 
@@ -142,12 +145,14 @@ Conclusiones:
 - El firmware v2 **arranca sin reinicios ni errores** (descarta un desbordamiento de pila por la tabla de calibración).
 - **Esa placa sí trae los datos de calibración en la eFuse** (esquema curve-fitting en ambos canales). Revisión del chip v0.2, eFuse v0.3.
 - Se confirma la asignación de pines SPI y que INT = GPIO3 es una salida.
-- Pendiente: medir cuánto mejora la exactitud frente al multímetro ([08](08-calibracion-adc.md)).
+- La medición preliminar posterior está registrada en P-21: cuatro puntos de CH A con error absoluto máximo observado de 0,035 V. Faltan niveles, repeticiones, el canal B y la incertidumbre del multímetro para caracterizar la exactitud.
 - Observación menor: el chip detectado tiene 16 MB de flash y el firmware usa 4 MB (el arranque lo avisa y usa 4 MB); no afecta.
 
 ## P-14. SPI sin respuesta tras conectar el generador (2026-11-04, en diagnóstico)
 
-Con el backend a 100 kHz (valor por defecto antiguo): `[ERROR REST] sin cabecera valida antes de ARM` (HTTP 500). Con `prueba_directa_spi.py` las 5 pruebas devuelven **todos los bytes `00`** (el 2026-10-30 devolvían `FF` en las tramas perdidas y una cabecera válida en otras). Pulsar RESET en el ESP32-C6 no lo corrigió. El monitor serie (P-13) muestra que el firmware está activo y el esclavo SPI iniciado, por lo que se sospecha del cableado de MISO, GND o CS, o de la configuración de la BeaglePlay. `00` fijo significa MISO forzado a 0 V. Pruebas de aislamiento propuestas: desconectar MISO en el ESP32-C6 y repetir; bucle MISO-MOSI en el mikroBUS sin el ESP32-C6; medir GPIO3 (INT, ≈ 3,3 V en reposo si el esclavo está armado). Resultado pendiente. Se preparó un firmware con contador de transacciones (`release/osciloscopio_c6_v2_diag.bin`, ver el procedimiento de flasheo en [Instrucciones de uso](../Instrucciones_De_Uso/Instrucciones_De_Uso.md)) para saber si el ESP32-C6 recibe algo de la BeaglePlay.
+Con el backend a 100 kHz (valor por defecto antiguo): `[ERROR REST] sin cabecera valida antes de ARM` (HTTP 500). Con `prueba_directa_spi.py` las 5 pruebas devolvieron **todos los bytes `00`** (el 2026-10-30 devolvían `FF` en las tramas perdidas y una cabecera válida en otras). Pulsar RESET en el ESP32-C6 no lo corrigió. El monitor serie (P-13) mostró que el firmware estaba activo y el esclavo SPI iniciado; se sospechó del cableado de MISO, GND o CS, o de la configuración de la BeaglePlay. `00` fijo apuntaba a MISO a nivel bajo. Se propusieron pruebas de aislamiento, pero no consta que se realizaran.
+
+**Reevaluación:** las capturas válidas posteriores por el backend a 2 MHz (P-18, P-20 y P-22) demuestran que la ruta SPI volvió a operar y que el síntoma `00` fijo no persistió en esas sesiones. No se identificó qué condición transitoria lo causó ni se repitieron las pruebas de aislamiento. Se preparó un firmware diagnóstico con contador de transacciones, pero no consta que se haya utilizado para aislar esta causa.
 
 ## P-15. Dashboard: preset al iniciar y bucle único (2026-11-05)
 

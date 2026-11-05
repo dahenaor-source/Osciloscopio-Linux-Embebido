@@ -11,7 +11,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | FW-03 | Presets 100/1.000/10.000/40.000 Sa/s dentro de los límites del ADC | `test_rates` | Unitaria (PC) | ✅ Pasa | P-02 |
 | FW-04 | Ventanas de 64 a 1020 muestras (≥ 64) | `test_window` | Unitaria (PC) | ✅ Pasa | P-02 |
 | FW-05 | Compila con ESP-IDF 5.4.1 (v1 y v2) | `idf.py build` | Compilación | ✅ Pasa | P-01, P-12 |
-| FW-06 | Enlace SPI sin errores de datos (modo prueba) | Dashboard en modo de prueba; `diagnostico_captura.py` | Integración | 🟡 Una captura de 256 muestras correcta a 2 MHz (visual). Falta repetirlo de forma automática y con muchas capturas | P-06 |
+| FW-06 | Enlace SPI sin errores de datos (modo prueba) | Dashboard en modo de prueba; validación de rampas conocidas | Integración | 🟡 Rampas correctas en una captura a 2 MHz (P-06); capturas API posteriores son válidas, pero no repitieron la comprobación automatizada de todas las muestras del patrón de prueba | P-06, P-18, P-20, P-22 |
 | FW-07 | Cambio de preset por SPI | `POST /api/scope/config` y `fs_hz` en la cabecera | Integración | ✅ Los cuatro presets se aplicaron y verificaron por API (P-20). Desde el selector del dashboard se verificaron 100, 1.000 y 10.000 Sa/s; el preset de 40.000 no se probó desde esa interfaz | P-07, P-10, P-20 |
 | FW-08 | Frecuencia de muestreo real de cada preset | Señal de frecuencia conocida o analizador lógico | Experimental | 🟡 Estimaciones con generador: 100→100,0; 1.000→1.000,09; 10.000→10.004,06; 40.000→40.307,74 Sa/s. La referencia es el valor nominal del generador; falta considerar su tolerancia/calibración | P-20 |
 | FW-09 | Captura a 40 kSa/s sin desbordamiento (bonificación) | `flags` bit0 = 0 y señal conocida | Experimental | 🟡 Prueba funcional corta: 10/10 capturas sin señal y 5/5 con seno conocido de 1 kHz; todas con 256 muestras, `flags=0`, `retries=0`. Estrés prolongado fuera del alcance de esta etapa por tiempo disponible | P-10, P-20 |
@@ -24,7 +24,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | ID | Requisito / función | Prueba | Tipo | Resultado | Evidencia |
 |---|---|---|---|---|---|
 | SB-01 | Abrir `/dev/spidev0.0` y leer una cabecera válida | `prueba_directa_spi.py` | Integración | ✅ Pasa (2.ª transacción) | P-04 |
-| SB-02 | Captura completa (ARM → READY → lectura) | `diagnostico_captura.py`, dashboard | Integración | ✅ A 2 MHz con reintentos. ❌ a 100 kHz (HTTP 500) | P-05, P-06 |
+| SB-02 | Captura completa (ARM → READY → lectura) | `diagnostico_captura.py`, dashboard y API real por Nginx | Integración | ✅ Operación a 2 MHz con reintentos; capturas reales válidas confirmadas en P-18, P-20 y P-22. 100 kHz falló en la prueba histórica y no es la velocidad operativa | P-05, P-06, P-18, P-20, P-22 |
 | SB-03 | Robustez ante transacciones perdidas | Esclavo simulado en PC con pérdidas alternas | Unitaria (simulada) | ✅ Pasa (reintentos, `seq` viejo) | P-05, [06](06-backend-beagleplay.md) |
 | SB-04 | Sin mezcla de transacciones entre `GET frame` y `POST config` | Solicitudes simultáneas reales de captura y cambio de preset; validar trama y configuración final | Integración | ✅ 5/5 pares simultáneos válidos en la BeaglePlay; sin trama inválida ni flags/reintentos | P-20 |
 | SB-05 | Habilitar `spidev` en la mikroBUS | — | Configuración | 🟡 Funciona; método sin documentar | [03](03-hardware-y-conexiones.md) |
@@ -36,7 +36,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | ID | Requisito / función | Prueba | Tipo | Resultado | Evidencia |
 |---|---|---|---|---|---|
 | DB-01 | Muestra 2 canales y estadísticas con datos simulados | Manual en el navegador | Funcional | ✅ | [07](07-dashboard.md) |
-| DB-02 | Muestra datos reales vía `/api/scope/frame` | Manual con la BeaglePlay | Integración | ✅ Modo de prueba y ADC real | P-06, P-08 |
+| DB-02 | Muestra datos reales vía `/api/scope/frame` | Manual con la BeaglePlay | Integración | ✅ Modo de prueba y ADC real; capturas reales por API/Nginx confirmadas en P-18 y P-22. P-08 registró ruido inicial en CH A; P-09 mostró señal plana al añadir filtrado y pausa de SPI | P-06, P-08, P-09, P-18, P-22 |
 | DB-03 | Refresco entre 0,25 y 1 Hz | Selector 0,25 / 0,5 / 1 Hz; a 1 Hz con 1 kSa/s | Funcional | 🟡 Funciona a 1 Hz con 1 kSa/s; no medido a 100 Sa/s ni a 40 kSa/s | P-08, P-09 |
 | DB-04 | Cambio de preset desde el dashboard | Selector de frecuencia | Integración | ✅ 100, 1.000 y 10.000 Sa/s | P-07 |
 | DB-05 | Aviso visual de overrun, comando rechazado, ADC sin calibrar, reintentos | Revisión del código | Inspección | 🟡 Implementado; no provocado en pruebas | [07](07-dashboard.md) |

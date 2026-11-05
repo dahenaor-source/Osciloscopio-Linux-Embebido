@@ -89,7 +89,7 @@ Implementación de referencia de esta secuencia con reintentos: `capture_frame()
 
 ## Comportamiento observado en hardware
 
-En las pruebas con la BeaglePlay real (2026-10-30, ver [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md)) **cerca de la mitad de las transacciones llegan inválidas** y la causa raíz no está identificada. Tres formas de respuesta inválida:
+En el diagnóstico histórico con la BeaglePlay real (2026-10-30, ver [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md)) **cerca de la mitad de las transacciones llegaron inválidas** y la causa raíz no quedó identificada. Las capturas posteriores con el backend a 2 MHz se completaron válidamente, pero no se caracterizó la estabilidad prolongada. Tres formas de respuesta inválida:
 
 | Respuesta | Interpretación |
 |---|---|
