@@ -1,6 +1,6 @@
 # 09. Pruebas y resultados
 
-Bitácora cronológica de lo realizado hasta el 2026-11-03, con la evidencia disponible. Lo que no se ejecutó en hardware se indica de forma explícita. Las pruebas con la BeaglePlay las hizo el equipo del SBC (Juan Camilo); las de compilación y las del PC, David Henao Rojas.
+Bitácora cronológica de las pruebas, con la evidencia disponible. Lo que no se ejecutó en hardware se indica de forma explícita. Las pruebas con la BeaglePlay las hizo el equipo del SBC (Juan Camilo); las de compilación y las del PC, David Henao Rojas.
 
 ## Resumen
 
@@ -25,6 +25,7 @@ Bitácora cronológica de lo realizado hasta el 2026-11-03, con la evidencia dis
 | P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | ✅ Servicio activo y habilitado; tras reiniciar la placa el dashboard volvió a medir sin intervención (P-19) |
 | P-18 | 2026-11-05 | nginx y API real con el backend activo en la BeaglePlay | ✅ Nginx y backend activos/habilitados; dashboard y `/api/scope/frame` responden HTTP 200 |
 | P-19 | 2026-11-05 | Arranque del backend tras reiniciar la BeaglePlay | ✅ Inició sin entrar a la terminal y se pudo medir desde el dashboard (confirmado por el usuario) |
+| P-20 | 2026-11-05 | Concurrencia API, capturas por preset y 40 kSa/s en la BeaglePlay | ✅ 10/10 pares concurrentes válidos; 10/10 capturas adicionales a 40 kSa/s sin flags ni reintentos; API restaurada a 1 kSa/s |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
@@ -164,10 +165,21 @@ Para que al alimentar la placa todo arranque solo: unidad [`beagleplay/systemd/o
 
 Según confirmó el usuario, después de reiniciar la placa el backend arrancó automáticamente, sin necesidad de entrar a la terminal, y el dashboard permitió medir. Esto verifica SB-07 y la ruta normal de arranque; no constituye una prueba de concurrencia de solicitudes `GET` y `POST`.
 
+## P-20. Concurrencia API, presets y captura a 40 kSa/s (2026-11-05)
+
+Pruebas ejecutadas contra la BeaglePlay por la interfaz USB (`192.168.7.2`), a través de Nginx:
+
+- **Concurrencia:** se lanzaron 5 pares simultáneos de `GET /api/scope/frame` y `POST /api/scope/config` al mismo preset de 1 kSa/s: 5/5 pares respondieron correctamente con trama completa (256 muestras por canal), `flags=0` y `retries=0`. Luego se hicieron otros 5 pares simultáneos alternando el cambio entre 1 y 10 kSa/s: 5/5 capturas fueron válidas, sin flags ni reintentos; después de cada par una captura serial confirmó que quedó aplicado el preset solicitado. Esta prueba integra las dos rutas y valida el acceso compartido al SPI; no es una prueba prolongada con varios clientes.
+- **Presets:** se recibieron tramas de 256 muestras a 1, 10 y 40 kSa/s. Una captura aislada a 100 Sa/s también devolvió el preset correcto y `flags=0`, con 2,617 s de respuesta total. En el primer bloque a 100 Sa/s, 2 de 3 capturas coincidieron y la tercera devolvió 1 kSa/s, por lo que se conserva como inconsistencia observada, no como fallo de trama.
+- **40 kSa/s:** 10 capturas consecutivas devolvieron HTTP 200, secuencias consecutivas, 256 muestras por canal, `flags=0`, `retries=0` y 50–51 ms de respuesta. El error constante reportado en P-10 no se reprodujo en esta sesión. El resultado no certifica frecuencia real ni comportamiento con señal conocida o carga prolongada.
+- **Estado final:** se restauró el preset 1 kSa/s y una captura final confirmó `rate_idx=1`, `fs_hz=1000`, `flags=0`, `retries=0`.
+- **Regresión local:** `make -C firmware/tests/host test` pasó (`OK: todas las pruebas del protocolo pasaron`).
+- **No ejecutado:** el benchmark de reloj/caudal requiere `spidev` en la BeaglePlay; esta sesión no tiene `/dev/spidev0.0` local ni autenticación SSH por clave. La exactitud del ADC requiere registrar lecturas simultáneas de multímetro y dashboard; la frecuencia real requiere una señal de frecuencia conocida o instrumento. No se modificó configuración del servicio para medir a otra velocidad SPI.
+
 ## Hallazgos principales
 
-1. El enlace SPI **funciona** a 2 MHz, pero **pierde cerca de la mitad de las transacciones**. Es el problema técnico abierto más importante porque afecta latencia y, potencialmente, la integridad a 40 kSa/s.
+1. Históricamente el enlace SPI perdió cerca de la mitad de transacciones (P-05); en las capturas y pruebas API de P-18/P-20 no hubo reintentos, pero falta un benchmark sostenido por velocidad para confirmar la estabilidad.
 2. El maestro debe validar y reintentar siempre; con eso la captura completa funciona.
 3. El ADC sin calibrar tenía errores de hasta 0,72 V; la calibración está implementada pero sin verificar.
-4. El preset de 40 kSa/s (bonificación) falla en la práctica y no está diagnosticado.
+4. El preset de 40 kSa/s produjo 10/10 capturas válidas sin overrun en P-20; falta verificarlo con una señal conocida y prueba prolongada. El fallo anterior queda registrado en P-10.
 5. Todavía no hay mediciones con instrumentos (frecuencia de muestreo, reloj SPI) ni con una señal periódica.

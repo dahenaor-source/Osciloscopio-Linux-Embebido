@@ -91,6 +91,7 @@ Detalles de `spi_driver.py` que no estaban en la versión inicial:
 
 - **Reintentos** (`_xfer_valid`, hasta 12 por transacción, 5 ms entre intentos): el esclavo pierde parte de las transacciones ([09](09-pruebas-y-resultados.md)). Un reintento es seguro porque un comando corrupto se descarta por checksum en el firmware.
 - **Candado** (`threading.RLock`): los endpoints corren en hilos distintos; sin candado, un `POST config` podía mezclarse con un `GET frame` en pleno SPI.
+- **Concurrencia verificada en hardware** (P-20): 5 pares simultáneos de captura y cambio de preset, alternando entre 1 y 10 kSa/s; tramas válidas, sin flags ni reintentos, y el preset solicitado quedó aplicado al finalizar cada par. Es una prueba corta, no de carga prolongada.
 - **Plazo calculado**: `window/fs + 2 s`. La versión inicial esperaba ≈ 0,35 s, insuficiente a 100 Sa/s (ventana de 2,56 s).
 - **Espera sin tráfico SPI** durante el muestreo (90 % de la ventana): mitigación contra ruido en el ADC cuyo origen no está confirmado.
 - **Detección de captura vieja**: si el `ARM` se perdió, el esclavo sigue en `READY` con la captura anterior; se compara `seq` y se reenvía `ARM` (hasta 4 veces).

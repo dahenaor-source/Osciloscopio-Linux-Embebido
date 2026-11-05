@@ -1,6 +1,6 @@
 # 10. Matriz de verificación
 
-Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 2026-11-05. Cada fila enlaza el requisito con la prueba y el resultado. La evidencia detallada está en [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md). ✅ cumple · 🟡 parcial · ⏳ pendiente · ❌ no cumple.
+Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enlaza el requisito con la prueba y el resultado. La evidencia detallada está en [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md). ✅ cumple · 🟡 parcial · ⏳ pendiente · ❌ no cumple.
 
 ## 1. Firmware (ESP32-C6)
 
@@ -12,9 +12,9 @@ Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 20
 | FW-04 | Ventanas de 64 a 1020 muestras (≥ 64) | `test_window` | Unitaria (PC) | ✅ Pasa | P-02 |
 | FW-05 | Compila con ESP-IDF 5.4.1 (v1 y v2) | `idf.py build` | Compilación | ✅ Pasa | P-01, P-12 |
 | FW-06 | Enlace SPI sin errores de datos (modo prueba) | Dashboard en modo de prueba; `diagnostico_captura.py` | Integración | 🟡 Una captura de 256 muestras correcta a 2 MHz (visual). Falta repetirlo de forma automática y con muchas capturas | P-06 |
-| FW-07 | Cambio de preset por SPI | Selector del dashboard y `fs_hz` en la cabecera | Integración | 🟡 100, 1.000 y 10.000 Sa/s cambian. 40.000 Sa/s con error | P-07, P-10 |
-| FW-08 | Frecuencia de muestreo real de cada preset | Señal de frecuencia conocida o analizador lógico | Experimental | ⏳ Pendiente (no hay generador ni analizador) | — |
-| FW-09 | Captura a 40 kSa/s sin desbordamiento (bonificación) | `flags` bit0 = 0 y señal conocida | Experimental | ❌ Error constante a 40 kSa/s, sin diagnosticar | P-10 |
+| FW-07 | Cambio de preset por SPI | Selector del dashboard y `fs_hz` en la cabecera | Integración | 🟡 100, 1.000 y 10.000 Sa/s verificados desde el dashboard; la API entregó capturas con los cuatro presets (incluido 40.000 Sa/s), pero falta repetir la selección de 40.000 desde el dashboard | P-07, P-10, P-20 |
+| FW-08 | Frecuencia de muestreo real de cada preset | Señal de frecuencia conocida o analizador lógico | Experimental | ⏳ Pendiente: se comprobó el `fs_hz` anunciado y el tiempo total de captura, pero no se midió la frecuencia ADC con instrumento | P-20 |
+| FW-09 | Captura a 40 kSa/s sin desbordamiento (bonificación) | `flags` bit0 = 0 y señal conocida | Experimental | 🟡 10/10 capturas API con 256 muestras y `flags=0`; falta verificar con señal conocida y repetir en prueba de estrés. El fallo histórico de P-10 no se reprodujo | P-10, P-20 |
 | FW-10 | Velocidad máxima de SPI estable y caudal real | `--bench` a distintas velocidades | Experimental | 🟡 Funciona a 100 kHz y 2 MHz; máximo y caudal sin medir | P-05, P-06 |
 | FW-11 | Exactitud del ADC calibrado (0, 0,25 … 3 V) | Multímetro contra mV del dashboard | Experimental | 🟡 Sin calibrar (v1): error hasta 0,72 V. v2 sin medir | P-11, [08](08-calibracion-adc.md) |
 | FW-12 | Calibración del ADC por eFuse en el arranque | Log `curve-fitting (eFuse)` en el monitor serie | Experimental | ✅ Ambos canales, 2026-11-04 | P-13 |
@@ -26,7 +26,7 @@ Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 20
 | SB-01 | Abrir `/dev/spidev0.0` y leer una cabecera válida | `prueba_directa_spi.py` | Integración | ✅ Pasa (2.ª transacción) | P-04 |
 | SB-02 | Captura completa (ARM → READY → lectura) | `diagnostico_captura.py`, dashboard | Integración | ✅ A 2 MHz con reintentos. ❌ a 100 kHz (HTTP 500) | P-05, P-06 |
 | SB-03 | Robustez ante transacciones perdidas | Esclavo simulado en PC con pérdidas alternas | Unitaria (simulada) | ✅ Pasa (reintentos, `seq` viejo) | P-05, [06](06-backend-beagleplay.md) |
-| SB-04 | Sin mezcla de transacciones entre `GET frame` y `POST config` | Revisión del código (`RLock`) | Inspección | 🟡 Implementado; sin prueba de concurrencia | [06](06-backend-beagleplay.md) |
+| SB-04 | Sin mezcla de transacciones entre `GET frame` y `POST config` | Solicitudes simultáneas reales de captura y cambio de preset; validar trama y configuración final | Integración | ✅ 5/5 pares simultáneos válidos en la BeaglePlay; sin trama inválida ni flags/reintentos | P-20 |
 | SB-05 | Habilitar `spidev` en la mikroBUS | — | Configuración | 🟡 Funciona; método sin documentar | [03](03-hardware-y-conexiones.md) |
 | SB-06 | Servir el dashboard con **apache o nginx** | `nginx -t`, `systemctl status nginx` y `curl -i http://127.0.0.1/` en la BeaglePlay; `/api/scope/frame` por el proxy con el backend encendido | Configuración | ✅ nginx activo y habilitado; dashboard y API responden HTTP 200 a través de Nginx en la BeaglePlay (2026-11-05). `nginx -t` no se pudo repetir en esta sesión por fallo de autenticación de `sudo`; consta previamente exitoso en [06](06-backend-beagleplay.md) | P-16, P-18 |
 | SB-07 | Arranque automático del backend (`systemd`) | Reiniciar la BeaglePlay y verificar que se pueden medir señales en el dashboard sin entrar a la terminal | Configuración | ✅ Después del reinicio el backend inició sin intervención y el dashboard permitió medir (confirmado por el usuario, 2026-11-05) | P-19 |
@@ -51,7 +51,7 @@ Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 20
 | SYS-04 | R-05: ≥ 3 presets cambiables por SPI | P-07 | ✅ (100, 1.000, 10.000) |
 | SYS-05 | R-06: refresco entre 0,25 y 1 Hz | DB-03 | 🟡 |
 | SYS-06 | R-07: tasa teórica de SPI y verificación experimental | [05](05-firmware-esp32c6.md) y FW-10 | 🟡 Teoría hecha; experimental parcial |
-| SYS-07 | R-08: bonificación ≥ 40 kSa/s verificada | FW-09 | ❌ |
+| SYS-07 | R-08: bonificación ≥ 40 kSa/s verificada | FW-09 | 🟡 10 capturas a 40 kSa/s sin overrun; falta señal conocida |
 | SYS-08 | R-13: video del funcionamiento | — | ⏳ |
 
 ## 5. Pruebas que faltan y cómo hacerlas
@@ -73,4 +73,14 @@ Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 20
 | Prueba local de la captura real/API y validación de Nginx en la BeaglePlay | ⏳ No ejecutada en este entorno | Aquí no están disponibles `/dev/spidev0.0` ni Nginx. En la placa, P-18 confirma que la página y el proxy API responden 200 con el backend activo |
 | Frecuencia de muestreo, tasa máxima SPI y exactitud de calibración (FW-08, FW-10, FW-11) | ⏳ Sin cambio | Requieren mediciones en hardware; FW-08 y FW-11 además requieren señal conocida y multímetro |
 
-Las mediciones experimentales pendientes se mantienen abiertas; los resultados locales no se extrapolan a la BeaglePlay.
+## 7. Pruebas reales adicionales en la BeaglePlay (2026-11-05)
+
+| Prueba | Resultado | Alcance / limitación |
+|---|---|---|
+| Concurrencia `GET /api/scope/frame` + `POST /api/scope/config` | ✅ 5/5 pares simultáneos al cambiar entre 1 y 10 kSa/s; tramas de 256 muestras válidas, sin flags ni reintentos, y el preset solicitado quedó aplicado al terminar cada par | Prueba de integración por la API real; no sustituye una prueba prolongada con carga de varios clientes |
+| Capturas a 40 kSa/s | ✅ 10/10 HTTP 200, secuencias consecutivas, 256 muestras por canal, `flags=0`, `retries=0`; 50–51 ms de respuesta por captura | Sin señal de entrada conocida; confirma tramas en esta ejecución, no exactitud de muestreo ni operación prolongada |
+| Captura a 100 Sa/s | ✅ HTTP 200, preset reportado 100 Sa/s, 256 muestras por canal, `flags=0`, `retries=0`, respuesta en 2,617 s | Latencia total de API, no medición instrumental de la frecuencia real del ADC |
+| Regresión de presets y restauración | ✅ Capturas válidas a 1 y 10 kSa/s; al terminar se restauró el preset habitual de 1 kSa/s | Una de tres capturas del primer bloque a 100 Sa/s respondió con preset 1; la prueba aislada posterior a 100 Sa/s sí coincidió con preset 0 |
+| Benchmark del reloj/caudal SPI y calibración v2 del ADC | ⏳ No ejecutados | Hace falta acceso de shell autenticado a la BeaglePlay para `--bench` y multímetro con lecturas simultáneas para la calibración. SSH por clave falló (`Permission denied`); no se cambió la configuración del servicio |
+
+FW-08, FW-10 y FW-11 siguen pendientes por falta de medición apropiada. Las pruebas API de P-20 sí se ejecutaron contra la BeaglePlay accesible por USB; no se extrapolan las medidas locales del PC a la placa.

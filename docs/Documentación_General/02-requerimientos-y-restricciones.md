@@ -11,7 +11,7 @@
 | R-05 | **≥ 3 presets** de frecuencia, cambiables por SPI (100, 1.000, 10.000 Sa/s) | 4 presets: 100, 1.000, 10.000 y 40.000 Sa/s, comando `SET_RATE` | 🟡 Cambio verificado en 100, 1.000 y 10.000 desde el dashboard |
 | R-06 | Refresco del dashboard **entre 0,25 y 1 Hz** | Selector de 0,25 / 0,5 / 1 Hz; captura bajo demanda | 🟡 Funciona a 1 Hz con 1 kSa/s. A 100 Sa/s la ventana de 256 muestras dura 2,56 s, por lo que el ciclo real es ≈ 0,38 Hz (dentro del rango) |
 | R-07 | **Estimar** la tasa máxima teórica de SPI y **verificarla experimentalmente** | Estimación en [05](05-firmware-esp32c6.md) (40 MHz esclavo, 50 MHz maestro ⚠️) | 🟡 Teoría hecha; experimental: solo se ha probado 100 kHz y 2 MHz |
-| R-08 | Bonificación: captura **≥ 40 kSa/s** verificada | Preset 3 = 40.000 Sa/s por canal (80 kSa/s totales en el ADC) | ❌ Implementado, pero con error constante en pruebas; sin diagnosticar |
+| R-08 | Bonificación: captura **≥ 40 kSa/s** verificada | Preset 3 = 40.000 Sa/s por canal (80 kSa/s totales en el ADC) | 🟡 10/10 capturas API con 256 muestras y sin overrun en P-20; falta comprobar con señal de frecuencia conocida y prueba prolongada |
 | R-09 | Grupo de **máximo 6** personas, tareas bien definidas | 3 integrantes registrados | ✅ Ver [14](14-participacion-y-uso-de-ia.md) |
 | R-10 | Repositorio Git con documentación, instrucciones y código | Este repositorio | 🟡 En curso |
 | R-11 | **Matriz de verificación** con resultados detallados | [10](10-matriz-de-verificacion.md) | 🟡 Parcial |
