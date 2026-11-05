@@ -28,7 +28,7 @@ Estado a 2026-11-03. Cada fila enlaza el requisito con la prueba y el resultado.
 | SB-03 | Robustez ante transacciones perdidas | Esclavo simulado en PC con pérdidas alternas | Unitaria (simulada) | ✅ Pasa (reintentos, `seq` viejo) | P-05, [06](06-backend-beagleplay.md) |
 | SB-04 | Sin mezcla de transacciones entre `GET frame` y `POST config` | Revisión del código (`RLock`) | Inspección | 🟡 Implementado; sin prueba de concurrencia | [06](06-backend-beagleplay.md) |
 | SB-05 | Habilitar `spidev` en la mikroBUS | — | Configuración | 🟡 Funciona; método sin documentar | [03](03-hardware-y-conexiones.md) |
-| SB-06 | Servir el dashboard con **apache o nginx** | Instalar nginx con `beagleplay/nginx.conf`, abrir `http://<IP>/` y comprobar que `/api/scope/frame` responde | Configuración | 🟡 Configuración escrita (2026-11-04); **sin instalar ni probar** | [06](06-backend-beagleplay.md) |
+| SB-06 | Servir el dashboard con **apache o nginx** | `nginx -t`, `systemctl status nginx` y `curl -i http://127.0.0.1/` en la BeaglePlay; `/api/scope/frame` por el proxy con el backend encendido | Configuración | 🟡 nginx activo y sirviendo el dashboard (HTTP 200, `Server: nginx`, 2026-11-05); proxy `/api/` con 502 por backend apagado, **200 pendiente de confirmar** | [06](06-backend-beagleplay.md) |
 | SB-07 | Arranque automático del backend (`systemd`) | — | Configuración | ⏳ Pendiente | — |
 
 ## 3. Dashboard

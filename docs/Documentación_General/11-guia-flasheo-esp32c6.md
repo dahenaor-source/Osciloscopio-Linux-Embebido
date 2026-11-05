@@ -97,7 +97,7 @@ Se activa en el código fuente (`diag_task` en `firmware/main/scope_link.c`) con
 |---|---|
 | `cabecera inválida (magic)` con todo 0x00 o 0xFF | Cableado de MISO/CS o masa común; modo SPI distinto de 0 |
 | Funciona a 1 MHz y falla a más | Cables largos, falta de GND común; bajar la velocidad |
-| `comando rechazado` | Se cambió configuración durante una captura (`ARMED`); enviar `RESET` primero |
+| `comando rechazado` | Se envió `ARM` con una captura en curso, o un valor de configuración fuera de rango; enviar `RESET` primero |
 | `captura fallida, estado=3` | El ADC no entregó datos a tiempo; revisar con `--test-mode` si el SPI está bien |
 | Valores siempre 0 mV o ~3100 mV | Señal fuera de 0 a 3,1 V o sin GND común con el generador |
 

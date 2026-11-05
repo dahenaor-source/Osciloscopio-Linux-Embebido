@@ -68,7 +68,7 @@ stateDiagram-v2
     ERROR --> IDLE: SET_RATE, SET_WINDOW, SET_TESTMODE, RESET
 ```
 
-Los comandos de configuración se rechazan mientras el estado es `ARMED` (flag `comando rechazado`).
+Los comandos de configuración (`SET_RATE`, `SET_WINDOW`, `SET_TESTMODE`) durante `ARMED` abortan la captura y llevan el estado a `IDLE`; `ARM` con una captura en curso se rechaza (flag `comando rechazado`).
 
 ## 5. Tareas del firmware
 

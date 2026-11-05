@@ -38,7 +38,7 @@ Presets de `SET_RATE`:
 | 2 | 10.000 Sa/s | 20 kSa/s | — |
 | 3 | 40.000 Sa/s | 80 kSa/s | Preset de bonificación; límite del ADC 83,3 kSa/s |
 
-`SET_RATE`, `SET_WINDOW` y `SET_TESTMODE` descartan la captura anterior (estado → `IDLE`). Se rechazan si hay una captura en curso (`ARMED`).
+`SET_RATE`, `SET_WINDOW` y `SET_TESTMODE` descartan la captura anterior (estado → `IDLE`). **Desde el firmware de la rama `Osc-V2` ya no se rechazan durante una captura (`ARMED`)**: la abortan y aplican el cambio (antes se rechazaban con el flag `comando rechazado`). `ARM` sigue rechazándose si ya hay una captura en curso, y `RESET` aborta la captura. Un valor inválido (preset fuera de 0..3, ventana fuera de 64..1020, modo de prueba distinto de 0 o 1) se rechaza siempre.
 
 ## Respuesta (esclavo → maestro)
 

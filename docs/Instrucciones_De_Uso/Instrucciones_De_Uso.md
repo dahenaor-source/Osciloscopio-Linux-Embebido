@@ -522,7 +522,7 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 | `modo test` | El ESP32-C6 está en modo de prueba. Pulsa **RESET** en el ESP32-C6 |
 | `reintentos SPI: N` | Hubo N lecturas SPI perdidas y repetidas en esa captura. Es normal que haya algunas |
 | `OVERRUN` | El ADC perdió muestras (suele pasar a 40.000 Sa/s) |
-| `comando rechazado` | Se intentó cambiar la configuración en pleno muestreo; se repite solo |
+| `comando rechazado` | Se pidió una captura mientras había otra en curso; se repite solo |
 | `ADC sin calibrar` | Esa placa no trae datos de calibración; los voltajes son aproximados |
 | `error: HTTP 500` (insignia roja) | El backend no pudo leer el ESP32-C6. Mira el mensaje en la ventana del backend (sección 10) |
 
@@ -557,7 +557,7 @@ Para que sepas qué esperar (todas están en [13-pendientes-y-riesgos.md](../Doc
 2. **Se pierde cerca de la mitad de las lecturas SPI.** El software las repite automáticamente; sólo notarás algo más de espera y el aviso `reintentos SPI`.
 3. **Precisión del voltaje.** El ADC del ESP32-C6 sin calibrar se equivocó hasta 0,7 V frente a un multímetro. El firmware v2 incluye calibración de fábrica, pero **aún no se ha medido en hardware**: no confíes en el valor absoluto sin compararlo con un multímetro.
 4. **Sin disparo (trigger):** cada captura empieza cuando se pide; una señal que cambia en el tiempo aparecerá en fases distintas en cada captura.
-5. **Servidor web:** esta guía abre el dashboard con el propio backend de Python (puerto 8000). El equipo del SBC añadió una configuración de **nginx** (`beagleplay/nginx.conf`) para cumplir el enunciado, pero **aún no está probada**, por lo que no se usa en esta guía.
+5. **Servidor web:** esta guía abre el dashboard con el propio backend de Python (puerto 8000). El equipo del SBC usa además **nginx** (`beagleplay/nginx.conf`, puerto 80), que ya está activo y sirve el dashboard; con nginx el backend debe escuchar en `127.0.0.1:8000` y el dashboard se abre en `http://<IP>/` sin puerto. Falta confirmar el proxy de `/api/` con el backend encendido.
 6. **Rango de entrada:** de 0 a unos 3,1 V, solo positivo.
 
 ---

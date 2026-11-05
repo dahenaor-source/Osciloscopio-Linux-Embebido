@@ -6,7 +6,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 
 | # | Problema | Impacto | Próximo paso | Responsable sugerido |
 |---|---|---|---|---|
-| A-1 | **nginx configurado pero sin probar**: existe `beagleplay/nginx.conf` (2026-11-04), pero no consta que esté instalado ni sirviendo el dashboard; hoy lo sirve uvicorn | El requisito R-02 del enunciado no está demostrado | Instalar nginx, copiar la configuración, `nginx -t`, recargar y abrir `http://<IP>/`; comprobar permisos de lectura sobre `/home/camilo/...` (403) y documentar los comandos | Equipo SBC |
+| A-1 | **nginx activo pero el proxy `/api/` sin confirmar**: nginx está habilitado y sirve el dashboard (2026-11-05); `/api/scope/frame` dio 502 con el backend apagado | El requisito R-02 está casi demostrado: falta el 200 por el proxy con el backend encendido | Arrancar el backend en `127.0.0.1:8000`, repetir `curl -i http://127.0.0.1/api/scope/frame` y documentar cómo se instaló nginx | Equipo SBC |
 | A-2 | **Preset de 40 kSa/s con error constante** | Sin él no hay bonificación (R-08) | Registrar el mensaje exacto: log del backend (`[ERROR REST] ...`), flag `OVERRUN` del dashboard y monitor serie del ESP32-C6 (`capture: captura fallida`) | Firmware (David) y SBC |
 | A-3 | **El esclavo SPI pierde ≈ 50 % de las transacciones** | Más latencia y riesgo de comandos corruptos; sin causa raíz | Añadir contador de transacciones y log de `trans_len` y primeros bytes en el firmware; probar la línea INT como sincronización; comparar velocidades y cables más cortos | Firmware (David) |
 | A-4 | **Calibración v2: falta medir la exactitud** (el arranque en hardware ya está verificado: calibra por eFuse en ambos canales) | No se sabe cuánto mejora el error | Repetir la tabla de [08](08-calibracion-adc.md) con multímetro | David |
@@ -43,7 +43,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 ## 4. Próximos pasos sugeridos (en orden)
 
 1. Recuperar el enlace SPI (P-14 en [09](09-pruebas-y-resultados.md)), registrar el error de 40 kSa/s (A-2) y medir la exactitud calibrada (A-4).
-2. Instalar y probar nginx con `beagleplay/nginx.conf` (A-1) y documentar los comandos.
+2. Confirmar el proxy de nginx con el backend encendido (A-1) y arrancar el backend como servicio (A-9).
 3. Medir SPI (A-6) y contar transacciones perdidas (A-3).
 4. Generar una señal periódica y medir fs (A-5).
 5. Completar [10](10-matriz-de-verificacion.md), [14](14-participacion-y-uso-de-ia.md) y grabar el video.

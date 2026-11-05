@@ -38,7 +38,7 @@ Para usarlo: en el dashboard elige la fuente **API real**. Con nginx/apache se p
 
 ## Pendiente
 
-- Instalar y probar nginx con `beagleplay/nginx.conf` (hoy el backend FastAPI ya implementa la API y sirve esta carpeta).
+- Confirmar el proxy de `/api/` de nginx con el backend encendido (nginx ya sirve esta carpeta en el puerto 80; el backend FastAPI también la sirve en el 8000).
 - Escala fija 0–3,3 V; añadir auto-escala y selector de ventana si se requiere.
 - Verificar en hardware el refresco real con captura a 40 kSa/s.
 
