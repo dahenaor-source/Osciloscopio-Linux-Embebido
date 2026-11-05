@@ -22,8 +22,9 @@ Bitácora cronológica de lo realizado hasta el 2026-11-03, con la evidencia dis
 | P-14 | 2026-11-04 | SPI con la BeaglePlay tras conectar el generador | ❌ Todo `00` en RX (en diagnóstico; el firmware está vivo, P-13) |
 | P-15 | 2026-11-05 | Dashboard: preset enviado al iniciar y un solo bucle de sondeo | ✅ Lógica verificada con simulación de reloj virtual; ⏳ falta probarlo en el navegador con el hardware |
 | P-16 | 2026-11-05 | nginx en la BeaglePlay | ✅ Activo, habilitado y sirviendo el dashboard (HTTP 200); 🟡 proxy `/api/` con 502 por backend apagado |
-| P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | 🟡 Escrito; unidad válida con `systemd-analyze verify`; driver recuperable probado con `spidev` simulado; ⏳ **sin probar tras reinicio de la placa** |
+| P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | ✅ Servicio activo y habilitado; tras reiniciar la placa el dashboard volvió a medir sin intervención (P-19) |
 | P-18 | 2026-11-05 | nginx y API real con el backend activo en la BeaglePlay | ✅ Nginx y backend activos/habilitados; dashboard y `/api/scope/frame` responden HTTP 200 |
+| P-19 | 2026-11-05 | Arranque del backend tras reiniciar la BeaglePlay | ✅ Inició sin entrar a la terminal y se pudo medir desde el dashboard (confirmado por el usuario) |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
@@ -155,9 +156,13 @@ Verificación sin hardware (Node.js con DOM y red simulados y reloj virtual): c�
 
 `sudo nginx -t` correcto; `systemctl status nginx` → `enabled`, `active (running)` desde hacía 16 h; `curl -i http://127.0.0.1/` → `200 OK`, `Server: nginx`, con el `index.html` del dashboard. `curl -i http://127.0.0.1/api/scope/frame` → `502 Bad Gateway`: el proxy no encontró el backend porque estaba apagado (se arrancaba a mano). Ver [06](06-backend-beagleplay.md) y [13](13-pendientes-y-riesgos.md), A-1.
 
-## P-17. Servicio systemd del backend (2026-11-05, arranque tras reinicio pendiente)
+## P-17. Servicio systemd del backend (2026-11-05)
 
-Para que al alimentar la placa todo arranque solo: unidad [`beagleplay/systemd/osciloscopio-backend.service`](../../beagleplay/systemd/osciloscopio-backend.service) e instalador [`beagleplay/instalar_servicio.sh`](../../beagleplay/instalar_servicio.sh) ([06](06-backend-beagleplay.md), sección 3). Verificado en el PC de desarrollo: `bash -n` del script, `systemd-analyze verify` de la unidad renderizada (sin advertencias) y negativa del script a ejecutarse sin `sudo`. Se corrigió además `spi_driver.py`, que no reintentaba abrir `/dev/spidev0.0` si no existía al arrancar (cinco pasos probados con un `spidev` simulado: arranque sin dispositivo, aparición posterior, `OSError` en `xfer2` y recuperación). En P-18 se confirmó que `osciloscopio-backend` está `active` y `enabled` en la BeaglePlay; **falta comprobar que vuelve a iniciar automáticamente tras `sudo reboot`** (matriz SB-07).
+Para que al alimentar la placa todo arranque solo: unidad [`beagleplay/systemd/osciloscopio-backend.service`](../../beagleplay/systemd/osciloscopio-backend.service) e instalador [`beagleplay/instalar_servicio.sh`](../../beagleplay/instalar_servicio.sh) ([06](06-backend-beagleplay.md), sección 3). Verificado en el PC de desarrollo: `bash -n` del script, `systemd-analyze verify` de la unidad renderizada (sin advertencias) y negativa del script a ejecutarse sin `sudo`. Se corrigió además `spi_driver.py`, que no reintentaba abrir `/dev/spidev0.0` si no existía al arrancar (cinco pasos probados con un `spidev` simulado: arranque sin dispositivo, aparición posterior, `OSError` en `xfer2` y recuperación). En P-18 se confirmó que `osciloscopio-backend` está `active` y `enabled` en la BeaglePlay.
+
+## P-19. Arranque del backend tras reiniciar la BeaglePlay (2026-11-05)
+
+Según confirmó el usuario, después de reiniciar la placa el backend arrancó automáticamente, sin necesidad de entrar a la terminal, y el dashboard permitió medir. Esto verifica SB-07 y la ruta normal de arranque; no constituye una prueba de concurrencia de solicitudes `GET` y `POST`.
 
 ## Hallazgos principales
 
