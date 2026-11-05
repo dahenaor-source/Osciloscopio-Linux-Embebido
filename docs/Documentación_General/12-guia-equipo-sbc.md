@@ -2,18 +2,18 @@
 
 Para **Juan Camilo Giraldo** y **Daniela Barragán**. Resume lo que ya existe, lo que falta y qué verificar en la BeaglePlay. Lo marcado con ⚠️ **no está verificado** en la placa real: confírmenlo y corrijan este documento.
 
-## 1. Estado actual (actualizado 2026-11-03)
+## 1. Estado actual (actualizado 2026-11-05)
 
 | Parte | Estado | Dónde |
 |---|---|---|
-| Firmware ESP32-C6 (SPI esclavo + ADC, protocolo v2, calibración) | Probado con la BeaglePlay a 2 MHz. v2 compila; **sin flashear** | `firmware/`, `release/` |
+| Firmware ESP32-C6 (SPI esclavo + ADC, protocolo v2, calibración) | Probado con la BeaglePlay a 2 MHz. v2 compilado y flasheado; arranque eFuse comprobado (P-13) | `firmware/`, `release/` |
 | Protocolo SPI | Definido, con pruebas unitarias en PC y probado en hardware | [04-protocolo-spi.md](04-protocolo-spi.md) |
 | Cableado mikroBUS ↔ ESP32-C6 | Asignado y funcionando | [03-hardware-y-conexiones.md](03-hardware-y-conexiones.md) |
 | Backend FastAPI + driver SPI | **Hecho** (Juan Camilo) y robustecido con reintentos | [06-backend-beagleplay.md](06-backend-beagleplay.md) |
 | Dashboard HTML (Chart.js) | Funciona con datos reales | [07-dashboard.md](07-dashboard.md) |
 | `/dev/spidev0.0` | Funciona; **método para habilitarlo sin documentar** | sección 6 |
-| Servidor **apache o nginx** | **nginx** activo y sirviendo el dashboard (2026-11-05); proxy `/api/` pendiente de confirmar con el backend encendido | `beagleplay/nginx.conf` |
-| Arranque automático del backend | Servicio systemd escrito (`beagleplay/instalar_servicio.sh`); **sin probar en la placa** | [06](06-backend-beagleplay.md), sección 3 |
+| Servidor **apache o nginx** | **nginx** activo y sirviendo el dashboard (2026-11-05); proxy `/api/` verificado con HTTP 200 (P-18) | `beagleplay/nginx.conf` |
+| Arranque automático del backend | Servicio systemd escrito (`beagleplay/instalar_servicio.sh`); verificado tras reiniciar la BeaglePlay (P-19) | [06](06-backend-beagleplay.md), sección 3 |
 | Preset 40 kSa/s | Con error; hay que capturar el mensaje | [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md) |
 
 ## 2. Qué hay que construir

@@ -18,7 +18,7 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 
 **¿Quieres armarlo tú?** Sigue [**Instrucciones de uso**](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md): guía paso a paso desde cero (materiales, flasheo, montaje y uso).
 
-Toda la documentación técnica está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 14 documentos):
+Toda la documentación técnica está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 16 documentos):
 
 | Documento | Contenido |
 |---|---|
@@ -36,6 +36,8 @@ Toda la documentación técnica está en [**`docs/Documentación_General/`**](do
 | [12 Guía del equipo SBC](docs/Documentaci%C3%B3n_General/12-guia-equipo-sbc.md) | Contexto de la BeaglePlay. **Juan Camilo y Daniela** |
 | [13 Pendientes y riesgos](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md) | Qué falta |
 | [14 Participación y uso de IA](docs/Documentaci%C3%B3n_General/14-participacion-y-uso-de-ia.md) | Declaraciones (por completar) |
+| [15 Verificación de flasheo V2](docs/Documentaci%C3%B3n_General/15-verificacion-flasheo-v2.md) | Compilación y arranque del firmware |
+| [16 Estado de validación main](docs/Documentaci%C3%B3n_General/16-estado-validacion-main.md) | Evidencias P-18, P-19, P-20 y pendientes |
 
 Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README.md](beagleplay/backend/README.md).
 
@@ -46,7 +48,7 @@ Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README
 | Comunicación SPI SBC ↔ uC | ESP32-C6 como esclavo SPI2 con DMA, modo 0 |
 | Ventanas de ≥ 64 muestras a frecuencia constante | 64 a 1020 muestras por canal, ADC continuo temporizado por hardware |
 | Mínimo 3 presets intercambiables por SPI | 100, 1.000, 10.000 y 40.000 Sa/s por canal (comando `SET_RATE`) |
-| Bonificación ≥ 40 kSa/s | Preset de 40.000 Sa/s por canal (80 kSa/s en total, límite del ADC: 83,3 kSa/s) |
+| Bonificación ≥ 40 kSa/s | Preset de 40.000 Sa/s por canal implementado. P-20 obtuvo 10 capturas correctas; falta verificar la frecuencia real con una señal conocida. |
 
 ## Inicio rápido (firmware)
 
@@ -68,16 +70,16 @@ make -C tests/host test      # pruebas unitarias del protocolo en el PC
 
 Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware-esp32c6.md).
 
-## Estado (2026-11-03)
+## Estado verificado (2026-11-05)
 
 - [x] Firmware compila (ESP-IDF 5.4.1), se flashea y arranca. Protocolo con pruebas unitarias en el PC.
-- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz (con reintentos: se pierde ≈ 50 % de las transacciones).
+- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz. Históricamente se observaron pérdidas de aproximadamente el 50 % de las transacciones (P-05), pero las pruebas recientes P-18 y P-20 no registraron reintentos. Falta comprobar la estabilidad prolongada.
 - [x] Dashboard con datos reales (modo de prueba y ADC con potenciómetro, 100 a 10.000 Sa/s).
 - [x] Backend FastAPI en la BeaglePlay (SPI + API) con reintentos.
 - [x] Firmware v2: calibración del ADC por eFuse (arranca en una placa real con calibración en ambos canales; falta medir la exactitud).
-- [ ] Preset de 40 kSa/s (bonificación) con error constante: sin diagnosticar.
-- [x] Servidor nginx activo y sirviendo el dashboard en el puerto 80 (verificado el 2026-11-05); falta confirmar el proxy `/api/` con el backend encendido.
-- [ ] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): escrito, **sin probar en la placa**.
+- [x] Preset de 40 kSa/s: 10 capturas API consecutivas válidas en P-20, con 256 muestras por canal, flags=0 y retries=0. La bonificación sigue pendiente de validación con una señal de frecuencia conocida.
+- [x] Servidor nginx activo y sirviendo el dashboard en el puerto 80 (verificado el 2026-11-05); el proxy `/api/` fue verificado con HTTP 200 en P-18.
+- [x] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): verificado tras reiniciar la BeaglePlay (P-19).
 - [ ] Mediciones con instrumentos (frecuencia de muestreo, reloj SPI) y tasa máxima de SPI.
 - [ ] Video, declaración de participación y de uso de IA.
 

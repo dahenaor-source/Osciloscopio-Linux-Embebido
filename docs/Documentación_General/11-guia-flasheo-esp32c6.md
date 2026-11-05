@@ -1,6 +1,6 @@
 # 11. Guía rápida: flashear y probar el ESP32-C6
 
-El firmware (v2) está compilado y las pruebas del protocolo pasan; la v1 se probó con la BeaglePlay y la v2 está pendiente de flashear y medir. **No hace falta instalar ESP-IDF**: basta flashear el binario de [`release/`](../../release) y conectar el SBC.
+El firmware (v2) está compilado y las pruebas del protocolo pasan; la v1 se probó con la BeaglePlay y la v2 fue flasheada y arrancó correctamente el 2026-11-04 (P-13). Sigue pendiente comprobar su exactitud metrológica. **No hace falta instalar ESP-IDF**: basta flashear el binario de [`release/`](../../release) y conectar el SBC.
 
 ## 1. Qué necesitas
 
