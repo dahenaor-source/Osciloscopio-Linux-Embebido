@@ -14,7 +14,7 @@ Para **Juan Camilo Giraldo** y **Daniela Barragán**. Resume lo que ya existe, l
 | `/dev/spidev0.0` | Funciona; **método para habilitarlo sin documentar** | sección 6 |
 | Servidor **apache o nginx** | **nginx** activo y sirviendo el dashboard (2026-11-05); proxy `/api/` verificado con HTTP 200 (P-18) | `beagleplay/nginx.conf` |
 | Arranque automático del backend | Servicio systemd escrito (`beagleplay/instalar_servicio.sh`); verificado tras reiniciar la BeaglePlay (P-19) | [06](06-backend-beagleplay.md), sección 3 |
-| Preset 40 kSa/s | 15/15 capturas válidas en P-20, incluidas 5 con seno conocido; falta prueba prolongada | [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md) |
+| Preset 40 kSa/s | 15/15 capturas válidas en P-20, incluidas 5 con seno conocido; estrés prolongado fuera del alcance de esta etapa | [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md) |
 
 ## 2. Qué hay que construir
 

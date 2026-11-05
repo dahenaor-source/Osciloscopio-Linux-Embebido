@@ -4,14 +4,14 @@
 
 | ID | Requisito | Cómo se aborda | Estado |
 |---|---|---|---|
-| R-01 | Capturar **2 señales analógicas** en ventanas de adquisición | ADC1 del ESP32-C6, GPIO0 (CH A) y GPIO1 (CH B), captura bajo demanda | 🟡 Funciona con potenciómetro y pines al aire; sin generador de señales |
+| R-01 | Capturar **2 señales analógicas** en ventanas de adquisición | ADC1 del ESP32-C6, GPIO0 (CH A) y GPIO1 (CH B), captura bajo demanda | ✅ Ambos canales aparecen en las ventanas: se probaron juntos con el potenciómetro (misma fuente conectada a ambos, P-09) y se usó el generador para las mediciones de P-20. No se verificaron dos fuentes independientes al mismo tiempo |
 | R-02 | El SBC **sirve los datos con un dashboard por red usando apache o nginx** | Configuración de **nginx** en [`beagleplay/nginx.conf`](../../beagleplay/nginx.conf): sirve `dashboard/` en el puerto 80 y hace proxy de `/api/` a uvicorn (puerto 8000) | ✅ **Verificado en la BeaglePlay (2026-11-05):** Nginx y backend activos/habilitados; el dashboard y `/api/scope/frame` responden HTTP 200 por Nginx, y tras reiniciar la placa se pudo medir desde el dashboard sin intervención (P-18, P-19) |
 | R-03 | Comunicación procesador ↔ microcontrolador **vía SPI** | BeaglePlay maestro, ESP32-C6 esclavo, modo 0, DMA | ✅ Funciona a 2 MHz (con reintentos, ver [09](09-pruebas-y-resultados.md)) |
-| R-04 | Ventanas de **≥ 64 muestras** a frecuencia constante | 64 a 1020 muestras por canal; temporización por hardware del ADC | 🟡 Probado con 256; fs estimada con generador en los cuatro presets (P-20), pendiente considerar la tolerancia de la referencia |
-| R-05 | **≥ 3 presets** de frecuencia, cambiables por SPI (100, 1.000, 10.000 Sa/s) | 4 presets: 100, 1.000, 10.000 y 40.000 Sa/s, comando `SET_RATE` | 🟡 100, 1.000 y 10.000 verificados desde el dashboard; 40.000 probado por API, falta confirmar selección desde dashboard |
+| R-04 | Ventanas de **≥ 64 muestras** a frecuencia constante | 64 a 1020 muestras por canal; temporización por hardware del ADC | ✅ Ventanas de 256 muestras y frecuencias estimadas con generador en los cuatro presets (P-20). La precisión metrológica de esas frecuencias depende de la tolerancia del generador |
+| R-05 | **≥ 3 presets** de frecuencia, cambiables por SPI (100, 1.000, 10.000 Sa/s) | 4 presets: 100, 1.000, 10.000 y 40.000 Sa/s, comando `SET_RATE` | ✅ Los tres presets requeridos se verificaron desde el dashboard; los cuatro se comprobaron por API (P-07, P-20) |
 | R-06 | Refresco del dashboard **entre 0,25 y 1 Hz** | Selector de 0,25 / 0,5 / 1 Hz; captura bajo demanda | 🟡 Funciona a 1 Hz con 1 kSa/s. A 100 Sa/s la ventana de 256 muestras dura 2,56 s, por lo que el ciclo real es ≈ 0,38 Hz (dentro del rango) |
-| R-07 | **Estimar** la tasa máxima teórica de SPI y **verificarla experimentalmente** | Estimación en [05](05-firmware-esp32c6.md) (40 MHz esclavo, 50 MHz maestro ⚠️) | 🟡 Caudal medido entre 1 y 20 MHz (0,10–0,54 MB/s); falta encontrar la máxima velocidad estable y validar con analizador el reloj real |
-| R-08 | Bonificación: captura **≥ 40 kSa/s** verificada | Preset 3 = 40.000 Sa/s por canal (80 kSa/s totales en el ADC) | 🟡 15/15 capturas API con 256 muestras y sin overrun (5 con seno conocido de 1 kHz); fs estimada ≈ 40.308 Sa/s. Falta prueba de estrés prolongada |
+| R-07 | **Estimar** la tasa máxima teórica de SPI y **verificarla experimentalmente** | Estimación en [05](05-firmware-esp32c6.md) (40 MHz esclavo, 50 MHz maestro ⚠️) | 🟡 Caudal medido entre 1 y 20 MHz (0,10–0,54 MB/s); no se determinó el máximo estable ni se midió el reloj SPI real. La prueba prolongada queda fuera del alcance de esta etapa |
+| R-08 | Bonificación: captura **≥ 40 kSa/s** verificada | Preset 3 = 40.000 Sa/s por canal (80 kSa/s totales en el ADC) | 🟡 15/15 capturas API con 256 muestras y sin overrun (5 con seno conocido de 1 kHz); fs estimada ≈ 40.308 Sa/s. La prueba prolongada queda fuera del alcance de esta etapa |
 | R-09 | Grupo de **máximo 6** personas, tareas bien definidas | 3 integrantes registrados | ✅ Ver [14](14-participacion-y-uso-de-ia.md) |
 | R-10 | Repositorio Git con documentación, instrucciones y código | Este repositorio | 🟡 En curso |
 | R-11 | **Matriz de verificación** con resultados detallados | [10](10-matriz-de-verificacion.md) | 🟡 Parcial |
@@ -47,7 +47,7 @@ El profesor indicó que el SPI de la mikroBUS debe ofrecer al menos **2 Mbit/s**
 | Pines de arranque del ESP32-C6 (GPIO4, 5, 8, 9, 15) | Evitar | No se usan |
 | CS nativo de SPI2 (GPIO16) | Es el TX de la UART de consola | El CS usa GPIO10 (matriz de GPIO) |
 | mikroBUS del BeaglePlay | Gestionado por el driver `mikrobus` | Hay que habilitar `spidev` (⚠️ método usado por el equipo del SBC no documentado aún) |
-| Sin generador de señales ni analizador lógico en el equipo (hasta ahora) | — | Se probó con potenciómetro y multímetro; la frecuencia de muestreo y el reloj SPI no se han medido con instrumento |
+| Sin analizador lógico ni referencia de frecuencia calibrada | — | Se usó un generador para estimar la frecuencia de muestreo; su tolerancia no está documentada y no se midió el reloj SPI real |
 
 ## 4. Presets de frecuencia
 

@@ -195,7 +195,7 @@ Pruebas ejecutadas contra la BeaglePlay por la interfaz USB (`192.168.7.2`), a t
   | 20 MHz | 0,54 MB/s |
 
   Cada ejecución inició con una captura completa; el benchmark mide 200 transferencias de 1040 bytes con sobrecarga del SO. 20 MHz es la máxima velocidad probada, no una certificación del reloj real ni de la máxima velocidad estable. Al terminar se ejecutó el script sin `--bench` para apagar el modo de prueba y restaurar el preset 1 kSa/s.
-- **Pendiente:** exactitud del ADC calibrado v2 con multímetro en varios niveles. Para SPI falta validar respuestas de las 200 transferencias bajo carga y encontrar la máxima velocidad estable; para 40 kSa/s, prueba prolongada.
+- **Estado posterior:** la exactitud del ADC v2 tiene una comparación preliminar en P-21. Las pruebas prolongadas de integridad SPI y de 40 kSa/s no se ejecutarán en esta etapa por tiempo disponible; los datos cortos no certifican estabilidad sostenida.
 
 ## P-21. Comparación preliminar del ADC v2 con multímetro (2026-11-05)
 
@@ -212,8 +212,8 @@ En los cuatro puntos el error absoluto máximo observado fue 0,035 V. El error r
 
 ## Hallazgos principales
 
-1. Históricamente el enlace SPI perdió cerca de la mitad de transacciones (P-05); en las capturas y pruebas API de P-18/P-20 no hubo reintentos, pero falta un benchmark sostenido por velocidad para confirmar la estabilidad.
+1. Históricamente el enlace SPI perdió cerca de la mitad de transacciones (P-05); en las capturas y pruebas API de P-18/P-20 no hubo reintentos. La integridad prolongada no se evaluará en esta etapa por tiempo disponible.
 2. El maestro debe validar y reintentar siempre; con eso la captura completa funciona.
 3. El ADC v1 sin calibrar tuvo errores de hasta 0,72 V (P-11). La comparación preliminar del v2 obtuvo errores de 0,004–0,035 V en cuatro puntos de CH A (P-21), pero aún no caracteriza la exactitud.
-4. El preset de 40 kSa/s produjo 15/15 capturas válidas, incluidas 5 con seno conocido; falta prueba prolongada. El fallo anterior queda registrado en P-10.
-5. Se estimó fs con generador en los cuatro presets y se midió caudal SPI entre 1 y 20 MHz; falta documentar tolerancia del generador, comprobar reloj SPI real y caracterizar la máxima velocidad estable.
+4. El preset de 40 kSa/s produjo 15/15 capturas válidas, incluidas 5 con seno conocido; la prueba prolongada queda fuera del alcance de esta etapa. El fallo anterior queda registrado en P-10.
+5. Se estimó fs con generador en los cuatro presets y se midió caudal SPI entre 1 y 20 MHz; faltan la tolerancia del generador y la medición del reloj real. La prueba prolongada y la caracterización de la máxima velocidad estable quedan fuera del alcance de esta etapa.

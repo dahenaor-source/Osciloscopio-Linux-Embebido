@@ -4,7 +4,7 @@
 
 Este documento complementa la matriz de verificación y
 la bitácora de pruebas. Se basa en las evidencias registradas
-hasta P-20 y no presenta pruebas pendientes como cumplidas.
+hasta P-21 y no presenta pruebas pendientes como cumplidas.
 
 ## 1. Resultados comprobados
 
@@ -18,6 +18,7 @@ hasta P-20 y no presenta pruebas pendientes como cumplidas.
 | P-20 | 15 capturas a 40 kSa/s válidas (10 sin señal y 5 con seno conocido de 1 kHz), sin flags ni reintentos | No equivale a una prueba prolongada de estrés |
 | P-20 | Caudal SPI medido: 0,10; 0,18; 0,33; 0,47 y 0,54 MB/s a 1, 2, 5, 10 y 20 MHz solicitados | El caudal incluye sobrecarga del SO; no certifica el reloj real ni la máxima velocidad estable |
 | P-21 | Comparación ADC v2 en CH A: 4 puntos, error absoluto 0,004–0,035 V | Medición preliminar con potenciómetro; faltan puntos, repeticiones e incertidumbre del multímetro |
+| P-09/P-20 | Ambos canales analógicos entregaron muestras en ventanas; pruebas periódicas del generador en P-20 | En P-09 los dos canales compartieron la misma fuente; no se ensayaron dos fuentes independientes a la vez |
 
 ## 2. Validaciones pendientes
 
@@ -25,8 +26,8 @@ hasta P-20 y no presenta pruebas pendientes como cumplidas.
 |---|---|---|
 | V-01 | Exactitud del ADC con multímetro | Parcial: cuatro puntos iniciales en CH A (P-21); completar niveles, repeticiones y caracterizar ambos canales |
 | V-02 | Confirmar frecuencia de muestreo con referencia calibrada | Estimaciones disponibles en P-20; falta documentar tolerancia del generador o contrastar con instrumento calibrado |
-| V-03 | Caudal SPI máximo y estabilidad prolongada | Caudal medido entre 1 y 20 MHz solicitados; máximo estable y reloj real pendientes |
-| V-04 | Ensayo prolongado de 40 kSa/s con señal conocida | 5 capturas con seno de 1 kHz pasaron; ensayo prolongado pendiente |
+| V-03 | Caudal SPI máximo y estabilidad prolongada | Caudal medido entre 1 y 20 MHz solicitados; prueba sostenida no ejecutada y fuera del alcance de esta etapa |
+| V-04 | Ensayo prolongado de 40 kSa/s con señal conocida | 5 capturas con seno de 1 kHz pasaron; prueba prolongada no ejecutada y fuera del alcance de esta etapa |
 | V-05 | Prueba extendida de concurrencia con varios clientes | 10 pares simultáneos GET/POST pasaron; carga prolongada con varios clientes pendiente |
 | V-06 | Video del funcionamiento del sistema | Pendiente |
 | V-07 | Declaración de aportes y uso de IA, revisada por el equipo | Pendiente |
@@ -41,6 +42,9 @@ la máxima velocidad estable.
 
 Las observaciones que contradicen resultados antiguos se
 documentan como evolución del sistema, no se eliminan.
+Las pruebas prolongadas de SPI y de 40 kSa/s se aplazan en esta
+etapa por tiempo disponible; las pruebas funcionales cortas no
+se presentan como certificación de estabilidad sostenida.
 
 ## 4. Documentos de referencia
 

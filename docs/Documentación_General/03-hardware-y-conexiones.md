@@ -57,9 +57,9 @@ La izquierda baja de 1 a 8 y la derecha sube de 9 (GND) a 16 (PWM). **Ante cualq
 - El CS nativo es el GPIO16, que es el TX de la UART de consola/flasheo de la DevKitC-1; por eso el CS usa GPIO10 (matriz de GPIO).
 - GPIO0 y GPIO1 son canales del ADC1 y no se solapan con el SPI. Se evitan los pines de arranque (GPIO4, 5, 8, 9, 15).
 
-## Montaje de prueba con potenciómetro (sin generador)
+## Montaje de prueba con potenciómetro
 
-Se usó mientras no hay generador de señales:
+Este montaje permite probar niveles DC; las pruebas con señal periódica se hacen con el generador:
 
 - Potenciómetro entre **3V3 del ESP32-C6** y **GND del ESP32-C6** (ese 3V3 solo alimenta el potenciómetro; no se une al de la BeaglePlay).
 - Cursor (terminal central) a **GPIO0 (CH A)**. **GPIO1 (CH B)** va al mismo nodo a través de una resistencia de 1 kΩ, por lo que ambos canales leen lo mismo.

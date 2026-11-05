@@ -2,7 +2,7 @@
 
 Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo Gómez, periodo 2026-02). Esta carpeta reúne **toda la documentación del proyecto hasta el 2026-11-05**: descripción, requisitos, hardware, protocolo, firmware, backend, dashboard, calibración, resultados de pruebas, matriz de verificación y pendientes.
 
-> **Estado en una línea:** el enlace SPI BeaglePlay ↔ ESP32-C6 funciona a 2 MHz y el dashboard muestra datos reales del ADC. La comparación preliminar del ADC v2 encontró un error absoluto de 0,004–0,035 V en cuatro puntos; falta completar la caracterización. También faltan estrés prolongado de 40 kSa/s y SPI, y verificar la tolerancia de las mediciones de frecuencia. Nginx, la API y el arranque automático fueron verificados en P-18 y P-19. Detalle en [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md).
+> **Estado en una línea:** el enlace SPI BeaglePlay ↔ ESP32-C6 funciona a 2 MHz y el dashboard muestra datos reales en ambos canales. La comparación preliminar del ADC v2 encontró un error absoluto de 0,004–0,035 V en cuatro puntos; falta completar su caracterización. SPI y 40 kSa/s pasaron pruebas funcionales cortas; las pruebas prolongadas quedan fuera de esta etapa por tiempo disponible. Nginx, la API y el arranque automático fueron verificados en P-18 y P-19. Detalle en [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md).
 
 ## Índice
 
