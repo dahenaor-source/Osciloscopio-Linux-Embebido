@@ -82,7 +82,7 @@ Demanda real del sistema:
 
 Una ventana máxima (4096 B = 32.768 bits) tarda 0,82 ms a 40 MHz, 3,3 ms a 10 MHz y 33 ms a 1 MHz. Para el preset de 40 kSa/s, 256 muestras (1040 B) llegan al SBC en 0,2 ms a 40 MHz o 8 ms a 1 MHz: el SPI nunca es el cuello de botella; el ADC (83,3 kSa/s) sí.
 
-**Experimental hasta ahora:** el enlace funcionó a **100 kHz** y a **2 MHz** (con pérdida de transacciones, ver [09](09-pruebas-y-resultados.md)). **Pendiente**: velocidad máxima estable sin errores de datos y caudal real medido (`spi_master_test.py --bench` o midiendo el tiempo de `xfer2` con `time.perf_counter()`; no requiere analizador lógico). El `spidev` de Linux limita el caudal por la sobrecarga del sistema operativo, así que el valor real será menor al teórico.
+**Medición experimental (P-20):** `spi_master_test.py --bench` midió 0,10 / 0,18 / 0,33 / 0,47 / 0,54 MB/s a 1 / 2 / 5 / 10 / 20 MHz solicitados. Cada ejecución completó la captura inicial. 20 MHz es la velocidad más alta probada, no necesariamente el máximo estable; el caudal incluye la sobrecarga de Linux y no mide el reloj real de SCLK. Para certificar el máximo hay que validar datos durante la transferencia y probar velocidades mayores progresivamente.
 
 ## Pruebas
 
@@ -111,5 +111,5 @@ Ver [10-matriz-de-verificacion.md](10-matriz-de-verificacion.md) (filas FW-01 a 
 - El ADC del ESP32-C6 tiene una no linealidad apreciable cerca de 0 V y de plena escala; el firmware v2 lo compensa con la calibración de eFuse, pero cerca de 0 V y de plena escala el error sigue siendo mayor.
 - Con 2 canales sobre un solo ADC, el canal B está desfasado medio periodo de conversión respecto al A.
 - Sin disparo (trigger): cada captura comienza al recibir `ARM`.
-- A 40 kSa/s se observó un error constante en las pruebas (causa sin diagnosticar; ver [09](09-pruebas-y-resultados.md) y [13](13-pendientes-y-riesgos.md)).
-- El esclavo SPI pierde parte de las transacciones; el maestro compensa con reintentos (causa raíz abierta).
+- En pruebas antiguas a 40 kSa/s se observó un error constante; en P-20 pasaron 15/15 capturas (5 con seno conocido de 1 kHz), sin overrun. Falta prueba de estrés prolongada.
+- Históricamente el esclavo SPI perdió parte de las transacciones; en P-18/P-20 no hubo reintentos, pero falta una prueba de duración y validación de datos a cada velocidad.

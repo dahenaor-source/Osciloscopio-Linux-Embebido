@@ -13,7 +13,7 @@ Para **Juan Camilo Giraldo** y **Daniela Barragán**. Resume lo que ya existe, l
 | Dashboard HTML (Chart.js) | Funciona con datos reales | [07-dashboard.md](07-dashboard.md) |
 | `/dev/spidev0.0` | Funciona; **método para habilitarlo sin documentar** | sección 6 |
 | Servidor **apache o nginx** | **nginx** activo y sirviendo el dashboard (2026-11-05); proxy `/api/` pendiente de confirmar con el backend encendido | `beagleplay/nginx.conf` |
-| Arranque automático del backend | Servicio systemd escrito (`beagleplay/instalar_servicio.sh`); **sin probar en la placa** | [06](06-backend-beagleplay.md), sección 3 |
+| Arranque automático del backend | Servicio systemd reiniciado con la BeaglePlay y dashboard operativo sin intervención (P-19) | [06](06-backend-beagleplay.md), sección 3 |
 | Preset 40 kSa/s | Con error; hay que capturar el mensaje | [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md) |
 
 ## 2. Qué hay que construir

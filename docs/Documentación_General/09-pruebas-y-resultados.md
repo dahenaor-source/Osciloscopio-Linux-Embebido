@@ -25,7 +25,7 @@ Bitácora cronológica de las pruebas, con la evidencia disponible. Lo que no se
 | P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | ✅ Servicio activo y habilitado; tras reiniciar la placa el dashboard volvió a medir sin intervención (P-19) |
 | P-18 | 2026-11-05 | nginx y API real con el backend activo en la BeaglePlay | ✅ Nginx y backend activos/habilitados; dashboard y `/api/scope/frame` responden HTTP 200 |
 | P-19 | 2026-11-05 | Arranque del backend tras reiniciar la BeaglePlay | ✅ Inició sin entrar a la terminal y se pudo medir desde el dashboard (confirmado por el usuario) |
-| P-20 | 2026-11-05 | Concurrencia API, capturas por preset y 40 kSa/s en la BeaglePlay | ✅ 10/10 pares concurrentes válidos; 10/10 capturas adicionales a 40 kSa/s sin flags ni reintentos; API restaurada a 1 kSa/s |
+| P-20 | 2026-11-05 | Concurrencia API, frecuencia de muestreo, benchmark SPI y capturas a 40 kSa/s | ✅ Concurrencia válida; frecuencias estimadas en los cuatro presets; caudal SPI medido 1–20 MHz; 15/15 capturas a 40 kSa/s sin flags ni reintentos |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
@@ -170,17 +170,36 @@ Según confirmó el usuario, después de reiniciar la placa el backend arrancó 
 Pruebas ejecutadas contra la BeaglePlay por la interfaz USB (`192.168.7.2`), a través de Nginx:
 
 - **Concurrencia:** se lanzaron 5 pares simultáneos de `GET /api/scope/frame` y `POST /api/scope/config` al mismo preset de 1 kSa/s: 5/5 pares respondieron correctamente con trama completa (256 muestras por canal), `flags=0` y `retries=0`. Luego se hicieron otros 5 pares simultáneos alternando el cambio entre 1 y 10 kSa/s: 5/5 capturas fueron válidas, sin flags ni reintentos; después de cada par una captura serial confirmó que quedó aplicado el preset solicitado. Esta prueba integra las dos rutas y valida el acceso compartido al SPI; no es una prueba prolongada con varios clientes.
-- **Presets:** se recibieron tramas de 256 muestras a 1, 10 y 40 kSa/s. Una captura aislada a 100 Sa/s también devolvió el preset correcto y `flags=0`, con 2,617 s de respuesta total. En el primer bloque a 100 Sa/s, 2 de 3 capturas coincidieron y la tercera devolvió 1 kSa/s, por lo que se conserva como inconsistencia observada, no como fallo de trama.
-- **40 kSa/s:** 10 capturas consecutivas devolvieron HTTP 200, secuencias consecutivas, 256 muestras por canal, `flags=0`, `retries=0` y 50–51 ms de respuesta. El error constante reportado en P-10 no se reprodujo en esta sesión. El resultado no certifica frecuencia real ni comportamiento con señal conocida o carga prolongada.
+- **Presets y frecuencia:** se estimó `fs` a partir de cruces ascendentes de una senoide del generador en las muestras del ADC. Fórmula: `fs_estimado = muestras_por_periodo × frecuencia_generador`.
+
+  | Preset | Canal / señal | Trama | Muestras por periodo | `fs` estimado | Diferencia vs nominal |
+  |---:|---|---:|---:|---:|---:|
+  | 100 Sa/s | CH B, generador 6,1 Hz | 256 muestras | 16,3934 | 100,0 Sa/s | 0,00 % |
+  | 1.000 Sa/s | CH A, generador 164 Hz | 8 tramas, 56 intervalos | 6,09814 | 1.000,09 Sa/s | +0,009 % |
+  | 10.000 Sa/s | CH A, generador 164 Hz | 3 tramas, 10 intervalos | 61,00039 | 10.004,06 Sa/s | +0,041 % |
+  | 40.000 Sa/s | CH A, generador 1.000 Hz | 5 tramas, 26 intervalos | 40,30774 | 40.307,74 Sa/s | +0,769 % |
+
+  Las señales se configuraron a 1,5 Vpp y offset de 1,5 V. Las tramas válidas marcaron `flags=0`, `retries=0`, con 256 muestras por canal. Las estimaciones usan la frecuencia nominal indicada por el generador; no se conoce su tolerancia/calibración. Una captura aislada a 100 Sa/s tardó 2,617 s. En el primer bloque a 100 Sa/s, 2 de 3 capturas coincidieron y la tercera devolvió 1 kSa/s, por lo que no se usa como medición válida.
+- **40 kSa/s:** además de las 10 capturas consecutivas sin señal (HTTP 200, `flags=0`, `retries=0`, 50–51 ms), se hicieron 5 capturas con seno conocido de 1 kHz; todas devolvieron HTTP 200, secuencias consecutivas, 256 muestras por canal, `flags=0` y `retries=0`. El error constante reportado en P-10 no se reprodujo; falta una prueba de estrés prolongada.
 - **Estado final:** se restauró el preset 1 kSa/s y una captura final confirmó `rate_idx=1`, `fs_hz=1000`, `flags=0`, `retries=0`.
 - **Regresión local:** `make -C firmware/tests/host test` pasó (`OK: todas las pruebas del protocolo pasaron`).
-- **Benchmark SPI bloqueado por permisos:** el usuario `camilo` ejecutó las cinco variantes de `--bench` sin privilegios; todas fallaron al abrir `/dev/spidev0.0` con `PermissionError: [Errno 13] Permission denied`. Por lo tanto, no se midieron velocidades ni caudales nuevos; hace falta repetir con `sudo`.
-- **No ejecutado:** la exactitud del ADC requiere registrar lecturas simultáneas de multímetro y dashboard; la frecuencia real requiere usar una señal de frecuencia conocida. No se modificó configuración del servicio para medir a otra velocidad SPI.
+- **Benchmark SPI:** repetido con `sudo` para `tools/spi_master_test.py --bench`; caudales medidos:
+
+  | Reloj solicitado | Caudal medido |
+  |---:|---:|
+  | 1 MHz | 0,10 MB/s |
+  | 2 MHz | 0,18 MB/s |
+  | 5 MHz | 0,33 MB/s |
+  | 10 MHz | 0,47 MB/s |
+  | 20 MHz | 0,54 MB/s |
+
+  Cada ejecución inició con una captura completa; el benchmark mide 200 transferencias de 1040 bytes con sobrecarga del SO. 20 MHz es la máxima velocidad probada, no una certificación del reloj real ni de la máxima velocidad estable. Al terminar se ejecutó el script sin `--bench` para apagar el modo de prueba y restaurar el preset 1 kSa/s.
+- **Pendiente:** exactitud del ADC calibrado v2 con multímetro en varios niveles. Para SPI falta validar respuestas de las 200 transferencias bajo carga y encontrar la máxima velocidad estable; para 40 kSa/s, prueba prolongada.
 
 ## Hallazgos principales
 
 1. Históricamente el enlace SPI perdió cerca de la mitad de transacciones (P-05); en las capturas y pruebas API de P-18/P-20 no hubo reintentos, pero falta un benchmark sostenido por velocidad para confirmar la estabilidad.
 2. El maestro debe validar y reintentar siempre; con eso la captura completa funciona.
 3. El ADC sin calibrar tenía errores de hasta 0,72 V; la calibración está implementada pero sin verificar.
-4. El preset de 40 kSa/s produjo 10/10 capturas válidas sin overrun en P-20; falta verificarlo con una señal conocida y prueba prolongada. El fallo anterior queda registrado en P-10.
-5. Todavía no hay mediciones con instrumentos (frecuencia de muestreo, reloj SPI) ni con una señal periódica.
+4. El preset de 40 kSa/s produjo 15/15 capturas válidas, incluidas 5 con seno conocido; falta prueba prolongada. El fallo anterior queda registrado en P-10.
+5. Se estimó fs con generador en los cuatro presets y se midió caudal SPI entre 1 y 20 MHz; falta documentar tolerancia del generador, comprobar reloj SPI real y caracterizar la máxima velocidad estable.

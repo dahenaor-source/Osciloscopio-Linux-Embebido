@@ -95,9 +95,9 @@ Detalle en [05-firmware-esp32c6.md](05-firmware-esp32c6.md).
 | Cabecera de estado en **toda** respuesta | El esclavo prepara la respuesta antes de la transacción; el efecto de un comando se ve en la transacción siguiente |
 | Línea **INT** (handshake) | Permite al maestro saber cuándo el esclavo está listo (hoy el backend usa pausas y reintentos) |
 | Muestras en **mV calibrados** (protocolo v2) | El ADC sin calibrar leía hasta 0,7 V de menos (ver [08](08-calibracion-adc.md)) |
-| Backend **FastAPI** que también sirve el dashboard | Un solo origen y puerto, sin problemas de CORS (el enunciado pide apache o nginx: hay un `nginx.conf` sin probar, ver [13](13-pendientes-y-riesgos.md)) |
+| Backend **FastAPI** que también sirve el dashboard | Un solo origen y puerto; Nginx en la BeaglePlay sirve el dashboard y proxya la API (P-18) |
 | Chart.js **local** (`dashboard/vendor`) | La BeaglePlay puede no tener Internet |
 
 ## 7. Alcance actual
 
-Implementado y probado en hardware: enlace SPI a 2 MHz, modo de prueba, cambio de presets, captura real del ADC, dashboard con API real, calibración de eFuse (compila; pendiente medirla). Pendiente: servidor apache/nginx, verificación de frecuencia de muestreo con instrumentos, 40 kSa/s estable, tasa máxima de SPI, video y declaraciones. Ver [10](10-matriz-de-verificacion.md) y [13](13-pendientes-y-riesgos.md).
+Implementado y probado en hardware: enlace SPI, captura real del ADC, dashboard vía Nginx/API, arranque automático, frecuencia de muestreo estimada con generador en los cuatro presets y caudal SPI medido entre 1 y 20 MHz. En 40 kSa/s pasaron 15 capturas (5 con señal conocida); falta estrés prolongado. Pendiente: exactitud del ADC calibrado, máxima velocidad SPI estable, tolerancia de la referencia del generador, video y declaraciones. Ver [10](10-matriz-de-verificacion.md) y [13](13-pendientes-y-riesgos.md).

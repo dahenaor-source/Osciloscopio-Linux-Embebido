@@ -68,17 +68,18 @@ make -C tests/host test      # pruebas unitarias del protocolo en el PC
 
 Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware-esp32c6.md).
 
-## Estado (2026-11-03)
+## Estado (2026-11-05)
 
 - [x] Firmware compila (ESP-IDF 5.4.1), se flashea y arranca. Protocolo con pruebas unitarias en el PC.
-- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz (con reintentos: se pierde ≈ 50 % de las transacciones).
+- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz; las pruebas API recientes no tuvieron reintentos. Históricamente se observó pérdida de transacciones.
 - [x] Dashboard con datos reales (modo de prueba y ADC con potenciómetro, 100 a 10.000 Sa/s).
 - [x] Backend FastAPI en la BeaglePlay (SPI + API) con reintentos.
 - [x] Firmware v2: calibración del ADC por eFuse (arranca en una placa real con calibración en ambos canales; falta medir la exactitud).
-- [ ] Preset de 40 kSa/s (bonificación) con error constante: sin diagnosticar.
-- [x] Servidor nginx activo y sirviendo el dashboard en el puerto 80 (verificado el 2026-11-05); falta confirmar el proxy `/api/` con el backend encendido.
-- [ ] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): escrito, **sin probar en la placa**.
-- [ ] Mediciones con instrumentos (frecuencia de muestreo, reloj SPI) y tasa máxima de SPI.
+- [x] Preset de 40 kSa/s: 15 capturas válidas sin overrun, 5 con seno conocido; falta prueba prolongada.
+- [x] Nginx sirve el dashboard y proxya la API real (HTTP 200, 2026-11-05).
+- [x] Arranque automático del backend con systemd: verificado tras reiniciar la placa.
+- [x] Frecuencia de muestreo estimada con generador en los cuatro presets y caudal SPI medido entre 1 y 20 MHz; falta documentar tolerancia del generador y máxima velocidad SPI estable.
+- [ ] Exactitud del ADC calibrado v2 con multímetro.
 - [ ] Video, declaración de participación y de uso de IA.
 
 Detalle en [13-pendientes-y-riesgos.md](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md).
