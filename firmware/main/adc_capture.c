@@ -9,31 +9,24 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "soc/soc_caps.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "board_config.h"
 
 static const char *TAG = "capture";
 
-#define FRAME_BYTES 1024
 #define POOL_BYTES 16384
-/* Conversiones iniciales que se descartan mientras el ADC se estabiliza. */
 #define SETTLE_CONVERSIONS 16
 
-/*
- * Captura con el ADC1 en modo continuo: el hardware temporiza las conversiones
- * (frecuencia constante) y las entrega por DMA; la CPU solo las clasifica por
- * canal. En modo TYPE2 cada resultado de 2 bytes trae el canal y el dato de 12 bits.
- * El ADC convierte los 2 canales de forma alternada (rate->adc_total_hz en total).
- */
 typedef struct {
     uint16_t *out;
-    const uint16_t *lut; /* código crudo de 12 bits -> milivoltios */
+    const uint16_t *lut;
     uint16_t count;
     uint32_t sum;
     uint8_t acc;
 } chan_state_t;
 
-/* Se ejecuta en ISR: el pool del DMA se llenó antes de que lo leyéramos (se perdieron muestras). */
 static bool IRAM_ATTR on_pool_overflow(adc_continuous_handle_t handle,
                                        const adc_continuous_evt_data_t *edata, void *user_data)
 {
@@ -41,13 +34,6 @@ static bool IRAM_ATTR on_pool_overflow(adc_continuous_handle_t handle,
     return false;
 }
 
-/*
- * Calibración: el ADC del ESP32-C6 no es lineal ni tiene el mismo fondo de escala en cada placa.
- * Se usa el esquema curve-fitting de ESP-IDF (coeficientes grabados en eFuse en fábrica) para
- * construir una tabla de 4096 entradas por canal; así la conversión en la captura es solo una lectura
- * de tabla y no consume CPU. Si la placa no trae datos de calibración se usa una recta aproximada y
- * se informa con el flag SCOPE_FLAG_UNCALIBRATED.
- */
 #define FALLBACK_FULL_SCALE_MV 3100
 
 static uint16_t lut_mv[SCOPE_NUM_CHANNELS][4096];
@@ -92,7 +78,6 @@ bool capture_is_calibrated(void)
     return lut_calibrated;
 }
 
-/* Promedia `decim` conversiones por muestra (decim = 1 -> sin promediar). */
 static void push_sample(chan_state_t *c, uint16_t window, uint8_t decim, uint32_t value)
 {
     if (c->count >= window) {
@@ -118,9 +103,14 @@ esp_err_t capture_run(const scope_rate_t *rate, uint16_t window,
         build_lut();
     }
 
+    /* MEJORA PUNTO 2: Adaptar el tamaño de la trama DMA según la tasa de muestreo.
+       En tasas bajas (ej. <= 1000 Hz total) usamos tramas pequeñas de 128 bytes (64 muestras)
+       para no bloquear la CPU durante segundos. En tasas altas usamos 1024 bytes. */
+    uint32_t frame_bytes = (rate->adc_total_hz <= 2000) ? 128 : 1024;
+
     adc_continuous_handle_cfg_t handle_cfg = {
-        .max_store_buf_size = POOL_BYTES, /* pool grande: absorbe 80 kSa/s mientras la CPU atiende el SPI */
-        .conv_frame_size = FRAME_BYTES,
+        .max_store_buf_size = POOL_BYTES,
+        .conv_frame_size = frame_bytes,
     };
     ESP_RETURN_ON_ERROR(adc_continuous_new_handle(&handle_cfg, &handle), TAG, "new_handle");
 
@@ -152,14 +142,15 @@ esp_err_t capture_run(const scope_rate_t *rate, uint16_t window,
     }
 
     chan_state_t st[SCOPE_NUM_CHANNELS] = {{.out = ch_a, .lut = lut_mv[0]}, {.out = ch_b, .lut = lut_mv[1]}};
-    static uint8_t buf[FRAME_BYTES];
+    uint8_t buf[1024];
     uint32_t settle = SETTLE_CONVERSIONS;
-    /* Plazo = duración teórica de la ventana + 1 s de margen, para no bloquearse si el ADC falla. */
+
     int64_t deadline_us = esp_timer_get_time() +
                           ((int64_t)window * 1000000 / rate->fs_hz) + 1000000;
     err = ESP_OK;
 
     while (!(st[0].count >= window && st[1].count >= window)) {
+        /* Verificación inmediata de orden de aborto */
         if (*abort) {
             err = ESP_ERR_INVALID_STATE;
             break;
@@ -170,7 +161,8 @@ esp_err_t capture_run(const scope_rate_t *rate, uint16_t window,
         }
 
         uint32_t got = 0;
-        esp_err_t r = adc_continuous_read(handle, buf, sizeof buf, &got, 100);
+        /* MEJORA PUNTO 2: Timeout reducido a 20ms reales (pdMS_TO_TICKS) para responder rápido al abort */
+        esp_err_t r = adc_continuous_read(handle, buf, frame_bytes, &got, pdMS_TO_TICKS(20));
         if (r == ESP_ERR_TIMEOUT) {
             continue;
         }

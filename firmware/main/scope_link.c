@@ -17,22 +17,13 @@
 
 static const char *TAG = "scope_link";
 
-/*
- * Enlace SPI esclavo. Dos tareas:
- *  - spi_task:     queda bloqueada en spi_slave_transmit(); cada transacción
- *                  entrega la respuesta preparada y recibe un comando.
- *  - capture_task: se despierta con ARM, captura la ventana y marca READY.
- * Máquina de estados: IDLE -> ARMED -> READY (o ERROR); RESET vuelve a IDLE.
- */
 #define SPI_HOST SPI2_HOST
 
-/* Configuración (solo la modifica la tarea SPI, y nunca mientras hay captura en curso). */
 static uint8_t cfg_rate_idx = 1;
 static uint16_t cfg_window = SCOPE_DEFAULT_WINDOW;
 static bool cfg_test_mode;
 static bool adc_calibrated;
 
-/* Estado compartido entre la tarea SPI y la tarea de captura. */
 static _Atomic uint8_t state = SCOPE_ST_IDLE;
 static volatile bool abort_capture;
 static bool last_overrun;
@@ -45,17 +36,11 @@ static uint8_t *tx_buf;
 static uint8_t *rx_buf;
 static TaskHandle_t capture_task;
 
-/*
- * Diagnóstico del enlace SPI (se ve por el monitor serie). Cuenta las transacciones
- * que el esclavo recibe del maestro y vigila el nivel de las líneas SPI: sirve para
- * distinguir "el maestro no llega al ESP32" de "llega pero no responde bien".
- */
-static volatile uint32_t diag_trans;      /* transacciones completadas (CS bajó y subió) */
-static volatile uint32_t diag_cmd_bad;    /* comandos con checksum inválido */
+static volatile uint32_t diag_trans;
+static volatile uint32_t diag_cmd_bad;
 static volatile uint32_t diag_len_min = UINT32_MAX;
 static volatile uint32_t diag_len_max;
 
-/* INT en alto = transacción lista para el maestro; en bajo mientras se re-arma. */
 static void IRAM_ATTR post_setup_cb(spi_slave_transaction_t *trans)
 {
     gpio_set_level(PIN_HANDSHAKE, 1);
@@ -71,11 +56,6 @@ static void set_state(scope_state_t s)
     atomic_store(&state, (uint8_t)s);
 }
 
-/*
- * Prepara la respuesta ANTES de la transacción: el esclavo SPI no puede
- * calcularla mientras el maestro lee. Por eso un comando se ve reflejado en
- * la cabecera de la transacción siguiente.
- */
 static void prepare_tx(void)
 {
     uint8_t st = atomic_load(&state);
@@ -108,7 +88,7 @@ static void reject(void)
     last_err_flags |= SCOPE_FLAG_CMD_REJECTED;
 }
 
-/* Ejecuta el comando recibido. Los cambios de configuración se rechazan si hay captura en curso. */
+/* MEJORA PUNTOS 2 Y 3: Permite cambiar configuración abortando la captura en curso inmediatamente */
 static void handle_command(const uint8_t *rx, size_t len)
 {
     scope_cmd_frame_t f;
@@ -130,26 +110,35 @@ static void handle_command(const uint8_t *rx, size_t len)
 
     switch (f.cmd) {
     case SCOPE_CMD_SET_RATE:
-        if (busy || scope_rate_get((uint8_t)f.arg) == NULL) {
+        if (scope_rate_get((uint8_t)f.arg) == NULL) {
             reject();
         } else {
+            if (busy) {
+                abort_capture = true; /* Interrumpe la captura activa en adc_capture.c */
+            }
             cfg_rate_idx = (uint8_t)f.arg;
             set_state(SCOPE_ST_IDLE);
         }
         break;
     case SCOPE_CMD_SET_WINDOW:
-        if (busy || !scope_window_valid(f.arg)) {
+        if (!scope_window_valid(f.arg)) {
             reject();
         } else {
+            if (busy) {
+                abort_capture = true;
+            }
             cfg_window = f.arg;
             set_state(SCOPE_ST_IDLE);
         }
         break;
     case SCOPE_CMD_SET_TESTMODE:
-        if (busy || f.arg > 1) {
+        if (f.arg > 1) {
             reject();
         } else {
-            cfg_test_mode = f.arg == 1;
+            if (busy) {
+                abort_capture = true;
+            }
+            cfg_test_mode = (f.arg == 1);
             set_state(SCOPE_ST_IDLE);
         }
         break;
@@ -209,7 +198,6 @@ static void spi_task(void *arg)
     }
 }
 
-/* Cada 2 s: cuántas transacciones llegaron y el nivel actual de CS, SCK y MOSI (CS debe estar en 1 en reposo). */
 static void diag_task(void *arg)
 {
     for (;;) {
@@ -252,7 +240,7 @@ static void capture_task_fn(void *arg)
 
 esp_err_t scope_link_start(void)
 {
-    adc_calibrated = capture_is_calibrated(); /* construye las tablas antes de lanzar las tareas */
+    adc_calibrated = capture_is_calibrated();
     cap_a = heap_caps_calloc(SCOPE_MAX_WINDOW, sizeof(uint16_t), MALLOC_CAP_INTERNAL);
     cap_b = heap_caps_calloc(SCOPE_MAX_WINDOW, sizeof(uint16_t), MALLOC_CAP_INTERNAL);
     tx_buf = heap_caps_calloc(1, SCOPE_MAX_FRAME, MALLOC_CAP_DMA);
@@ -272,10 +260,10 @@ esp_err_t scope_link_start(void)
         .sclk_io_num = PIN_SPI_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = SCOPE_MAX_FRAME, /* 4096 B = bufsiz por defecto de spidev */
+        .max_transfer_sz = SCOPE_MAX_FRAME,
     };
     spi_slave_interface_config_t slv = {
-        .mode = 0, /* CPOL=0, CPHA=0: debe coincidir con el maestro */
+        .mode = 0,
         .spics_io_num = PIN_SPI_CS,
         .queue_size = 1,
         .flags = 0,
