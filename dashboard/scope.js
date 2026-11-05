@@ -11,17 +11,15 @@ const PRESETS = [
   { idx: 2, fs: 10000, label: "10.000 Sa/s" },
   { idx: 3, fs: 40000, label: "40.000 Sa/s" },
 ];
-// Protocolo v2: el ESP32 entrega milivoltios ya calibrados con la eFuse del ADC.
-const WINDOW  = 256;    // muestras por ventana en modo simulado
 
+const WINDOW = 256;    // Muestras por ventana
 const $ = (id) => document.getElementById(id);
 const toVolts = (mv) => mv / 1000;
 
-// ---- Fuente simulada: 2 senoidales con ruido, en la ventana pedida ------
+// ---- Fuente simulada -----------------------------------------------------
 let simPhase = 0;
 function simFrame(rateIdx) {
   const p = PRESETS[rateIdx];
-  // Frecuencias elegidas para que siempre se vean ~4 y ~7 ciclos por ventana
   const fA = (p.fs / WINDOW) * 4, fB = (p.fs / WINDOW) * 7;
   const a = [], b = [];
   for (let n = 0; n < WINDOW; n++) {
@@ -36,12 +34,13 @@ function simFrame(rateIdx) {
            fs_hz: p.fs, window: WINDOW, flags: 0, a, b };
 }
 
-// ---- Fuente real: HTTP hacia el servidor del SBC -------------------------
+// ---- Fuente real HTTP ----------------------------------------------------
 async function apiFrame() {
   const r = await fetch(API_FRAME, { cache: "no-store" });
   if (!r.ok) throw new Error("HTTP " + r.status);
   return r.json();
 }
+
 async function apiSetRate(idx) {
   await fetch(API_CONFIG, {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -75,6 +74,7 @@ function stats(v) {
   const rms = Math.sqrt(v.reduce((s, x) => s + x * x, 0) / n);
   return [min, max, max - min, avg, rms];
 }
+
 function fillRow(id, v) {
   const cells = $(id).querySelectorAll("td");
   stats(v).forEach((x, i) => { cells[i + 1].textContent = x.toFixed(3); });
@@ -82,7 +82,6 @@ function fillRow(id, v) {
 
 function render(f) {
   const va = f.a.map(toVolts), vb = f.b.map(toVolts);
-  // Eje X en ms según la frecuencia de muestreo reportada por el ESP32
   chart.data.labels = va.map((_, n) => (n / f.fs_hz * 1000).toFixed(n && f.fs_hz >= 10000 ? 2 : 1));
   chart.data.datasets[0].data = va;
   chart.data.datasets[1].data = vb;
@@ -99,8 +98,9 @@ function render(f) {
     (f.retries ? ` · reintentos SPI: ${f.retries}` : "");
 }
 
-// ---- Control -------------------------------------------------------------
+// ---- Control y Polling --------------------------------------------------
 let timer = null;
+let isFetching = false;
 
 function setStatus(text, cls) {
   const s = $("status");
@@ -108,20 +108,48 @@ function setStatus(text, cls) {
   s.className = "badge " + (cls || "");
 }
 
+// Adapta las opciones del selector de refresco según la velocidad de muestreo
+function updateRefreshOptions(rateIdx) {
+  const selRefresh = $("sel-refresh");
+  const currentVal = Number(selRefresh.value);
+  selRefresh.innerHTML = "";
+
+  if (rateIdx === 0) {
+    // A 100 Sa/s, 256 muestras toman 2.56 s (2560 ms)
+    selRefresh.add(new Option("0.39 Hz (2.56 s)", "2560"));
+    selRefresh.add(new Option("0.25 Hz (4 s)", "4000"));
+    selRefresh.value = currentVal >= 2560 ? String(currentVal) : "2560";
+  } else {
+    // Para >= 1000 Sa/s se habilitan frecuencias más altas
+    selRefresh.add(new Option("1 Hz (1 s)", "1000"));
+    selRefresh.add(new Option("0.5 Hz (2 s)", "2000"));
+    selRefresh.add(new Option("0.25 Hz (4 s)", "4000"));
+    selRefresh.value = [1000, 2000, 4000].includes(currentVal) ? String(currentVal) : "1000";
+  }
+}
+
 async function tick() {
-  const idx = Number($("sel-rate").value);
+  if (isFetching) return;
+  isFetching = true;
+
+  const targetIdx = Number($("sel-rate").value);
   try {
-    const f = $("sel-source").value === "sim" ? simFrame(idx) : await apiFrame();
-    // El uC conserva su último preset: si no coincide con el seleccionado, se lo reenvía.
-    if ($("sel-source").value === "api" && f.rate_idx !== idx) {
-      await apiSetRate(idx);
+    const f = $("sel-source").value === "sim" ? simFrame(targetIdx) : await apiFrame();
+
+    // Si llega una trama vieja que estaba en vuelo, se ignora hasta recibir la del nuevo rate_idx
+    if ($("sel-source").value === "api" && f.rate_idx !== targetIdx) {
       setStatus("ajustando frecuencia...", "");
+      isFetching = false;
       return;
     }
+
+    $("sel-rate").disabled = false;
     render(f);
     setStatus("capturando", "ok");
   } catch (e) {
     setStatus("error: " + e.message, "err");
+  } finally {
+    isFetching = false;
   }
 }
 
@@ -132,6 +160,7 @@ function start() {
   $("btn-toggle").textContent = "■ Stop";
   $("btn-toggle").classList.add("running");
 }
+
 function stop() {
   if (timer) clearInterval(timer);
   timer = null;
@@ -140,15 +169,29 @@ function stop() {
   setStatus("detenido");
 }
 
+// ---- Inicialización UI ----------------------------------------------------
 PRESETS.forEach((p) => $("sel-rate").add(new Option(p.label, p.idx)));
 $("sel-rate").value = 1;
+updateRefreshOptions(1);
 
 $("btn-toggle").onclick = () => (timer ? stop() : start());
 $("sel-refresh").onchange = () => { if (timer) start(); };
 $("sel-source").onchange = () => { if (timer) start(); };
+
 $("sel-rate").onchange = async () => {
+  const newIdx = Number($("sel-rate").value);
+  updateRefreshOptions(newIdx);
+
   if ($("sel-source").value === "api") {
-    try { await apiSetRate(Number($("sel-rate").value)); } catch (e) { setStatus("error: " + e.message, "err"); }
+    $("sel-rate").disabled = true;
+    setStatus("enviando cambio...", "");
+    try {
+      await apiSetRate(newIdx);
+    } catch (e) {
+      setStatus("error: " + e.message, "err");
+      $("sel-rate").disabled = false;
+    }
   }
+
   if (timer) start();
 };
