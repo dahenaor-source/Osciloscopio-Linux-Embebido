@@ -1,8 +1,8 @@
 # Dashboard
 
-Página estática (HTML + JS + Chart.js local, sin CDN: la red del SBC puede no tener internet). Hoy la sirve el backend FastAPI de la BeaglePlay (`beagleplay/backend`); el enunciado pide apache o nginx, pendiente.
+Página estática (HTML + JS + Chart.js local, sin CDN: la red del SBC puede no tener internet). En la BeaglePlay, nginx sirve el dashboard por el puerto 80 y hace proxy de `/api/` a FastAPI. La integración se verificó mediante HTTP 200 en P-18.
 
-## Probar ya (modo simulado)
+## Probar la interfaz (modo simulado; no es medición física)
 
 ```bash
 cd dashboard && python3 -m http.server 8080
@@ -38,7 +38,7 @@ Para usarlo: en el dashboard elige la fuente **API real**. Con nginx/apache se p
 
 ## Pendiente
 
-- Confirmar el proxy de `/api/` de nginx con el backend encendido (nginx ya sirve esta carpeta en el puerto 80; el backend FastAPI también la sirve en el 8000).
+- Conservar evidencia de la prueba P-18 del proxy `/api/`; repetir la validación después de cambios del backend (nginx ya sirve esta carpeta en el puerto 80; el backend FastAPI también la sirve en el 8000).
 - Escala fija 0–3,3 V; añadir auto-escala y selector de ventana si se requiere.
 - Verificar en hardware el refresco real con captura a 40 kSa/s.
 

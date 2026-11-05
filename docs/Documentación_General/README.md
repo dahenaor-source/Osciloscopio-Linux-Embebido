@@ -1,8 +1,8 @@
 # Documentación general: Osciloscopio SBC + microcontrolador
 
-Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo Gómez, periodo 2026-02). Esta carpeta reúne **toda la documentación del proyecto hasta el 2026-11-03**: descripción, requisitos, hardware, protocolo, firmware, backend, dashboard, calibración, resultados de pruebas, matriz de verificación y pendientes.
+Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo Gómez, periodo 2026-02). Esta carpeta reúne **toda la documentación del proyecto hasta el 2026-11-05**: descripción, requisitos, hardware, protocolo, firmware, backend, dashboard, calibración, resultados de pruebas, matriz de verificación y pendientes.
 
-> **Estado en una línea:** el enlace SPI BeaglePlay ↔ ESP32-C6 funciona a 2 MHz y el dashboard muestra datos reales del ADC (1 kSa/s probado con un potenciómetro). Falta cerrar el preset de 40 kSa/s, la causa de las transacciones SPI perdidas, el servidor apache/nginx y las mediciones con instrumentos. Detalle en [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md).
+> **Estado en una línea:** el enlace SPI BeaglePlay ↔ ESP32-C6 funciona a 2 MHz y el dashboard muestra datos reales del ADC (1 kSa/s probado con un potenciómetro). Falta cerrar el preset de 40 kSa/s, la causa de las transacciones SPI perdidas, la validación metrológica y las mediciones con instrumentos. nginx, la API y el arranque automático fueron verificados en P-18 y P-19. Detalle en [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md).
 
 ## Índice
 
@@ -22,6 +22,8 @@ Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo
 | 12 | [Guía para el equipo del SBC](12-guia-equipo-sbc.md) | Contexto de la BeaglePlay y orden de pruebas |
 | 13 | [Pendientes y riesgos](13-pendientes-y-riesgos.md) | Qué falta, problemas abiertos, próximos pasos |
 | 14 | [Participación y uso de IA](14-participacion-y-uso-de-ia.md) | Roles, aportes y declaración de uso de IA (por completar por el equipo) |
+| 15 | [Verificación de flasheo V2](15-verificacion-flasheo-v2.md) | Compilación y arranque en hardware |
+| 16 | [Estado de validación main](16-estado-validacion-main.md) | Evidencias recientes y validaciones pendientes |
 
 ## Por dónde empezar
 

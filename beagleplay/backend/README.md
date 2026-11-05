@@ -19,7 +19,7 @@ beagleplay/backend/
 
 ## 🔌 Driver SPI (`spi_driver.py`)
 
-El módulo `SPIDriver` implementa la comunicación Full-Duplex en **Modo SPI 0** hacia la ESP32-C6 respetando la especificación del *Protocolo SPI versión 1*:
+El módulo `SPIDriver` implementa la comunicación Full-Duplex en **Modo SPI 0** hacia la ESP32-C6 respetando la especificación del *Protocolo SPI versión 2 (comandos compatibles con V1)*:
 
 * **Trama de comando (4 bytes):** Envío de instrucciones (`NOP`, `SET_RATE`, `ARM`, etc.) con cálculo de checksum `cmd ^ arg_lo ^ arg_hi ^ 0x5A`.
 * **Validación de respuesta:** Verificación del byte mágico (`0xE5`) y checksum de la cabecera de 16 bytes.
