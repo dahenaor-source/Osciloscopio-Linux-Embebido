@@ -28,8 +28,8 @@ Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 20
 | SB-03 | Robustez ante transacciones perdidas | Esclavo simulado en PC con pérdidas alternas | Unitaria (simulada) | ✅ Pasa (reintentos, `seq` viejo) | P-05, [06](06-backend-beagleplay.md) |
 | SB-04 | Sin mezcla de transacciones entre `GET frame` y `POST config` | Revisión del código (`RLock`) | Inspección | 🟡 Implementado; sin prueba de concurrencia | [06](06-backend-beagleplay.md) |
 | SB-05 | Habilitar `spidev` en la mikroBUS | — | Configuración | 🟡 Funciona; método sin documentar | [03](03-hardware-y-conexiones.md) |
-| SB-06 | Servir el dashboard con **apache o nginx** | `nginx -t`, `systemctl status nginx` y `curl -i http://127.0.0.1/` en la BeaglePlay; `/api/scope/frame` por el proxy con el backend encendido | Configuración | 🟡 nginx activo y sirviendo el dashboard (HTTP 200, `Server: nginx`, 2026-11-05); proxy `/api/` con 502 por backend apagado, **200 pendiente de confirmar** | [06](06-backend-beagleplay.md) |
-| SB-07 | Arranque automático del backend (`systemd`) | Ejecutar `instalar_servicio.sh`, reiniciar la BeaglePlay y ver datos en el dashboard sin tocar nada | Configuración | 🟡 Servicio y script escritos; la unidad pasa `systemd-analyze verify` y el driver se recupera si `/dev/spidev0.0` aparece tarde (probado con un `spidev` simulado). **Sin probar en la placa** | [06](06-backend-beagleplay.md) |
+| SB-06 | Servir el dashboard con **apache o nginx** | `nginx -t`, `systemctl status nginx` y `curl -i http://127.0.0.1/` en la BeaglePlay; `/api/scope/frame` por el proxy con el backend encendido | Configuración | ✅ nginx activo y habilitado; dashboard y API responden HTTP 200 a través de Nginx en la BeaglePlay (2026-11-05). `nginx -t` no se pudo repetir en esta sesión por fallo de autenticación de `sudo`; consta previamente exitoso en [06](06-backend-beagleplay.md) | P-16, P-18 |
+| SB-07 | Arranque automático del backend (`systemd`) | Ejecutar `instalar_servicio.sh`, reiniciar la BeaglePlay y ver datos en el dashboard sin tocar nada | Configuración | 🟡 Servicio activo y habilitado en la placa; falta reiniciar la BeaglePlay y confirmar que el backend vuelve a iniciar automáticamente | P-17, P-18 |
 
 ## 3. Dashboard
 
@@ -70,7 +70,7 @@ Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 20
 |---|---|---|
 | `make -C firmware/tests/host test` | ✅ Pasan todas las pruebas del protocolo | Repetición local en PC; no verifica el firmware ni el enlace SPI en hardware |
 | Servir `dashboard/` con `python3 -m http.server` y solicitar `/`, `/scope.js` y `/vendor/chart.umd.js` | ✅ HTTP 200 para los tres recursos; comprobada la presencia del dashboard y de la opción API real en el HTML | Smoke test de archivos estáticos; no ejecuta Nginx, no prueba `/api/` ni reemplaza la prueba funcional en navegador |
-| Repetición local de la captura real/API y validación de Nginx en la BeaglePlay | ⏳ No ejecutada en este entorno | Aquí no están disponibles `/dev/spidev0.0` ni Nginx. La evidencia de la BeaglePlay está en P-16: Nginx sirve el dashboard (200), pero `/api/` dio 502 con el backend apagado |
+| Prueba local de la captura real/API y validación de Nginx en la BeaglePlay | ⏳ No ejecutada en este entorno | Aquí no están disponibles `/dev/spidev0.0` ni Nginx. En la placa, P-18 confirma que la página y el proxy API responden 200 con el backend activo |
 | Frecuencia de muestreo, tasa máxima SPI y exactitud de calibración (FW-08, FW-10, FW-11) | ⏳ Sin cambio | Requieren mediciones en hardware; FW-08 y FW-11 además requieren señal conocida y multímetro |
 
-Por lo tanto, SB-06 sigue parcial: Nginx sirve el dashboard en la BeaglePlay, pero falta demostrar `/api/` con el backend activo. SB-07 sigue parcial hasta probar el arranque tras reiniciar la placa. Los resultados locales no se extrapolan a la BeaglePlay.
+SB-07 sigue parcial hasta probar el arranque tras reiniciar la placa. Las mediciones experimentales pendientes se mantienen abiertas; los resultados locales no se extrapolan a la BeaglePlay.

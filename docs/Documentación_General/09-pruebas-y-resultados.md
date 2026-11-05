@@ -22,13 +22,29 @@ Bitácora cronológica de lo realizado hasta el 2026-11-03, con la evidencia dis
 | P-14 | 2026-11-04 | SPI con la BeaglePlay tras conectar el generador | ❌ Todo `00` en RX (en diagnóstico; el firmware está vivo, P-13) |
 | P-15 | 2026-11-05 | Dashboard: preset enviado al iniciar y un solo bucle de sondeo | ✅ Lógica verificada con simulación de reloj virtual; ⏳ falta probarlo en el navegador con el hardware |
 | P-16 | 2026-11-05 | nginx en la BeaglePlay | ✅ Activo, habilitado y sirviendo el dashboard (HTTP 200); 🟡 proxy `/api/` con 502 por backend apagado |
-| P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | 🟡 Escrito; unidad válida con `systemd-analyze verify`; driver recuperable probado con `spidev` simulado; ⏳ **sin probar en la placa** |
+| P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | 🟡 Escrito; unidad válida con `systemd-analyze verify`; driver recuperable probado con `spidev` simulado; ⏳ **sin probar tras reinicio de la placa** |
+| P-18 | 2026-11-05 | nginx y API real con el backend activo en la BeaglePlay | ✅ Nginx y backend activos/habilitados; dashboard y `/api/scope/frame` responden HTTP 200 |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
 - Entorno: WSL Ubuntu, ESP-IDF 5.4.1, `usbipd` para el USB, `/dev/ttyACM0`.
 - `idf.py build`: correcto. Se flasheó la ESP32-C6-DevKitC-1 real.
 - Monitor serie: `scope_link: SPI esclavo listo (SCLK=6 MOSI=7 MISO=2 CS=10 HS=3)`.
+
+## P-18. nginx y API real con el backend activo en la BeaglePlay
+
+Prueba ejecutada en la terminal de `camilo@BeagleBone` el 2026-11-05. Las comprobaciones de estado y `curl` se completaron aunque `sudo nginx -t` no pudo ejecutarse porque la contraseña de `sudo` se rechazó tres veces.
+
+```
+systemctl is-active nginx                 -> active
+systemctl is-enabled nginx                -> enabled
+systemctl is-active osciloscopio-backend  -> active
+systemctl is-enabled osciloscopio-backend -> enabled
+curl -i http://127.0.0.1/                 -> HTTP/1.1 200 OK, Server: nginx
+curl -i http://127.0.0.1/api/scope/frame  -> HTTP/1.1 200 OK, application/json
+```
+
+La respuesta API incluyó `seq: 4354`, `rate_idx: 1`, `fs_hz: 1000`, `window: 256`, `flags: 0`, `retries: 0` y 256 muestras para cada canal. Esto confirma en esa ejecución que Nginx sirve el dashboard y proxya correctamente al backend, que capturó y devolvió una trama. No valida por sí sola la exactitud del ADC ni el arranque automático después de reiniciar la placa.
 
 ## P-02. Pruebas unitarias del protocolo (PC)
 
@@ -139,9 +155,9 @@ Verificación sin hardware (Node.js con DOM y red simulados y reloj virtual): c�
 
 `sudo nginx -t` correcto; `systemctl status nginx` → `enabled`, `active (running)` desde hacía 16 h; `curl -i http://127.0.0.1/` → `200 OK`, `Server: nginx`, con el `index.html` del dashboard. `curl -i http://127.0.0.1/api/scope/frame` → `502 Bad Gateway`: el proxy no encontró el backend porque estaba apagado (se arrancaba a mano). Ver [06](06-backend-beagleplay.md) y [13](13-pendientes-y-riesgos.md), A-1.
 
-## P-17. Servicio systemd del backend (2026-11-05, sin probar en la placa)
+## P-17. Servicio systemd del backend (2026-11-05, arranque tras reinicio pendiente)
 
-Para que al alimentar la placa todo arranque solo: unidad [`beagleplay/systemd/osciloscopio-backend.service`](../../beagleplay/systemd/osciloscopio-backend.service) e instalador [`beagleplay/instalar_servicio.sh`](../../beagleplay/instalar_servicio.sh) ([06](06-backend-beagleplay.md), sección 3). Verificado en el PC de desarrollo: `bash -n` del script, `systemd-analyze verify` de la unidad renderizada (sin advertencias) y negativa del script a ejecutarse sin `sudo`. Se corrigió además `spi_driver.py`, que no reintentaba abrir `/dev/spidev0.0` si no existía al arrancar (cinco pasos probados con un `spidev` simulado: arranque sin dispositivo, aparición posterior, `OSError` en `xfer2` y recuperación). **Falta ejecutar `instalar_servicio.sh` en la BeaglePlay y comprobar el arranque tras un `sudo reboot`** (matriz SB-07).
+Para que al alimentar la placa todo arranque solo: unidad [`beagleplay/systemd/osciloscopio-backend.service`](../../beagleplay/systemd/osciloscopio-backend.service) e instalador [`beagleplay/instalar_servicio.sh`](../../beagleplay/instalar_servicio.sh) ([06](06-backend-beagleplay.md), sección 3). Verificado en el PC de desarrollo: `bash -n` del script, `systemd-analyze verify` de la unidad renderizada (sin advertencias) y negativa del script a ejecutarse sin `sudo`. Se corrigió además `spi_driver.py`, que no reintentaba abrir `/dev/spidev0.0` si no existía al arrancar (cinco pasos probados con un `spidev` simulado: arranque sin dispositivo, aparición posterior, `OSError` en `xfer2` y recuperación). En P-18 se confirmó que `osciloscopio-backend` está `active` y `enabled` en la BeaglePlay; **falta comprobar que vuelve a iniciar automáticamente tras `sudo reboot`** (matriz SB-07).
 
 ## Hallazgos principales
 

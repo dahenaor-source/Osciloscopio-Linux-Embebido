@@ -1,12 +1,12 @@
 # 13. Pendientes y riesgos
 
-Estado a 2026-11-03. Ordenados por prioridad para la entrega.
+Estado a 2026-11-05. Ordenados por prioridad para la entrega.
 
 ## 1. Problemas abiertos
 
 | # | Problema | Impacto | Próximo paso | Responsable sugerido |
 |---|---|---|---|---|
-| A-1 | **nginx activo pero el proxy `/api/` sin confirmar**: nginx está habilitado y sirve el dashboard (2026-11-05); `/api/scope/frame` dio 502 con el backend apagado | El requisito R-02 está casi demostrado: falta el 200 por el proxy con el backend encendido | Arrancar el backend en `127.0.0.1:8000`, repetir `curl -i http://127.0.0.1/api/scope/frame` y documentar cómo se instaló nginx | Equipo SBC |
+| A-1 | 🟢 **Resuelto funcionalmente**: Nginx sirve el dashboard y proxya `/api/scope/frame` con HTTP 200 y trama real (P-18) | R-02 verificado; falta hacer reproducible el despliegue | Documentar cómo se instaló nginx y cómo se copió/habilitó `beagleplay/nginx.conf` | Equipo SBC |
 | A-2 | **Preset de 40 kSa/s con error constante** | Sin él no hay bonificación (R-08) | Registrar el mensaje exacto: log del backend (`[ERROR REST] ...`), flag `OVERRUN` del dashboard y monitor serie del ESP32-C6 (`capture: captura fallida`) | Firmware (David) y SBC |
 | A-3 | **El esclavo SPI pierde ≈ 50 % de las transacciones** | Más latencia y riesgo de comandos corruptos; sin causa raíz | Añadir contador de transacciones y log de `trans_len` y primeros bytes en el firmware; probar la línea INT como sincronización; comparar velocidades y cables más cortos | Firmware (David) |
 | A-4 | **Calibración v2: falta medir la exactitud** (el arranque en hardware ya está verificado: calibra por eFuse en ambos canales) | No se sabe cuánto mejora el error | Repetir la tabla de [08](08-calibracion-adc.md) con multímetro | David |
@@ -14,7 +14,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 | A-6 | **Tasa máxima de SPI y caudal sin medir** | R-07 sin verificación experimental | Medir `xfer2` a 1 a 20 MHz y registrar dónde aparecen errores | Equipo SBC |
 | A-7 | **Cómo se habilitó `/dev/spidev0.0` no está documentado** (según el equipo ya venía en la imagen Debian 13.7) | Si otra imagen no lo trae, el resto no puede reproducirlo | Comprobar `ls /dev/spidev*` en una imagen limpia y, si falta, documentar el overlay | Equipo SBC |
 | A-8 | Origen del ruido en CH A (¿tráfico SPI o falta de filtrado?) | Calidad de la medida | Repetir sin condensador y con/sin espera sin tráfico SPI para aislar la causa | David y SBC |
-| A-9 | **Servicio `systemd` del backend escrito, sin probar en la placa**; sin prueba de concurrencia | Si no funciona, tras reiniciar la placa el dashboard abre por nginx pero sin datos (502) | Ejecutar `beagleplay/instalar_servicio.sh`, reiniciar la BeaglePlay y comprobar que el dashboard mide sin intervención (comandos en [06](06-backend-beagleplay.md), sección 3); prueba con `GET` y `POST` simultáneos | Equipo SBC |
+| A-9 | **Servicio `systemd` activo y habilitado en la placa (P-18); falta probar después de reinicio y concurrencia** | Si falla el arranque automático, el dashboard abre por nginx pero no muestra datos | Reiniciar la BeaglePlay y comprobar API/dashboard sin intervención; después probar `GET` y `POST` simultáneos (comandos en [06](06-backend-beagleplay.md), sección 3) | Equipo SBC |
 | A-10 | Numeración mikroBUS sin contrastar con el esquemático de la BeaglePlay | Posible error de cableado | Comparar con la serigrafía y el esquemático | Equipo SBC |
 | A-11 | Cobertura de ventana: el dashboard usa la ventana por defecto (256) | A 100 Sa/s el ciclo dura ≥ 2,56 s (≈ 0,38 Hz) | Si se desea refresco más rápido a 100 Sa/s, usar `SET_WINDOW` con ≤ 100 muestras | Decisión del equipo |
 
