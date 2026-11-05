@@ -98,8 +98,8 @@ function render(f) {
     (f.retries ? ` · reintentos SPI: ${f.retries}` : "");
 }
 
-// ---- Control y Polling --------------------------------------------------
-let timer = null;
+// ---- Control y Polling Adaptativo ---------------------------------------
+let pollingActive = false;
 let isFetching = false;
 
 function setStatus(text, cls) {
@@ -108,19 +108,16 @@ function setStatus(text, cls) {
   s.className = "badge " + (cls || "");
 }
 
-// Adapta las opciones del selector de refresco según la velocidad de muestreo
 function updateRefreshOptions(rateIdx) {
   const selRefresh = $("sel-refresh");
   const currentVal = Number(selRefresh.value);
   selRefresh.innerHTML = "";
 
   if (rateIdx === 0) {
-    // A 100 Sa/s, 256 muestras toman 2.56 s (2560 ms)
     selRefresh.add(new Option("0.39 Hz (2.56 s)", "2560"));
     selRefresh.add(new Option("0.25 Hz (4 s)", "4000"));
     selRefresh.value = currentVal >= 2560 ? String(currentVal) : "2560";
   } else {
-    // Para >= 1000 Sa/s se habilitan frecuencias más altas
     selRefresh.add(new Option("1 Hz (1 s)", "1000"));
     selRefresh.add(new Option("0.5 Hz (2 s)", "2000"));
     selRefresh.add(new Option("0.25 Hz (4 s)", "4000"));
@@ -136,7 +133,6 @@ async function tick() {
   try {
     const f = $("sel-source").value === "sim" ? simFrame(targetIdx) : await apiFrame();
 
-    // Si llega una trama vieja que estaba en vuelo, se ignora hasta recibir la del nuevo rate_idx
     if ($("sel-source").value === "api" && f.rate_idx !== targetIdx) {
       setStatus("ajustando frecuencia...", "");
       isFetching = false;
@@ -153,17 +149,31 @@ async function tick() {
   }
 }
 
+// Bucle adaptativo: calcula cuánto tardó la captura y ajusta el siguiente disparo
+async function pollingLoop() {
+  while (pollingActive) {
+    const startTime = Date.now();
+    await tick();
+    const elapsedTime = Date.now() - startTime;
+    const desiredInterval = Number($("sel-refresh").value);
+
+    // Si la captura tardó más que el intervalo (ej. 2.64 s vs 2.56 s), inicia la siguiente de inmediato (10 ms)
+    const delay = Math.max(10, desiredInterval - elapsedTime);
+    
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+}
+
 function start() {
-  stop();
-  tick();
-  timer = setInterval(tick, Number($("sel-refresh").value));
+  if (pollingActive) return;
+  pollingActive = true;
   $("btn-toggle").textContent = "■ Stop";
   $("btn-toggle").classList.add("running");
+  pollingLoop();
 }
 
 function stop() {
-  if (timer) clearInterval(timer);
-  timer = null;
+  pollingActive = false;
   $("btn-toggle").textContent = "▶ Start";
   $("btn-toggle").classList.remove("running");
   setStatus("detenido");
@@ -174,9 +184,9 @@ PRESETS.forEach((p) => $("sel-rate").add(new Option(p.label, p.idx)));
 $("sel-rate").value = 1;
 updateRefreshOptions(1);
 
-$("btn-toggle").onclick = () => (timer ? stop() : start());
-$("sel-refresh").onchange = () => { if (timer) start(); };
-$("sel-source").onchange = () => { if (timer) start(); };
+$("btn-toggle").onclick = () => (pollingActive ? stop() : start());
+$("sel-refresh").onchange = () => { if (pollingActive) { stop(); start(); } };
+$("sel-source").onchange = () => { if (pollingActive) { stop(); start(); } };
 
 $("sel-rate").onchange = async () => {
   const newIdx = Number($("sel-rate").value);
@@ -193,5 +203,8 @@ $("sel-rate").onchange = async () => {
     }
   }
 
-  if (timer) start();
+  if (pollingActive) {
+    stop();
+    start();
+  }
 };
