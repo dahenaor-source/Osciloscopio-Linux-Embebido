@@ -35,6 +35,10 @@ function simFrame(rateIdx) {
 }
 
 // ---- Fuente real HTTP ----------------------------------------------------
+// Preset que se sabe aplicado en el ESP32 (null = desconocido, hay que enviarlo).
+// El ESP32 conserva el último preset recibido, que puede no ser el seleccionado aquí.
+let syncedRate = null;
+
 async function apiFrame() {
   const r = await fetch(API_FRAME, { cache: "no-store" });
   if (!r.ok) throw new Error("HTTP " + r.status);
@@ -42,10 +46,12 @@ async function apiFrame() {
 }
 
 async function apiSetRate(idx) {
-  await fetch(API_CONFIG, {
+  const r = await fetch(API_CONFIG, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ rate_idx: idx }),
   });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  syncedRate = idx;
 }
 
 // ---- Gráfica -------------------------------------------------------------
@@ -100,7 +106,11 @@ function render(f) {
 
 // ---- Control y Polling Adaptativo ---------------------------------------
 let pollingActive = false;
-let isFetching = false;
+// Identifica el bucle de sondeo vigente. Cada start/restart/stop lo incrementa y los bucles
+// anteriores terminan solos: así nunca corren dos bucles a la vez (eso duplicaba el refresco).
+let runId = 0;
+let wakeSleep = null;   // cancela la espera del bucle vigente
+let capturing = null;   // promesa de la captura en curso: nunca hay dos capturas simultáneas
 
 function setStatus(text, cls) {
   const s = $("status");
@@ -125,55 +135,88 @@ function updateRefreshOptions(rateIdx) {
   }
 }
 
-async function tick() {
-  if (isFetching) return;
-  isFetching = true;
-
+// Una captura: sincroniza el preset con el ESP32 si hace falta, pide la trama y la dibuja.
+async function captureOnce(run) {
   const targetIdx = Number($("sel-rate").value);
+  const api = $("sel-source").value === "api";
   try {
-    const f = $("sel-source").value === "sim" ? simFrame(targetIdx) : await apiFrame();
-
-    if ($("sel-source").value === "api" && f.rate_idx !== targetIdx) {
-      setStatus("ajustando frecuencia...", "");
-      isFetching = false;
-      return;
+    let f;
+    if (!api) {
+      f = simFrame(targetIdx);
+    } else {
+      // Antes de la primera captura se le envía al ESP32 el preset elegido.
+      // Sin esto se quedaba esperando un cambio de frecuencia que nadie enviaba.
+      if (syncedRate !== targetIdx) {
+        setStatus("ajustando frecuencia...", "");
+        await apiSetRate(targetIdx);
+      }
+      f = await apiFrame();
+      if (f.rate_idx !== targetIdx) {
+        // El ESP32 no aplicó el preset (por ejemplo, se reinició): se reenvía y se repite una vez.
+        if (run !== runId) return;
+        syncedRate = null;
+        await apiSetRate(targetIdx);
+        f = await apiFrame();
+        if (f.rate_idx !== targetIdx) {
+          throw new Error("el ESP32 no aplicó " + PRESETS[targetIdx].label);
+        }
+      }
     }
-
-    $("sel-rate").disabled = false;
+    if (run !== runId) return;   // la configuración cambió mientras se capturaba: se descarta
     render(f);
     setStatus("capturando", "ok");
   } catch (e) {
-    setStatus("error: " + e.message, "err");
-  } finally {
-    isFetching = false;
+    if (run === runId) setStatus("error: " + e.message, "err");
   }
 }
 
-// Bucle adaptativo: calcula cuánto tardó la captura y ajusta el siguiente disparo
-async function pollingLoop() {
-  while (pollingActive) {
-    const startTime = Date.now();
-    await tick();
-    const elapsedTime = Date.now() - startTime;
-    const desiredInterval = Number($("sel-refresh").value);
+async function tick(run) {
+  if (capturing) await capturing;   // espera a que termine la captura anterior
+  if (run !== runId) return;
+  capturing = captureOnce(run).finally(() => { capturing = null; });
+  await capturing;
+}
 
-    // Si la captura tardó más que el intervalo (ej. 2.64 s vs 2.56 s), inicia la siguiente de inmediato (10 ms)
-    const delay = Math.max(10, desiredInterval - elapsedTime);
-    
-    await new Promise((resolve) => setTimeout(resolve, delay));
+function sleep(ms) {
+  return new Promise((resolve) => {
+    const t = setTimeout(resolve, ms);
+    wakeSleep = () => { clearTimeout(t); resolve(); };
+  });
+}
+
+// Bucle adaptativo: el periodo entre capturas es el refresco elegido, descontando lo que tardó la captura.
+async function pollingLoop(run) {
+  while (run === runId) {
+    const startTime = Date.now();
+    await tick(run);
+    if (run !== runId) break;
+    const delay = Math.max(10, Number($("sel-refresh").value) - (Date.now() - startTime));
+    await sleep(delay);
   }
 }
 
 function start() {
   if (pollingActive) return;
   pollingActive = true;
+  syncedRate = null;   // al iniciar siempre se reenvía el preset elegido
   $("btn-toggle").textContent = "■ Stop";
   $("btn-toggle").classList.add("running");
-  pollingLoop();
+  runId++;
+  pollingLoop(runId);
+}
+
+// Aplica un cambio de ajustes (preset, refresco o fuente) sin duplicar el bucle.
+function restart() {
+  if (!pollingActive) return;
+  runId++;
+  if (wakeSleep) wakeSleep();
+  pollingLoop(runId);
 }
 
 function stop() {
   pollingActive = false;
+  runId++;
+  if (wakeSleep) wakeSleep();
   $("btn-toggle").textContent = "▶ Start";
   $("btn-toggle").classList.remove("running");
   setStatus("detenido");
@@ -185,26 +228,12 @@ $("sel-rate").value = 1;
 updateRefreshOptions(1);
 
 $("btn-toggle").onclick = () => (pollingActive ? stop() : start());
-$("sel-refresh").onchange = () => { if (pollingActive) { stop(); start(); } };
-$("sel-source").onchange = () => { if (pollingActive) { stop(); start(); } };
+$("sel-refresh").onchange = () => restart();
+$("sel-source").onchange = () => { syncedRate = null; restart(); };
 
-$("sel-rate").onchange = async () => {
-  const newIdx = Number($("sel-rate").value);
-  updateRefreshOptions(newIdx);
-
-  if ($("sel-source").value === "api") {
-    $("sel-rate").disabled = true;
-    setStatus("enviando cambio...", "");
-    try {
-      await apiSetRate(newIdx);
-    } catch (e) {
-      setStatus("error: " + e.message, "err");
-      $("sel-rate").disabled = false;
-    }
-  }
-
-  if (pollingActive) {
-    stop();
-    start();
-  }
+// El preset nuevo lo envía la siguiente captura (captureOnce); con el dashboard detenido se envía al pulsar Start.
+$("sel-rate").onchange = () => {
+  updateRefreshOptions(Number($("sel-rate").value));
+  syncedRate = null;
+  restart();
 };

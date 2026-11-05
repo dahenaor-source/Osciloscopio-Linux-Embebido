@@ -47,7 +47,9 @@ El dashboard convierte `V = mV / 1000` (protocolo v2).
 
 ## 4. Lógica relevante de `scope.js`
 
-- **Resincronización del preset**: el ESP32-C6 conserva el último preset recibido. Si la trama trae un `rate_idx` distinto al seleccionado (por ejemplo al recargar la página), el dashboard reenvía el seleccionado y muestra «ajustando frecuencia...» hasta la siguiente trama. Corrige el caso observado el 2026-10-30: el selector decía 1.000 Sa/s y el ESP32 seguía en 100 Sa/s.
+- **Sincronización del preset**: el ESP32-C6 conserva el último preset recibido, que puede no ser el del selector. Al pulsar **Start** (y al cambiar preset o fuente) el dashboard **envía primero el preset elegido** (`POST /api/scope/config`) y después pide la trama. Si una trama llega con un `rate_idx` distinto (por ejemplo, el ESP32-C6 se reinició), lo reenvía y repite la captura una vez; si aun así no coincide, muestra `error: el ESP32 no aplicó ...`. Corrige dos fallos: el 2026-10-30 el selector decía 1.000 Sa/s y el ESP32-C6 seguía en 100; el 2026-11-05 el dashboard se quedaba en «ajustando frecuencia...» al primer arranque con «API real» hasta cambiar manualmente la frecuencia.
+- **Un solo bucle de sondeo**: cada Start, cambio de ajuste o Stop invalida el bucle anterior (`runId`), que termina solo; además nunca hay dos capturas simultáneas. Antes, cambiar preset, refresco o fuente con el dashboard en marcha dejaba **otro bucle más** activo, y el refresco real era un múltiplo del elegido (en un video con 40.000 Sa/s y 4 s de refresco, el cuadro cambiaba cada 2 s). Ahora el periodo entre capturas es el refresco elegido (se descuenta lo que tardó la captura).
+- **Cambios de ajustes**: se aplican con `restart()`; si una captura estaba en curso cuando cambió la configuración, su resultado se descarta.
 - **Errores**: si la API responde distinto de 200 muestra `error: HTTP 500` en la insignia de estado; la causa está en el log del backend (`[ERROR REST] ...`) y en el `detail` de la respuesta.
 - **Fuente simulada**: genera 256 muestras con ~4 y ~7 ciclos por ventana para cualquier preset; permite probar la interfaz sin hardware: `cd dashboard && python3 -m http.server 8080`.
 
