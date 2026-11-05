@@ -27,6 +27,7 @@ Bitácora cronológica de las pruebas, con la evidencia disponible. Lo que no se
 | P-19 | 2026-11-05 | Arranque del backend tras reiniciar la BeaglePlay | ✅ Inició sin entrar a la terminal y se pudo medir desde el dashboard (confirmado por el usuario) |
 | P-20 | 2026-11-05 | Concurrencia API, frecuencia de muestreo, benchmark SPI y capturas a 40 kSa/s | ✅ Concurrencia válida; frecuencias estimadas en los cuatro presets; caudal SPI medido 1–20 MHz; 15/15 capturas a 40 kSa/s sin flags ni reintentos |
 | P-21 | 2026-11-05 | Comparación preliminar ADC v2 con potenciómetro y multímetro (CH A) | 🟡 4 puntos; error absoluto 0,004–0,035 V; caracterización completa pendiente |
+| P-22 | 2026-11-05 | Revalidación de Nginx y captura real/API en la BeaglePlay | ✅ Nginx y backend activos/habilitados; configuración válida; dashboard HTTP 200; API devolvió trama válida de 256 muestras/canal, `flags=0`, `retries=0` |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
@@ -209,6 +210,18 @@ El usuario comparó el voltaje medido con multímetro y el valor **Prom** del da
 | 2,996 | 3,031 | +0,035 | 1,17 % |
 
 En los cuatro puntos el error absoluto máximo observado fue 0,035 V. El error relativo de los tres puntos distintos de cero fue 1,16–1,30 %. Resultado **parcial**: no se informaron repeticiones, incertidumbre/modelo del multímetro ni lecturas del canal CH B; faltan más niveles y mediciones repetidas antes de concluir sobre la exactitud.
+
+## P-22. Revalidación de Nginx y API real en la BeaglePlay (2026-11-05)
+
+El usuario ejecutó los comandos desde la BeaglePlay:
+
+- `sudo nginx -t`: configuración sintáctica correcta y prueba exitosa.
+- `systemctl is-active/is-enabled nginx`: `active` / `enabled`.
+- `systemctl is-active/is-enabled osciloscopio-backend`: `active` / `enabled`.
+- Solicitud al dashboard local de Nginx: HTTP 200.
+- `GET /api/scope/frame` a través del proxy de Nginx: JSON válido con `seq=1635`, `rate_idx=1`, `fs_hz=1000`, 256 muestras en cada canal, `flags=0` y `retries=0`. El script comprobó que ambos canales tuvieran la misma cantidad de muestras y que la ventana fuera de al menos 64.
+
+**Resultado:** pasó la validación del servicio/configuración de Nginx y una captura real de la API/backend por el proxy. No se repitió la comprobación visual en el navegador en esta sesión; la prueba por `curl` no la sustituye.
 
 ## Hallazgos principales
 

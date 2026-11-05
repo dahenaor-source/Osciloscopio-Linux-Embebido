@@ -28,7 +28,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | SB-03 | Robustez ante transacciones perdidas | Esclavo simulado en PC con pérdidas alternas | Unitaria (simulada) | ✅ Pasa (reintentos, `seq` viejo) | P-05, [06](06-backend-beagleplay.md) |
 | SB-04 | Sin mezcla de transacciones entre `GET frame` y `POST config` | Solicitudes simultáneas reales de captura y cambio de preset; validar trama y configuración final | Integración | ✅ 5/5 pares simultáneos válidos en la BeaglePlay; sin trama inválida ni flags/reintentos | P-20 |
 | SB-05 | Habilitar `spidev` en la mikroBUS | — | Configuración | 🟡 Funciona; método sin documentar | [03](03-hardware-y-conexiones.md) |
-| SB-06 | Servir el dashboard con **apache o nginx** | `nginx -t`, `systemctl status nginx` y `curl -i http://127.0.0.1/` en la BeaglePlay; `/api/scope/frame` por el proxy con el backend encendido | Configuración | ✅ nginx activo y habilitado; dashboard y API responden HTTP 200 a través de Nginx en la BeaglePlay (2026-11-05). `nginx -t` no se pudo repetir en esta sesión por fallo de autenticación de `sudo`; consta previamente exitoso en [06](06-backend-beagleplay.md) | P-16, P-18 |
+| SB-06 | Servir el dashboard con **apache o nginx** | `nginx -t`, estado de servicios y solicitudes locales al dashboard y `/api/scope/frame` en la BeaglePlay | Configuración/integración | ✅ `nginx -t` exitoso; Nginx y backend `active`/`enabled`; dashboard HTTP 200 y captura API válida por el proxy con 256 muestras/canal, `flags=0`, `retries=0` (P-22). La UI no se volvió a inspeccionar en navegador en esa sesión | P-16, P-18, P-22 |
 | SB-07 | Arranque automático del backend (`systemd`) | Reiniciar la BeaglePlay y verificar que se pueden medir señales en el dashboard sin entrar a la terminal | Configuración | ✅ Después del reinicio el backend inició sin intervención y el dashboard permitió medir (confirmado por el usuario, 2026-11-05) | P-19 |
 
 ## 3. Dashboard
@@ -70,7 +70,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 |---|---|---|
 | `make -C firmware/tests/host test` | ✅ Pasan todas las pruebas del protocolo | Repetición local en PC; no verifica el firmware ni el enlace SPI en hardware |
 | Servir `dashboard/` con `python3 -m http.server` y solicitar `/`, `/scope.js` y `/vendor/chart.umd.js` | ✅ HTTP 200 para los tres recursos; comprobada la presencia del dashboard y de la opción API real en el HTML | Smoke test de archivos estáticos; no ejecuta Nginx, no prueba `/api/` ni reemplaza la prueba funcional en navegador |
-| Prueba local de la captura real/API y validación de Nginx en la BeaglePlay | ⏳ No ejecutada en este entorno | Aquí no están disponibles `/dev/spidev0.0` ni Nginx. En la placa, P-18 confirma que la página y el proxy API responden 200 con el backend activo |
+| Captura real/API y validación de Nginx en la BeaglePlay | ✅ P-22: configuración Nginx válida; Nginx y backend activos/habilitados; dashboard HTTP 200; API por proxy devolvió una trama válida de 256 muestras/canal, `flags=0`, `retries=0` | Ejecutada por el usuario en la placa; no incluye inspección visual del navegador |
 | Exactitud de calibración ADC v2 (FW-11) | 🟡 Parcial | P-21 comparó 4 voltajes en CH A: error absoluto de 0,004–0,035 V; faltan puntos, repeticiones, CH B e incertidumbre del multímetro |
 
 ## 7. Pruebas reales adicionales en la BeaglePlay (2026-11-05)

@@ -4,7 +4,7 @@
 
 Este documento complementa la matriz de verificación y
 la bitácora de pruebas. Se basa en las evidencias registradas
-hasta P-21 y no presenta pruebas pendientes como cumplidas.
+hasta P-22 y no presenta pruebas pendientes como cumplidas.
 
 ## 1. Resultados comprobados
 
@@ -19,6 +19,7 @@ hasta P-21 y no presenta pruebas pendientes como cumplidas.
 | P-20 | Caudal SPI medido: 0,10; 0,18; 0,33; 0,47 y 0,54 MB/s a 1, 2, 5, 10 y 20 MHz solicitados | El caudal incluye sobrecarga del SO; no certifica el reloj real ni la máxima velocidad estable |
 | P-21 | Comparación ADC v2 en CH A: 4 puntos, error absoluto 0,004–0,035 V | Medición preliminar con potenciómetro; faltan puntos, repeticiones e incertidumbre del multímetro |
 | P-09/P-20 | Ambos canales analógicos entregaron muestras en ventanas; pruebas periódicas del generador en P-20 | En P-09 los dos canales compartieron la misma fuente; no se ensayaron dos fuentes independientes a la vez |
+| P-22 | Nginx y backend activos/habilitados; configuración Nginx correcta; dashboard HTTP 200 y trama API válida (`seq=1635`, 1 kSa/s, 256 muestras/canal, sin flags ni reintentos) | Revalidación por consola en la BeaglePlay; no se volvió a probar la interfaz en navegador |
 
 ## 2. Validaciones pendientes
 
