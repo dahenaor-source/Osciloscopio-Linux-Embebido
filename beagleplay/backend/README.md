@@ -78,13 +78,23 @@ En `main.py` se controla el origen de los datos mediante la bandera global:
 
 ## 💻 Ejecución del Servidor
 
+**Arranque automático (recomendado).** Una sola vez en la BeaglePlay; después el backend arranca solo al encender la placa y el dashboard queda en `http://<IP_BEAGLEPLAY>/` (nginx, puerto 80):
+
 ```bash
-cd beagleplay/backend
-SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+sudo bash ~/Osciloscopio-Linux-Embebido/beagleplay/instalar_servicio.sh
 ```
 
-`SPI_SPEED_HZ` (por defecto 2000000) fija la velocidad del SPI; 2 MHz es la que funcionó y a 100 kHz falla más. Reintentos, tiempos y diagnóstico de errores: [`docs/Documentación_General/06-backend-beagleplay.md`](../../docs/Documentación_General/06-backend-beagleplay.md).
+Registro: `sudo journalctl -u osciloscopio-backend -f`. Reiniciar tras un `git pull`: `sudo systemctl restart osciloscopio-backend`.
+
+**A mano (depuración).** Antes hay que parar el servicio (`sudo systemctl stop osciloscopio-backend`) para liberar el puerto 8000:
+
+```bash
+cd beagleplay/backend
+SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+`SPI_SPEED_HZ` (por defecto 2000000) fija la velocidad del SPI; 2 MHz es la que funcionó y a 100 kHz falla más. Reintentos, tiempos, servicio systemd y diagnóstico de errores: [`docs/Documentación_General/06-backend-beagleplay.md`](../../docs/Documentación_General/06-backend-beagleplay.md).
 
 ### Accesos
-* **Dashboard Web:** `http://<IP_BEAGLEPLAY>:8000/`
-* **Documentación Interactiva (Swagger UI):** `http://<IP_BEAGLEPLAY>:8000/docs`
+* **Dashboard Web (nginx):** `http://<IP_BEAGLEPLAY>/`. Con `--host 0.0.0.0` también `http://<IP_BEAGLEPLAY>:8000/`.
+* **Documentación Interactiva (Swagger UI):** `http://<IP_BEAGLEPLAY>:8000/docs` (solo con `--host 0.0.0.0`).

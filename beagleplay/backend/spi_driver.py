@@ -16,6 +16,18 @@ class SPIDriver:
         self.last_error = ""
         self.last_rx = b""  # último RX inválido, para el diagnóstico
         self.retries = 0  # transacciones inválidas reintentadas (contador acumulado)
+        self._last_open_try = 0.0  # para no reintentar abrir el SPI en cada transacción
+
+    def _reopen(self) -> bool:
+        """
+        Reintenta abrir el SPI (máximo una vez por segundo). Necesario con el arranque automático:
+        si /dev/spidev0.0 todavía no existe cuando arranca el servicio, o un error lo cierra,
+        el driver se recupera solo en vez de quedarse sin SPI hasta reiniciar.
+        """
+        if time.time() - self._last_open_try < 1.0:
+            return False
+        self._last_open_try = time.time()
+        return self.open()
 
     def open(self) -> bool:
         """Inicializa la interfaz SPI de la BeaglePlay en Modo 0."""
@@ -48,7 +60,7 @@ class SPIDriver:
 
     def _transact(self, cmd: int, arg: int = 0, read_len: int = 16) -> bytes:
         """Envía comando y lee la respuesta en una transacción Full-Duplex."""
-        if not self.spi:
+        if not self.spi and not self._reopen():
             return b""
         
         tx = self._build_command(cmd, arg)
@@ -56,7 +68,14 @@ class SPIDriver:
             tx += [0x00] * (read_len - 4)
             
         time.sleep(0.002)  # Respetar tiempo de guarda ≥ 2ms según protocolo
-        rx = self.spi.xfer2(tx)
+        try:
+            rx = self.spi.xfer2(tx)
+        except OSError as e:
+            # El dispositivo SPI falló (p. ej. desapareció): se cierra y se reabrirá en la próxima transacción
+            print(f"[SPI Driver Error] xfer2 falló: {e}")
+            self.close()
+            self.spi = None
+            return b""
         return bytes(rx)
 
     def _parse_header(self, raw_header: bytes) -> Optional[Dict[str, Any]]:
@@ -113,6 +132,8 @@ class SPIDriver:
 
     def _no_header(self, what: str) -> str:
         """Mensaje de error con el último RX: todo FF = el esclavo no responde; todo 00 = MISO a GND o sin conectar."""
+        if self.spi is None:
+            return f"{what}; no se pudo abrir /dev/spidev{self.bus}.{self.device} (¿existe y hay permisos?)"
         return f"{what}; último RX={self.last_rx.hex(' ')}"
 
     def set_rate(self, rate_idx: int) -> bool:

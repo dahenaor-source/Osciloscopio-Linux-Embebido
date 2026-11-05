@@ -37,6 +37,7 @@ Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo
 Osciloscopio-Linux-Embebido/
 ├── firmware/            Código del ESP32-C6 (ESP-IDF 5.4.1) y pruebas unitarias del protocolo (tests/host)
 ├── beagleplay/backend/  Backend FastAPI y driver SPI para la BeaglePlay, y scripts de diagnóstico
+├── beagleplay/          nginx.conf, servicio systemd (systemd/) e instalar_servicio.sh (arranque automático)
 ├── dashboard/           Página web (HTML + JS + Chart.js local)
 ├── tools/               Maestro SPI de referencia en Python (spi_master_test.py)
 ├── release/             Binario del firmware listo para flashear (osciloscopio_c6_v2.bin)

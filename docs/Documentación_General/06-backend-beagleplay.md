@@ -30,14 +30,46 @@ Código en [`beagleplay/backend/`](../../beagleplay/backend). Base escrita por *
 | Modo de datos | `USE_MOCK = False` (SPI real) | Editar `main.py`; `True` genera senoidales simuladas |
 | Puerto HTTP | 8000 | Argumento `--port` de uvicorn |
 
-Ejecución (la velocidad que se usó para las pruebas buenas es 2 MHz):
+Ejecución **a mano** (para pruebas; la velocidad que se usó para las pruebas buenas es 2 MHz). Si el servicio automático está instalado, páralo antes (`sudo systemctl stop osciloscopio-backend`) para liberar el puerto 8000:
 
 ```bash
 cd beagleplay/backend
-SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-Se usa `sudo -E` para que `spidev` tenga permiso y se conserve la variable de entorno. Dependencias: `fastapi`, `uvicorn`, `pydantic`, `spidev`.
+Se usa `sudo -E` para que `spidev` tenga permiso y se conserve la variable de entorno. Dependencias: `fastapi`, `uvicorn`, `pydantic`, `spidev`. Con `--host 127.0.0.1` solo nginx (puerto 80) puede llegar al backend; para abrir el puerto 8000 directamente desde otro equipo, usar `--host 0.0.0.0`.
+
+### Arranque automático con systemd
+
+Para que al alimentar la placa todo funcione solo (nginx ya arranca solo; el backend no), se instala el backend como servicio:
+
+```bash
+sudo bash ~/Osciloscopio-Linux-Embebido/beagleplay/instalar_servicio.sh
+```
+
+El script ([`beagleplay/instalar_servicio.sh`](../../beagleplay/instalar_servicio.sh)) comprueba los paquetes de Python, el `/dev/spidev0.0` y que el puerto 8000 esté libre; genera la unidad `/etc/systemd/system/osciloscopio-backend.service` a partir de la plantilla [`beagleplay/systemd/osciloscopio-backend.service`](../../beagleplay/systemd/osciloscopio-backend.service) (sustituye la ruta del repositorio, el usuario y el Python de la placa), la habilita y la inicia. Se puede ejecutar de nuevo sin problema.
+
+| Decisión de la unidad | Motivo |
+|---|---|
+| `User=root` | Necesita abrir `/dev/spidev0.0`, igual que con `sudo` a mano |
+| `Environment=PYTHONUSERBASE=<home>/.local` | Los paquetes se instalaron con `pip3 install --break-system-packages` como usuario normal, es decir, en `~/.local`; root no los vería sin esto |
+| `--host 127.0.0.1 --port 8000` | Solo nginx llega al backend |
+| `Restart=always`, `RestartSec=3` | Si el backend se cae, vuelve a levantarse |
+| `SPI_SPEED_HZ=2000000` | La velocidad que funcionó |
+
+Con el arranque automático hubo que corregir el driver: antes, si `/dev/spidev0.0` no existía en el instante de arrancar, `open()` fallaba una vez y el SPI quedaba cerrado hasta reiniciar el proceso. Ahora `spi_driver.py` reintenta abrirlo (máximo una vez por segundo) y también se recupera si `xfer2` lanza un `OSError`. Se verificó con un `spidev` simulado en el PC (arranque sin dispositivo, aparición posterior, error a mitad de captura); **en la placa real está pendiente**.
+
+Comandos útiles:
+
+```bash
+systemctl is-active osciloscopio-backend     # active
+systemctl is-enabled osciloscopio-backend    # enabled (arranca con la placa)
+sudo journalctl -u osciloscopio-backend -f   # registro en vivo; aquí salen los [ERROR REST]
+sudo systemctl restart osciloscopio-backend  # tras un git pull
+sudo systemctl disable --now osciloscopio-backend   # desinstalar el arranque automático
+```
+
+Al arrancar, el backend puede tardar unos segundos en responder; hasta entonces nginx contesta `502`. El ESP32-C6 se alimenta por su propio USB: si se enciende después de la BeaglePlay, las primeras capturas fallan con `HTTP 500` hasta que el esclavo SPI está listo, y el dashboard sigue reintentando en cada ciclo de refresco.
 
 ## 4. Secuencia de captura (`capture_frame`)
 
@@ -79,6 +111,6 @@ Detalles de `spi_driver.py` que no estaban en la versión inicial:
   - `curl -i http://127.0.0.1/` → `HTTP/1.1 200 OK`, `Server: nginx`, devuelve el `index.html` del dashboard. Como nginx lo lee de `/home/camilo/...` sin error, el problema de permisos (403) que se temía no existe.
   - `curl -i http://127.0.0.1/api/scope/frame` → `502 Bad Gateway` de nginx: el proxy no encontró nada escuchando en `127.0.0.1:8000`. Es lo esperado con el backend apagado (se arranca a mano).
 
-  El 502 (HTML de nginx) se distingue de un fallo SPI (HTTP 500 en JSON de FastAPI, con `detail: "SPI: ..."`). Para el flujo completo, el backend se arranca en `127.0.0.1:8000` (`SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 127.0.0.1 --port 8000`) y se abre `http://<IP>/`. El 2026-11-04 y el 2026-11-05 el equipo ya usó el dashboard por el puerto 80 con datos reales (en el log de uvicorn las peticiones aparecen como `192.168.7.1:0` con `HTTP/1.0`, firma del proxy). ⚠️ Pendiente: documentar la instalación de nginx (paquete y cómo se copió la configuración) y arrancar el backend como servicio.
-- ⏳ Falta documentar cómo se habilitó `/dev/spidev0.0` y arrancar el backend como servicio (`systemd`).
+  El 502 (HTML de nginx) se distingue de un fallo SPI (HTTP 500 en JSON de FastAPI, con `detail: "SPI: ..."`). Para el flujo completo, el backend se arranca en `127.0.0.1:8000` (`SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 127.0.0.1 --port 8000`) y se abre `http://<IP>/`. El 2026-11-04 y el 2026-11-05 el equipo ya usó el dashboard por el puerto 80 con datos reales (en el log de uvicorn las peticiones aparecen como `192.168.7.1:0` con `HTTP/1.0`, firma del proxy). Pendiente: documentar la instalación de nginx (paquete y cómo se copió la configuración). El arranque del backend como servicio está descrito en la sección 3.
+- ⏳ Falta documentar cómo se habilitó `/dev/spidev0.0` (según el equipo ya venía habilitado en la imagen) y **probar el servicio systemd en la BeaglePlay**: el servicio y su script están escritos y la unidad pasa `systemd-analyze verify`, pero no se han ejecutado en la placa.
 - Las pruebas en la BeaglePlay las ejecutó el equipo del SBC (Juan Camilo). Las correcciones de reintentos y tiempos se verificaron primero con un esclavo SPI simulado en el PC y después en la placa real.

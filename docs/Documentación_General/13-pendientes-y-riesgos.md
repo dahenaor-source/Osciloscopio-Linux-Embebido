@@ -14,7 +14,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 | A-6 | **Tasa máxima de SPI y caudal sin medir** | R-07 sin verificación experimental | Medir `xfer2` a 1 a 20 MHz y registrar dónde aparecen errores | Equipo SBC |
 | A-7 | **Cómo se habilitó `/dev/spidev0.0` no está documentado** (según el equipo ya venía en la imagen Debian 13.7) | Si otra imagen no lo trae, el resto no puede reproducirlo | Comprobar `ls /dev/spidev*` en una imagen limpia y, si falta, documentar el overlay | Equipo SBC |
 | A-8 | Origen del ruido en CH A (¿tráfico SPI o falta de filtrado?) | Calidad de la medida | Repetir sin condensador y con/sin espera sin tráfico SPI para aislar la causa | David y SBC |
-| A-9 | Backend sin arranque automático ni prueba de concurrencia | Robustez en la demostración | Unidad `systemd`; prueba con `GET` y `POST` simultáneos | Equipo SBC |
+| A-9 | **Servicio `systemd` del backend escrito, sin probar en la placa**; sin prueba de concurrencia | Si no funciona, tras reiniciar la placa el dashboard abre por nginx pero sin datos (502) | Ejecutar `beagleplay/instalar_servicio.sh`, reiniciar la BeaglePlay y comprobar que el dashboard mide sin intervención (comandos en [06](06-backend-beagleplay.md), sección 3); prueba con `GET` y `POST` simultáneos | Equipo SBC |
 | A-10 | Numeración mikroBUS sin contrastar con el esquemático de la BeaglePlay | Posible error de cableado | Comparar con la serigrafía y el esquemático | Equipo SBC |
 | A-11 | Cobertura de ventana: el dashboard usa la ventana por defecto (256) | A 100 Sa/s el ciclo dura ≥ 2,56 s (≈ 0,38 Hz) | Si se desea refresco más rápido a 100 Sa/s, usar `SET_WINDOW` con ≤ 100 muestras | Decisión del equipo |
 
@@ -43,7 +43,7 @@ Estado a 2026-11-03. Ordenados por prioridad para la entrega.
 ## 4. Próximos pasos sugeridos (en orden)
 
 1. Recuperar el enlace SPI (P-14 en [09](09-pruebas-y-resultados.md)), registrar el error de 40 kSa/s (A-2) y medir la exactitud calibrada (A-4).
-2. Confirmar el proxy de nginx con el backend encendido (A-1) y arrancar el backend como servicio (A-9).
+2. Probar el arranque automático del backend en la placa (A-9) y confirmar con él el proxy de nginx (A-1).
 3. Medir SPI (A-6) y contar transacciones perdidas (A-3).
 4. Generar una señal periódica y medir fs (A-5).
 5. Completar [10](10-matriz-de-verificacion.md), [14](14-participacion-y-uso-de-ia.md) y grabar el video.

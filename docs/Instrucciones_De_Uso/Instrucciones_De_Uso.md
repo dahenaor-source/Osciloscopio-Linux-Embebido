@@ -18,7 +18,7 @@ Tiempo estimado: 1 a 2 horas la primera vez.
 5. [Paso 3: preparar la BeaglePlay](#5-paso-3-preparar-la-beagleplay)
 6. [Paso 4: montaje físico](#6-paso-4-montaje-físico)
 7. [Paso 5: comprobar que las placas se hablan](#7-paso-5-comprobar-que-las-placas-se-hablan)
-8. [Paso 6: encender el sistema y abrir el dashboard](#8-paso-6-encender-el-sistema-y-abrir-el-dashboard)
+8. [Paso 6: dejar el sistema arrancando solo y abrir el dashboard](#8-paso-6-dejar-el-sistema-arrancando-solo-y-abrir-el-dashboard)
 9. [Cómo usar el dashboard](#9-cómo-usar-el-dashboard)
 10. [Problemas comunes y soluciones](#10-problemas-comunes-y-soluciones)
 11. [Limitaciones conocidas](#11-limitaciones-conocidas)
@@ -408,7 +408,7 @@ cd ~/Osciloscopio-Linux-Embebido/beagleplay/backend
 sudo python3 prueba_directa_spi.py
 ```
 
-El script envía hasta 5 veces una consulta de estado al ESP32-C6.
+El script envía hasta 5 veces una consulta de estado al ESP32-C6. (Estas pruebas se hacen **antes** de instalar el servicio de la sección 8. Si ya lo instalaste, páralo mientras pruebas, porque comparte el SPI: `sudo systemctl stop osciloscopio-backend`; al terminar, `sudo systemctl start osciloscopio-backend`.)
 
 **Resultado esperado** (ejemplo real del equipo):
 
@@ -437,39 +437,82 @@ Debe terminar con `¡ÉXITO! COMUNICACIÓN SPI REAL CONFIRMADA`. Si dice «No se
 
 ---
 
-## 8. Paso 6: encender el sistema y abrir el dashboard
+## 8. Paso 6: dejar el sistema arrancando solo y abrir el dashboard
 
-### 8.1 Arranca el backend
+El backend (el programa de Python que habla con el ESP32-C6) se instala **una sola vez** como servicio de la BeaglePlay. Después, cada vez que alimentes la placa, todo arranca solo: no hay que abrir una terminal ni escribir comandos.
 
-En la sesión SSH de la BeaglePlay:
+### 8.1 Instala el servicio (una sola vez)
+
+En la sesión SSH de la BeaglePlay, con los cables SPI ya conectados:
 
 ```bash
-cd ~/Osciloscopio-Linux-Embebido/beagleplay/backend
-SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+sudo bash ~/Osciloscopio-Linux-Embebido/beagleplay/instalar_servicio.sh
 ```
 
-Qué significa: `SPI_SPEED_HZ=2000000` usa el SPI a 2 MHz (la velocidad que funcionó; a 100 kHz falla con más frecuencia) y `sudo -E` da permiso de acceso al SPI sin perder esa variable.
-
-**Resultado esperado:**
+El script comprueba que estén los paquetes de Python (sección 5.5) y el `/dev/spidev0.0`, prepara el servicio con la ruta y el usuario de tu placa, lo habilita para que arranque con la placa y lo inicia. **Resultado esperado** (al final):
 
 ```
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+OK: el servicio osciloscopio-backend está activo y se iniciará solo al encender la placa.
 ```
 
-**Deja esta ventana abierta.** Si la cierras, el sistema se detiene. Si ves `[SPI Driver Error] No se pudo abrir la interfaz SPI`, vuelve a la sección 5.4.
+Si dice que el puerto 8000 está ocupado, tienes un `uvicorn` corriendo a mano en otra terminal: páralo con `Ctrl + C` y repite. Si dice `ERROR`, copia las líneas del registro que imprime y revisa la sección 10.
 
-### 8.2 Abre el dashboard
+Comprobación (debe dar `200` y un JSON, o `500` con un mensaje que empieza por `SPI:` si el enlace con el ESP32-C6 falla; un `502` significa que el servicio no está activo):
 
-En el **navegador de tu PC** escribe:
+```bash
+curl -i http://127.0.0.1/api/scope/frame
+```
+
+### 8.2 Servidor web nginx
+
+El dashboard lo sirve **nginx** (puerto 80) y este reenvía `/api/` al backend. En la BeaglePlay del equipo nginx ya estaba instalado, activo y habilitado:
+
+```bash
+systemctl is-active nginx      # debe decir: active
+systemctl is-enabled nginx     # debe decir: enabled
+```
+
+⚠️ Si tu placa **no** tiene nginx, estos pasos son el método estándar de Debian y **no se han ejecutado en la placa del equipo** (no se registró cómo se instaló allí):
+
+```bash
+sudo apt install -y nginx
+sudo cp ~/Osciloscopio-Linux-Embebido/beagleplay/nginx.conf /etc/nginx/sites-available/osciloscopio
+sudo ln -sf /etc/nginx/sites-available/osciloscopio /etc/nginx/sites-enabled/osciloscopio
+sudo rm -f /etc/nginx/sites-enabled/default      # el sitio de ejemplo también usa el puerto 80
+sudo nginx -t && sudo systemctl enable --now nginx && sudo systemctl reload nginx
+```
+
+La línea `root` de `beagleplay/nginx.conf` apunta a `/home/camilo/Osciloscopio-Linux-Embebido/dashboard`; si tu usuario o tu carpeta son otros, edita esa ruta antes de copiarla. Si nginx responde `403`, el usuario `www-data` no puede leer esa carpeta.
+
+### 8.3 Abre el dashboard
+
+Con la BeaglePlay encendida y conectada a tu PC, en el **navegador** escribe (sin `:8000`):
 
 ```
-http://192.168.7.2:8000
+http://192.168.7.2/
 ```
 
 (Si conectaste la BeaglePlay por Ethernet, usa su IP en lugar de `192.168.7.2`; en la BeaglePlay se ve con `hostname -I`.)
 
-**Resultado esperado:** una página oscura con el título «Osciloscopio · BeaglePlay + ESP32-C6», una gráfica vacía y una tabla de estadísticas.
+**Resultado esperado:** una página oscura con el título «Osciloscopio · BeaglePlay + ESP32-C6», una gráfica vacía y una tabla de estadísticas. Para medir: sección 9.
+
+### 8.4 Probar el arranque automático
+
+Reinicia la BeaglePlay (`sudo reboot`), espera 1 a 2 minutos **sin abrir ninguna terminal** y recarga `http://192.168.7.2/`. En el dashboard elige **API real**, pulsa **Start**, y deben aparecer las señales. Si no aparecen: `systemctl status osciloscopio-backend` y `sudo journalctl -u osciloscopio-backend -n 30 --no-pager`.
+
+### 8.5 Modo manual (solo para depurar)
+
+Si necesitas ver el registro en vivo o probar cambios, detén el servicio y ejecuta el backend a mano:
+
+```bash
+sudo systemctl stop osciloscopio-backend
+cd ~/Osciloscopio-Linux-Embebido/beagleplay/backend
+SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+Al terminar (`Ctrl + C`) devuelve el control al servicio: `sudo systemctl start osciloscopio-backend`. Para desinstalar el arranque automático: `sudo systemctl disable --now osciloscopio-backend`.
+
+> **Qué esperar al encender:** el ESP32-C6 se alimenta por su propio USB. Si lo enciendes después de la BeaglePlay, las primeras capturas pueden fallar con `error: HTTP 500` hasta que arranca; el dashboard sigue reintentando solo en cada refresco.
 
 ---
 
@@ -524,7 +567,8 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 | `OVERRUN` | El ADC perdió muestras (suele pasar a 40.000 Sa/s) |
 | `comando rechazado` | Se pidió una captura mientras había otra en curso; se repite solo |
 | `ADC sin calibrar` | Esa placa no trae datos de calibración; los voltajes son aproximados |
-| `error: HTTP 500` (insignia roja) | El backend no pudo leer el ESP32-C6. Mira el mensaje en la ventana del backend (sección 10) |
+| `error: HTTP 500` (insignia roja) | El backend no pudo leer el ESP32-C6. La causa está en el registro del servicio: `sudo journalctl -u osciloscopio-backend -n 20 --no-pager` (sección 10) |
+| `error: HTTP 502` (insignia roja) | nginx no encuentra el backend: el servicio no está activo (aún arrancando tras encender, o caído) |
 
 ---
 
@@ -539,12 +583,13 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 | `ModuleNotFoundError: fastapi` (o `spidev`, `uvicorn`) | Faltan paquetes de Python para `sudo python3` | Sección 5.5 |
 | `prueba_directa_spi.py` solo da `FF` en las 5 pruebas | Cable de MISO, MOSI, SCK o CS mal puesto; sin GND común; ESP32-C6 sin alimentar | Apaga todo, revisa la tabla de la sección 6.1 y repite |
 | Funciona y falla de forma intermitente | Problema conocido: se pierde cerca de la mitad de las lecturas SPI; el software reintenta | Normal. Usa cables cortos y bien insertados; usa **2 MHz** |
-| Dashboard con `error: HTTP 500` | Se agotaron los reintentos SPI o el ESP32-C6 no responde | Mira el mensaje `[ERROR REST] ...` en la ventana del backend. Reinicia el ESP32-C6 (RESET) y recarga |
+| Dashboard con `error: HTTP 500` | Se agotaron los reintentos SPI o el ESP32-C6 no responde | Mira el mensaje `[ERROR REST] ...` en el registro (`sudo journalctl -u osciloscopio-backend -n 20 --no-pager`). Reinicia el ESP32-C6 (RESET) y recarga |
+| Dashboard con `error: HTTP 502` o la página abre pero sin datos tras encender | El servicio del backend no está activo | `systemctl status osciloscopio-backend`; si no existe, ejecuta la sección 8.1; si falla, `sudo journalctl -u osciloscopio-backend -n 30 --no-pager` |
 | Dashboard dice `modo test` y dos líneas casi planas | El ESP32-C6 sigue en modo de prueba | Pulsa **RESET** en el ESP32-C6 |
 | La gráfica muestra ruido o caídas periódicas en CH A | Entrada analógica sin filtro | Revisa el condensador y la resistencia de 1 kΩ. Mantén los cables de la señal lejos de los cables SPI |
 | Valores siempre ≈ 0 V o ≈ 3,1 V | Señal fuera de rango, sin GND común, o pin sin conectar | Revisa el potenciómetro y que GND del potenciómetro vaya al GND del ESP32-C6 |
 | Los voltajes no coinciden con el multímetro | Calibración de fábrica limitada del ADC | Ver sección 11 |
-| La página no carga en el navegador | El backend no está corriendo o la IP es otra | Comprueba la ventana del backend y la IP |
+| La página no carga en el navegador | nginx apagado o la IP es otra | `systemctl is-active nginx` y comprueba la IP (`http://192.168.7.2/`, sin `:8000`) |
 | El dashboard muestra la fuente «Simulada» | Es la opción por defecto | Cambia **Fuente** a «API real» |
 
 ---
@@ -557,19 +602,18 @@ Para que sepas qué esperar (todas están en [13-pendientes-y-riesgos.md](../Doc
 2. **Se pierde cerca de la mitad de las lecturas SPI.** El software las repite automáticamente; sólo notarás algo más de espera y el aviso `reintentos SPI`.
 3. **Precisión del voltaje.** El ADC del ESP32-C6 sin calibrar se equivocó hasta 0,7 V frente a un multímetro. El firmware v2 incluye calibración de fábrica, pero **aún no se ha medido en hardware**: no confíes en el valor absoluto sin compararlo con un multímetro.
 4. **Sin disparo (trigger):** cada captura empieza cuando se pide; una señal que cambia en el tiempo aparecerá en fases distintas en cada captura.
-5. **Servidor web:** esta guía abre el dashboard con el propio backend de Python (puerto 8000). El equipo del SBC usa además **nginx** (`beagleplay/nginx.conf`, puerto 80), que ya está activo y sirve el dashboard; con nginx el backend debe escuchar en `127.0.0.1:8000` y el dashboard se abre en `http://<IP>/` sin puerto. Falta confirmar el proxy de `/api/` con el backend encendido.
+5. **Arranque automático sin probar en la placa:** el servicio de systemd que arranca el backend al encender (`beagleplay/instalar_servicio.sh`) está escrito y su sintaxis verificada, pero **aún no se ha ejecutado en la BeaglePlay**. La sección 8.4 describe cómo comprobarlo. nginx sí está verificado: activo, habilitado y sirviendo el dashboard (2026-11-05).
 6. **Rango de entrada:** de 0 a unos 3,1 V, solo positivo.
 
 ---
 
 ## 12. Apagar y guardar
 
-1. En la ventana del backend pulsa `Ctrl + C`.
-2. Apaga la BeaglePlay: `sudo poweroff`. Espera ~10 segundos y desconecta su USB-C.
-3. Desconecta el USB del ESP32-C6.
-4. Después puedes desmontar los cables.
+1. Apaga la BeaglePlay: `sudo poweroff`. Espera ~10 segundos y desconecta su USB-C. (El backend es un servicio: no hay ventana que cerrar.)
+2. Desconecta el USB del ESP32-C6.
+3. Después puedes desmontar los cables.
 
-Para volver a usarlo: monta, repite desde el **paso 5** (sección 7) y arranca el backend (sección 8). **No hace falta volver a flashear** el ESP32-C6.
+**Para volver a usarlo:** monta los cables y alimenta primero el ESP32-C6 y después la BeaglePlay. Espera 1 a 2 minutos y abre `http://192.168.7.2/`: el backend y nginx arrancan solos. No hace falta volver a flashear el ESP32-C6 ni repetir las secciones 5 a 8.
 
 ---
 
@@ -584,9 +628,11 @@ Para volver a usarlo: monta, repite desde el **paso 5** (sección 7) y arranca e
 | PC | Copiar el repositorio a la BeaglePlay | `scp -r Osciloscopio-Linux-Embebido USUARIO@192.168.7.2:~/` |
 | PC | Entrar a la BeaglePlay | `ssh USUARIO@192.168.7.2` |
 | BeaglePlay | Ver el puerto SPI | `ls /dev/spidev*` |
-| BeaglePlay | Probar el SPI | `sudo python3 prueba_directa_spi.py` (en `beagleplay/backend`) |
-| BeaglePlay | Arrancar el sistema | `SPI_SPEED_HZ=2000000 sudo -E python3 -m uvicorn main:app --host 0.0.0.0 --port 8000` |
-| Navegador | Abrir el dashboard | `http://192.168.7.2:8000` |
+| BeaglePlay | Probar el SPI (con el servicio parado) | `sudo systemctl stop osciloscopio-backend` y `sudo python3 prueba_directa_spi.py` (en `beagleplay/backend`) |
+| BeaglePlay | Instalar el arranque automático (una vez) | `sudo bash ~/Osciloscopio-Linux-Embebido/beagleplay/instalar_servicio.sh` |
+| BeaglePlay | Estado del backend | `systemctl status osciloscopio-backend` · `sudo journalctl -u osciloscopio-backend -f` |
+| BeaglePlay | Reiniciar el backend (tras `git pull`) | `sudo systemctl restart osciloscopio-backend` |
+| Navegador | Abrir el dashboard | `http://192.168.7.2/` |
 | BeaglePlay | Apagar | `sudo poweroff` |
 
 ## Más documentación

@@ -19,7 +19,10 @@ Bitácora cronológica de lo realizado hasta el 2026-11-03, con la evidencia dis
 | P-11 | 2026-10-30 | Exactitud del ADC sin calibrar | ❌ Errores de hasta 0,72 V |
 | P-12 | 2026-11-01 | Firmware v2 con calibración | ✅ Compila (11-01); ✅ arranca en hardware con calibración de eFuse (P-13) |
 | P-13 | 2026-11-04 | Arranque del firmware v2 en una ESP32-C6 real | ✅ Arranca sin reinicios; calibración eFuse en ambos canales |
-| P-14 | 2026-11-04 | SPI con la BeaglePlay tras conectar el generador | ❌ Todo `00` en RX (en diagnóstico) |
+| P-14 | 2026-11-04 | SPI con la BeaglePlay tras conectar el generador | ❌ Todo `00` en RX (en diagnóstico; el firmware está vivo, P-13) |
+| P-15 | 2026-11-05 | Dashboard: preset enviado al iniciar y un solo bucle de sondeo | ✅ Lógica verificada con simulación de reloj virtual; ⏳ falta probarlo en el navegador con el hardware |
+| P-16 | 2026-11-05 | nginx en la BeaglePlay | ✅ Activo, habilitado y sirviendo el dashboard (HTTP 200); 🟡 proxy `/api/` con 502 por backend apagado |
+| P-17 | 2026-11-05 | Servicio systemd del backend (arranque automático) | 🟡 Escrito; unidad válida con `systemd-analyze verify`; driver recuperable probado con `spidev` simulado; ⏳ **sin probar en la placa** |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
@@ -125,6 +128,20 @@ Conclusiones:
 ## P-14. SPI sin respuesta tras conectar el generador (2026-11-04, en diagnóstico)
 
 Con el backend a 100 kHz (valor por defecto antiguo): `[ERROR REST] sin cabecera valida antes de ARM` (HTTP 500). Con `prueba_directa_spi.py` las 5 pruebas devuelven **todos los bytes `00`** (el 2026-10-30 devolvían `FF` en las tramas perdidas y una cabecera válida en otras). Pulsar RESET en el ESP32-C6 no lo corrigió. El monitor serie (P-13) muestra que el firmware está activo y el esclavo SPI iniciado, por lo que se sospecha del cableado de MISO, GND o CS, o de la configuración de la BeaglePlay. `00` fijo significa MISO forzado a 0 V. Pruebas de aislamiento propuestas: desconectar MISO en el ESP32-C6 y repetir; bucle MISO-MOSI en el mikroBUS sin el ESP32-C6; medir GPIO3 (INT, ≈ 3,3 V en reposo si el esclavo está armado). Resultado pendiente. Se preparó un firmware con contador de transacciones (`release/osciloscopio_c6_v2_diag.bin`, ver [11](11-guia-flasheo-esp32c6.md), sección 4.2) para saber si el ESP32-C6 recibe algo de la BeaglePlay.
+
+## P-15. Dashboard: preset al iniciar y bucle único (2026-11-05)
+
+Dos fallos observados con la rama `Osc-V2` y un video del equipo (40.000 Sa/s, refresco de 4 s): (1) al pulsar Start con «API real» el dashboard se quedaba en «ajustando frecuencia...» hasta que se cambiaba la frecuencia a mano, y (2) el cuadro cambiaba **cada 2 s** en vez de cada 4 s. Causas halladas en `scope.js`: (1) no se enviaba el preset al ESP32-C6, que conserva el último recibido; (2) cada cambio de ajuste hacía `stop(); start()` y el bucle anterior seguía vivo, así que se acumulaban bucles. Corrección en la rama `Osc-V3` ([07](07-dashboard.md), sección 4).
+
+Verificación sin hardware (Node.js con DOM y red simulados y reloj virtual): código anterior = «ajustando frecuencia...» con 0 envíos de preset en el primer arranque y 20 capturas en 20 s con refresco de 4 s tras cambiar ajustes; código nuevo = «capturando» con el preset enviado y una captura exacta cada 4000 ms. **Pendiente** probarlo en un navegador con la placa. El equipo confirmó que `Osc-V3` es la última versión en la que funcionó todo.
+
+## P-16. nginx en la BeaglePlay (2026-11-05)
+
+`sudo nginx -t` correcto; `systemctl status nginx` → `enabled`, `active (running)` desde hacía 16 h; `curl -i http://127.0.0.1/` → `200 OK`, `Server: nginx`, con el `index.html` del dashboard. `curl -i http://127.0.0.1/api/scope/frame` → `502 Bad Gateway`: el proxy no encontró el backend porque estaba apagado (se arrancaba a mano). Ver [06](06-backend-beagleplay.md) y [13](13-pendientes-y-riesgos.md), A-1.
+
+## P-17. Servicio systemd del backend (2026-11-05, sin probar en la placa)
+
+Para que al alimentar la placa todo arranque solo: unidad [`beagleplay/systemd/osciloscopio-backend.service`](../../beagleplay/systemd/osciloscopio-backend.service) e instalador [`beagleplay/instalar_servicio.sh`](../../beagleplay/instalar_servicio.sh) ([06](06-backend-beagleplay.md), sección 3). Verificado en el PC de desarrollo: `bash -n` del script, `systemd-analyze verify` de la unidad renderizada (sin advertencias) y negativa del script a ejecutarse sin `sudo`. Se corrigió además `spi_driver.py`, que no reintentaba abrir `/dev/spidev0.0` si no existía al arrancar (cinco pasos probados con un `spidev` simulado: arranque sin dispositivo, aparición posterior, `OSError` en `xfer2` y recuperación). **Falta ejecutar `instalar_servicio.sh` en la BeaglePlay y comprobar el arranque tras un `sudo reboot`** (matriz SB-07).
 
 ## Hallazgos principales
 
