@@ -174,7 +174,8 @@ Pruebas ejecutadas contra la BeaglePlay por la interfaz USB (`192.168.7.2`), a t
 - **40 kSa/s:** 10 capturas consecutivas devolvieron HTTP 200, secuencias consecutivas, 256 muestras por canal, `flags=0`, `retries=0` y 50–51 ms de respuesta. El error constante reportado en P-10 no se reprodujo en esta sesión. El resultado no certifica frecuencia real ni comportamiento con señal conocida o carga prolongada.
 - **Estado final:** se restauró el preset 1 kSa/s y una captura final confirmó `rate_idx=1`, `fs_hz=1000`, `flags=0`, `retries=0`.
 - **Regresión local:** `make -C firmware/tests/host test` pasó (`OK: todas las pruebas del protocolo pasaron`).
-- **No ejecutado:** el benchmark de reloj/caudal requiere `spidev` en la BeaglePlay; esta sesión no tiene `/dev/spidev0.0` local ni autenticación SSH por clave. La exactitud del ADC requiere registrar lecturas simultáneas de multímetro y dashboard; la frecuencia real requiere una señal de frecuencia conocida o instrumento. No se modificó configuración del servicio para medir a otra velocidad SPI.
+- **Benchmark SPI bloqueado por permisos:** el usuario `camilo` ejecutó las cinco variantes de `--bench` sin privilegios; todas fallaron al abrir `/dev/spidev0.0` con `PermissionError: [Errno 13] Permission denied`. Por lo tanto, no se midieron velocidades ni caudales nuevos; hace falta repetir con `sudo`.
+- **No ejecutado:** la exactitud del ADC requiere registrar lecturas simultáneas de multímetro y dashboard; la frecuencia real requiere usar una señal de frecuencia conocida. No se modificó configuración del servicio para medir a otra velocidad SPI.
 
 ## Hallazgos principales
 
