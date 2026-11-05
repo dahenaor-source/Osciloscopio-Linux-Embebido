@@ -18,7 +18,7 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 
 **¿Quieres armarlo tú?** Sigue [**Instrucciones de uso**](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md): guía paso a paso desde cero (materiales, flasheo, montaje y uso).
 
-Toda la documentación técnica está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 14 documentos):
+Toda la documentación técnica está en [**`docs/Documentación_General/`**](docs/Documentaci%C3%B3n_General/README.md) (índice con los 15 documentos):
 
 | Documento | Contenido |
 |---|---|
@@ -36,6 +36,7 @@ Toda la documentación técnica está en [**`docs/Documentación_General/`**](do
 | [12 Guía del equipo SBC](docs/Documentaci%C3%B3n_General/12-guia-equipo-sbc.md) | Contexto de la BeaglePlay. **Juan Camilo y Daniela** |
 | [13 Pendientes y riesgos](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md) | Qué falta |
 | [14 Participación y uso de IA](docs/Documentaci%C3%B3n_General/14-participacion-y-uso-de-ia.md) | Declaraciones (por completar) |
+| [15 Verificación del flasheo V2](docs/Documentaci%C3%B3n_General/15-verificacion-flasheo-v2.md) | Registro de compilación, grabación y arranque en placa |
 
 Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README.md](beagleplay/backend/README.md).
 
@@ -46,7 +47,7 @@ Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README
 | Comunicación SPI SBC ↔ uC | ESP32-C6 como esclavo SPI2 con DMA, modo 0 |
 | Ventanas de ≥ 64 muestras a frecuencia constante | 64 a 1020 muestras por canal, ADC continuo temporizado por hardware |
 | Mínimo 3 presets intercambiables por SPI | 100, 1.000, 10.000 y 40.000 Sa/s por canal (comando `SET_RATE`) |
-| Bonificación ≥ 40 kSa/s | Preset de 40.000 Sa/s por canal (80 kSa/s en total, límite del ADC: 83,3 kSa/s) |
+| Bonificación ≥ 40 kSa/s | Preset de 40.000 Sa/s por canal implementado, **sin validación experimental satisfactoria**; no se declara cumplida la bonificación |
 
 ## Inicio rápido (firmware)
 
@@ -68,17 +69,20 @@ make -C tests/host test      # pruebas unitarias del protocolo en el PC
 
 Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware-esp32c6.md).
 
-## Estado (2026-11-03)
+## Estado documentado (hasta el 2026-11-05)
 
 - [x] Firmware compila (ESP-IDF 5.4.1), se flashea y arranca. Protocolo con pruebas unitarias en el PC.
-- [x] Enlace SPI BeaglePlay ↔ ESP32-C6 funcionando a 2 MHz (con reintentos: se pierde ≈ 50 % de las transacciones).
-- [x] Dashboard con datos reales (modo de prueba y ADC con potenciómetro, 100 a 10.000 Sa/s).
+- [x] Se observaron capturas de integración SPI a 2 MHz con reintentos en pruebas anteriores.
+- [ ] En la integración posterior se observaron fallos de respuesta SPI; **la estabilidad actual en Osc-V3 no está validada**. La tasa aproximada de fallos del 50 % procede de un ensayo histórico, no de todas las versiones.
+- [x] Existen capturas históricas del modo de prueba y del ADC con potenciómetro a 100–10.000 Sa/s. Las mejoras recientes del dashboard requieren nueva prueba integrada en hardware.
 - [x] Backend FastAPI en la BeaglePlay (SPI + API) con reintentos.
 - [x] Firmware v2: calibración del ADC por eFuse (arranca en una placa real con calibración en ambos canales; falta medir la exactitud).
 - [ ] Preset de 40 kSa/s (bonificación) con error constante: sin diagnosticar.
 - [x] Servidor nginx activo y sirviendo el dashboard en el puerto 80 (verificado el 2026-11-05); falta confirmar el proxy `/api/` con el backend encendido.
-- [ ] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): escrito, **sin probar en la placa**.
+- [ ] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): implementado y verificado parcialmente fuera de la placa; **sin prueba completa de reinicio y adquisición en BeaglePlay**.
 - [ ] Mediciones con instrumentos (frecuencia de muestreo, reloj SPI) y tasa máxima de SPI.
 - [ ] Video, declaración de participación y de uso de IA.
+
+> **Alcance de las pruebas:** compilación, arranque y servicio web no demuestran por sí solos la exactitud del ADC, la integridad sostenida del SPI ni el cumplimiento de 40 kSa/s. Consultar [09 Pruebas](docs/Documentaci%C3%B3n_General/09-pruebas-y-resultados.md) y [10 Matriz](docs/Documentaci%C3%B3n_General/10-matriz-de-verificacion.md).
 
 Detalle en [13-pendientes-y-riesgos.md](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md).

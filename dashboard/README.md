@@ -1,8 +1,8 @@
 # Dashboard
 
-Página estática (HTML + JS + Chart.js local, sin CDN: la red del SBC puede no tener internet). Hoy la sirve el backend FastAPI de la BeaglePlay (`beagleplay/backend`); el enunciado pide apache o nginx, pendiente.
+Página estática (HTML + JS + Chart.js local, sin CDN: la red del SBC puede no tener internet). En la BeaglePlay se ha comprobado que **nginx sirve el dashboard por el puerto 80**. FastAPI también puede servir los archivos por el puerto 8000 para diagnóstico. Sigue pendiente comprobar el proxy `/api/` con el backend encendido.
 
-## Probar ya (modo simulado)
+## Probar la interfaz (modo simulado; NO es una medición)
 
 ```bash
 cd dashboard && python3 -m http.server 8080
@@ -34,7 +34,7 @@ Abre `http://localhost:8080` → **Start**. Muestra 2 canales simulados, estadí
 
 **`POST /api/scope/config`** con `{"rate_idx": 0..3}` → el backend envía `SET_RATE` por SPI.
 
-Para usarlo: en el dashboard elige la fuente **API real**. Con nginx/apache se puede hacer proxy de `/api/` a un proceso del SBC (Python/C) que hable SPI.
+Para realizar mediciones, selecciona **API real** y verifica que `/api/scope/frame` entregue una captura válida con la ESP32-C6 conectada. La fuente **Simulada** genera señales artificiales y no sirve como evidencia de adquisición. nginx sirve `/` y está configurado para reenviar `/api/` a FastAPI; falta validar el recorrido completo con el backend activo.
 
 ## Pendiente
 

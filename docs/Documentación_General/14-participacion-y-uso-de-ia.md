@@ -1,6 +1,6 @@
 # 14. Participación y uso de IA
 
-> Este documento es una **plantilla pre-llenada con lo que consta en el repositorio y en las conversaciones**. Cada integrante debe revisar, corregir y completar su parte antes de la entrega. Lo que no se pudo confirmar está marcado como _por completar_.
+> Este documento es una **declaración preliminar basada en el repositorio y en las conversaciones disponibles**, no una certificación independiente de autoría ni de uso de herramientas. Cada integrante debe revisar, corregir y completar su parte antes de la entrega. Lo que no se pudo confirmar está marcado como _por completar_.
 
 ## 1. Declaración de participación y aportes
 
@@ -10,7 +10,7 @@ Equipo (máximo 6 personas según el enunciado).
 |---|---|---|
 | **David Henao Rojas** (`dahenaor-source`) | Firmware del microcontrolador, dashboard (primera versión), documentación, coordinación del repositorio | Firmware ESP32-C6 (SPI esclavo, ADC continuo, protocolo v1 y v2, calibración); pruebas unitarias del protocolo; binario de release; asignación y documentación del pinout con diagramas; dashboard HTML; robustecimiento del driver SPI y del backend (reintentos, candado, tiempos); script de diagnóstico; esta documentación |
 | **Juan Camilo Giraldo** (`Giraldo0712`) | Software del SBC | Backend FastAPI simulado y real, driver SPI según el protocolo v1, servir el dashboard desde FastAPI, README del backend, scripts `test_spi.py` y `prueba_directa_spi.py`, pruebas en la BeaglePlay, cambios de velocidad SPI |
-| **Daniela Barragán** | Software del SBC | _Por completar_ (no hay commits suyos a 2026-11-03) |
+| **Daniela Barragán** | Software del SBC | _Por completar por la integrante; la ausencia de commits individuales no demuestra ausencia de contribuciones_ |
 
 Tareas del enunciado y responsables:
 
@@ -38,7 +38,7 @@ Historial de commits: `git log --format='%h %an %ad %s' --date=short`.
 | Tarea | Qué hizo la IA | Cómo se verificó |
 |---|---|---|
 | Firmware ESP32-C6 (SPI esclavo, ADC continuo, protocolo, presets) | Escribió el código en C y las pruebas del protocolo | Compilación con ESP-IDF 5.4.1; 7 pruebas unitarias en el PC; flasheo y arranque en la placa real; pruebas posteriores con la BeaglePlay |
-| Calibración del ADC (v2) | Propuso y programó la tabla con `adc_cali_curve_fitting` tras analizar las mediciones del equipo | Compila y pasa las pruebas unitarias; **la verificación en hardware sigue pendiente** |
+| Calibración del ADC (v2) | Propuso y programó la tabla con `adc_cali_curve_fitting` tras analizar las mediciones del equipo | Compila y pasa las pruebas unitarias; **el arranque con eFuse se comprobó en hardware el 2026-11-04; la exactitud metrológica sigue pendiente** |
 | Maestro SPI de referencia (`tools/spi_master_test.py`) | Escribió el script | **No se ha ejecutado en hardware** |
 | Dashboard HTML/JS | Escribió la interfaz y la fuente simulada | Servido por un servidor local; probado en el navegador por el equipo con datos reales. No se pasó por un analizador de sintaxis |
 | Análisis de los logs de las pruebas SPI | Interpretó las salidas de `prueba_directa_spi.py` y `diagnostico_captura.py` (conteo de válidas/inválidas, patrón alternado, flags) | Los datos los tomó el equipo en la BeaglePlay; los conteos se recalcularon sobre los textos pegados |

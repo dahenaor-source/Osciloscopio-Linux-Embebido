@@ -1,6 +1,6 @@
 # 13. Pendientes y riesgos
 
-Estado a 2026-11-03. Ordenados por prioridad para la entrega.
+Estado de pendientes hasta 2026-11-05. Priorizar la validación de integración real de Osc-V3 y distinguir pruebas antiguas de resultados actuales.
 
 ## 1. Problemas abiertos
 

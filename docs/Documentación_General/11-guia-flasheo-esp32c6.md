@@ -1,6 +1,6 @@
 # 11. Guía rápida: flashear y probar el ESP32-C6
 
-El firmware (v2) está compilado y las pruebas del protocolo pasan; la v1 se probó con la BeaglePlay y la v2 está pendiente de flashear y medir. **No hace falta instalar ESP-IDF**: basta flashear el binario de [`release/`](../../release) y conectar el SBC.
+El firmware de protocolo v2 fue compilado y **flasheado en una ESP32-C6 real el 2026-11-04**; el monitor confirmó el arranque y la calibración eFuse de ambos canales. **Siguen pendientes** la exactitud calibrada y la comunicación SPI sostenida de extremo a extremo. Ver [15](15-verificacion-flasheo-v2.md). **No hace falta instalar ESP-IDF**: basta flashear el binario de [`release/`](../../release) y conectar el SBC.
 
 ## 1. Qué necesitas
 
@@ -25,7 +25,7 @@ esptool.py --chip esp32c6 -p <PUERTO> -b 460800 write_flash 0x0 release/oscilosc
 
 | Sistema | `<PUERTO>` |
 |---|---|
-| Linux | `/dev/ttyACM0` |
+| Linux | `/dev/ttyACM0`, `/dev/ttyACM1` u otro: **comprobar cuál existe** con `ls /dev/ttyACM* /dev/ttyUSB*` |
 | WSL | `/dev/ttyACM0` (antes hacer `usbipd attach`, ver [05-firmware-esp32c6.md](05-firmware-esp32c6.md)) |
 | Windows | `COMx` (ver Administrador de dispositivos) |
 

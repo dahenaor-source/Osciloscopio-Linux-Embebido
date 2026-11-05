@@ -1,8 +1,8 @@
 # Documentación general: Osciloscopio SBC + microcontrolador
 
-Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo Gómez, periodo 2026-02). Esta carpeta reúne **toda la documentación del proyecto hasta el 2026-11-03**: descripción, requisitos, hardware, protocolo, firmware, backend, dashboard, calibración, resultados de pruebas, matriz de verificación y pendientes.
+Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo Gómez, periodo 2026-02). Esta carpeta reúne **la documentación técnica del proyecto con evidencias hasta el 2026-11-05**: descripción, requisitos, hardware, protocolo, firmware, backend, dashboard, calibración, resultados de pruebas, matriz de verificación y pendientes.
 
-> **Estado en una línea:** el enlace SPI BeaglePlay ↔ ESP32-C6 funciona a 2 MHz y el dashboard muestra datos reales del ADC (1 kSa/s probado con un potenciómetro). Falta cerrar el preset de 40 kSa/s, la causa de las transacciones SPI perdidas, el servidor apache/nginx y las mediciones con instrumentos. Detalle en [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md).
+> **Estado en una línea:** el enlace SPI BeaglePlay ↔ ESP32-C6 funciona a 2 MHz y el dashboard muestra datos reales del ADC (1 kSa/s probado con un potenciómetro). Falta validar la estabilidad SPI actual, el preset de 40 kSa/s, el proxy `/api/` con FastAPI operativo, el servicio systemd en la placa y las mediciones con instrumentos. nginx ya sirvió la página por el puerto 80; eso no valida todavía la adquisición. Detalle en [13-pendientes-y-riesgos.md](13-pendientes-y-riesgos.md).
 
 ## Índice
 
@@ -22,6 +22,7 @@ Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo
 | 12 | [Guía para el equipo del SBC](12-guia-equipo-sbc.md) | Contexto de la BeaglePlay y orden de pruebas |
 | 13 | [Pendientes y riesgos](13-pendientes-y-riesgos.md) | Qué falta, problemas abiertos, próximos pasos |
 | 14 | [Participación y uso de IA](14-participacion-y-uso-de-ia.md) | Roles, aportes y declaración de uso de IA (por completar por el equipo) |
+| 15 | [Verificación del flasheo V2](15-verificacion-flasheo-v2.md) | Compilación, programación y arranque en hardware |
 
 ## Por dónde empezar
 
@@ -30,6 +31,7 @@ Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo
 - **Quiero flashear la placa y probar:** 11, luego 03 para el cableado.
 - **Soy del equipo del SBC:** 12, 06 y 04.
 - **Quiero ver qué está probado y qué no:** 09 y 10.
+- **Quiero reproducir la validación posterior a Osc-V3:** [Plan de validación](16-plan-validacion-osc-v3.md).
 
 ## Mapa del repositorio
 

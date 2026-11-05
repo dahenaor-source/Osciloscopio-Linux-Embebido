@@ -4,7 +4,7 @@ Esta guía te lleva **desde cero** hasta ver en tu navegador la gráfica de dos 
 
 Tiempo estimado: 1 a 2 horas la primera vez.
 
-> **Estado del proyecto (2026-11-03).** El sistema funciona de extremo a extremo con 100, 1.000 y 10.000 muestras por segundo. Hay limitaciones conocidas que **no son errores tuyos**: el preset de 40.000 Sa/s falla, cerca de la mitad de las lecturas SPI se pierden y el software las reintenta, y la calibración del ADC de la versión actual del firmware (v2) todavía no se ha medido con instrumentos. Están explicadas en la sección 11.
+> **Estado documentado (hasta 2026-11-05).** Existen pruebas históricas de adquisición de extremo a extremo a 100, 1.000 y 10.000 muestras por segundo; **la integración de Osc-V3 todavía requiere nueva validación**. Hay limitaciones conocidas que **no son errores tuyos**: el preset de 40.000 Sa/s falla, en una prueba anterior se perdió cerca de la mitad de las transacciones SPI y el software implementó reintentos, y la calibración del ADC de la versión actual del firmware (v2) todavía no se ha medido con instrumentos. Están explicadas en la sección 11.
 >
 > La BeaglePlay del equipo usa **Debian GNU/Linux 13.7 «trixie»** (imagen entregada por el profesor). Se **alimenta con un cable USB-C** y se configuró por **consola serie con minicom** usando un **adaptador USB a UART**. Los pasos marcados con ⚠️ son detalles que no se han podido verificar; se indica cómo comprobarlos.
 

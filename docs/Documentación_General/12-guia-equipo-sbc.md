@@ -2,11 +2,11 @@
 
 Para **Juan Camilo Giraldo** y **Daniela Barragán**. Resume lo que ya existe, lo que falta y qué verificar en la BeaglePlay. Lo marcado con ⚠️ **no está verificado** en la placa real: confírmenlo y corrijan este documento.
 
-## 1. Estado actual (actualizado 2026-11-03)
+## 1. Estado documentado (hasta 2026-11-05)
 
 | Parte | Estado | Dónde |
 |---|---|---|
-| Firmware ESP32-C6 (SPI esclavo + ADC, protocolo v2, calibración) | Probado con la BeaglePlay a 2 MHz. v2 compila; **sin flashear** | `firmware/`, `release/` |
+| Firmware ESP32-C6 (SPI esclavo + ADC, protocolo v2, calibración) | V2 compiló, se flasheó y arrancó en placa (2026-11-04); **integración SPI sostenida con V2/V3 pendiente de revalidar** | `firmware/`, `release/` |
 | Protocolo SPI | Definido, con pruebas unitarias en PC y probado en hardware | [04-protocolo-spi.md](04-protocolo-spi.md) |
 | Cableado mikroBUS ↔ ESP32-C6 | Asignado y funcionando | [03-hardware-y-conexiones.md](03-hardware-y-conexiones.md) |
 | Backend FastAPI + driver SPI | **Hecho** (Juan Camilo) y robustecido con reintentos | [06-backend-beagleplay.md](06-backend-beagleplay.md) |

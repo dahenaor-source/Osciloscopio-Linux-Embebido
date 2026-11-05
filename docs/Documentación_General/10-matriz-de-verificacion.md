@@ -1,6 +1,6 @@
 # 10. Matriz de verificación
 
-Estado a 2026-11-03. Cada fila enlaza el requisito con la prueba y el resultado. La evidencia detallada está en [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md). ✅ cumple · 🟡 parcial · ⏳ pendiente · ❌ no cumple.
+Estado de evidencias hasta 2026-11-05; los resultados históricos no prueban automáticamente la integración de Osc-V3. Cada fila enlaza el requisito con la prueba y el resultado. La evidencia detallada está en [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md). ✅ cumple · 🟡 parcial · ⏳ pendiente · ❌ no cumple.
 
 ## 1. Firmware (ESP32-C6)
 

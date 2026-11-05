@@ -1,6 +1,6 @@
 # 09. Pruebas y resultados
 
-Bitácora cronológica de lo realizado hasta el 2026-11-03, con la evidencia disponible. Lo que no se ejecutó en hardware se indica de forma explícita. Las pruebas con la BeaglePlay las hizo el equipo del SBC (Juan Camilo); las de compilación y las del PC, David Henao Rojas.
+Bitácora cronológica de pruebas documentadas hasta el 2026-11-05, con la evidencia disponible. Los ensayos históricos no equivalen a una validación automática de la rama Osc-V3. Lo que no se ejecutó en hardware se indica de forma explícita. Las pruebas con la BeaglePlay las hizo el equipo del SBC (Juan Camilo); las de compilación y las del PC, David Henao Rojas.
 
 ## Resumen
 
