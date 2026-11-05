@@ -1,6 +1,6 @@
 # 10. Matriz de verificación
 
-Estado a 2026-11-03. Cada fila enlaza el requisito con la prueba y el resultado. La evidencia detallada está en [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md). ✅ cumple · 🟡 parcial · ⏳ pendiente · ❌ no cumple.
+Corte de pruebas en hardware: 2026-11-04. Verificaciones locales adicionales: 2026-11-05. Cada fila enlaza el requisito con la prueba y el resultado. La evidencia detallada está en [09-pruebas-y-resultados.md](09-pruebas-y-resultados.md). ✅ cumple · 🟡 parcial · ⏳ pendiente · ❌ no cumple.
 
 ## 1. Firmware (ESP32-C6)
 
@@ -63,3 +63,14 @@ Estado a 2026-11-03. Cada fila enlaza el requisito con la prueba y el resultado.
 | FW-10 SPI máximo y caudal | Medir con `time.perf_counter()` el tiempo de `xfer2` de 1040 bytes a 1, 2, 5, 10, 20 MHz y comparar con `bytes × 8 / f`; registrar a qué velocidad empiezan los errores |
 | FW-11 ADC | Procedimiento y tabla en [08](08-calibracion-adc.md), sección 4 |
 | Pérdida de transacciones | Contar transacciones inválidas por cada 1000 a distintas velocidades y con INT; añadir un contador de transacciones en el firmware |
+
+## 6. Verificaciones locales adicionales (2026-11-05)
+
+| Prueba | Resultado | Alcance / limitación |
+|---|---|---|
+| `make -C firmware/tests/host test` | ✅ Pasan todas las pruebas del protocolo | Repetición local en PC; no verifica el firmware ni el enlace SPI en hardware |
+| Servir `dashboard/` con `python3 -m http.server` y solicitar `/`, `/scope.js` y `/vendor/chart.umd.js` | ✅ HTTP 200 para los tres recursos; comprobada la presencia del dashboard y de la opción API real en el HTML | Smoke test de archivos estáticos; no ejecuta Nginx, no prueba `/api/` ni reemplaza la prueba funcional en navegador |
+| Repetición local de la captura real/API y validación de Nginx en la BeaglePlay | ⏳ No ejecutada en este entorno | Aquí no están disponibles `/dev/spidev0.0` ni Nginx. La evidencia de la BeaglePlay está en P-16: Nginx sirve el dashboard (200), pero `/api/` dio 502 con el backend apagado |
+| Frecuencia de muestreo, tasa máxima SPI y exactitud de calibración (FW-08, FW-10, FW-11) | ⏳ Sin cambio | Requieren mediciones en hardware; FW-08 y FW-11 además requieren señal conocida y multímetro |
+
+Por lo tanto, SB-06 sigue parcial: Nginx sirve el dashboard en la BeaglePlay, pero falta demostrar `/api/` con el backend activo. SB-07 sigue parcial hasta probar el arranque tras reiniciar la placa. Los resultados locales no se extrapolan a la BeaglePlay.
