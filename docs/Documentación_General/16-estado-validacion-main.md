@@ -17,12 +17,13 @@ hasta P-20 y no presenta pruebas pendientes como cumplidas.
 | P-20 | Frecuencia estimada en los cuatro presets: 100,0; 1.000,09; 10.004,06 y 40.307,74 Sa/s | Estimación basada en las frecuencias nominales del generador; su tolerancia no está documentada |
 | P-20 | 15 capturas a 40 kSa/s válidas (10 sin señal y 5 con seno conocido de 1 kHz), sin flags ni reintentos | No equivale a una prueba prolongada de estrés |
 | P-20 | Caudal SPI medido: 0,10; 0,18; 0,33; 0,47 y 0,54 MB/s a 1, 2, 5, 10 y 20 MHz solicitados | El caudal incluye sobrecarga del SO; no certifica el reloj real ni la máxima velocidad estable |
+| P-21 | Comparación ADC v2 en CH A: 4 puntos, error absoluto 0,004–0,035 V | Medición preliminar con potenciómetro; faltan puntos, repeticiones e incertidumbre del multímetro |
 
 ## 2. Validaciones pendientes
 
 | ID | Verificación requerida | Estado |
 |---|---|---|
-| V-01 | Exactitud del ADC con multímetro | Pendiente |
+| V-01 | Exactitud del ADC con multímetro | Parcial: cuatro puntos iniciales en CH A (P-21); completar niveles, repeticiones y caracterizar ambos canales |
 | V-02 | Confirmar frecuencia de muestreo con referencia calibrada | Estimaciones disponibles en P-20; falta documentar tolerancia del generador o contrastar con instrumento calibrado |
 | V-03 | Caudal SPI máximo y estabilidad prolongada | Caudal medido entre 1 y 20 MHz solicitados; máximo estable y reloj real pendientes |
 | V-04 | Ensayo prolongado de 40 kSa/s con señal conocida | 5 capturas con seno de 1 kHz pasaron; ensayo prolongado pendiente |

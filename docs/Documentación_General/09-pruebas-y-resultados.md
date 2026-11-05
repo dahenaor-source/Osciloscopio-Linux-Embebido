@@ -26,6 +26,7 @@ Bitácora cronológica de las pruebas, con la evidencia disponible. Lo que no se
 | P-18 | 2026-11-05 | nginx y API real con el backend activo en la BeaglePlay | ✅ Nginx y backend activos/habilitados; dashboard y `/api/scope/frame` responden HTTP 200 |
 | P-19 | 2026-11-05 | Arranque del backend tras reiniciar la BeaglePlay | ✅ Inició sin entrar a la terminal y se pudo medir desde el dashboard (confirmado por el usuario) |
 | P-20 | 2026-11-05 | Concurrencia API, frecuencia de muestreo, benchmark SPI y capturas a 40 kSa/s | ✅ Concurrencia válida; frecuencias estimadas en los cuatro presets; caudal SPI medido 1–20 MHz; 15/15 capturas a 40 kSa/s sin flags ni reintentos |
+| P-21 | 2026-11-05 | Comparación preliminar ADC v2 con potenciómetro y multímetro (CH A) | 🟡 4 puntos; error absoluto 0,004–0,035 V; caracterización completa pendiente |
 
 ## P-01. Compilación, flasheo y arranque (firmware v1)
 
@@ -196,10 +197,23 @@ Pruebas ejecutadas contra la BeaglePlay por la interfaz USB (`192.168.7.2`), a t
   Cada ejecución inició con una captura completa; el benchmark mide 200 transferencias de 1040 bytes con sobrecarga del SO. 20 MHz es la máxima velocidad probada, no una certificación del reloj real ni de la máxima velocidad estable. Al terminar se ejecutó el script sin `--bench` para apagar el modo de prueba y restaurar el preset 1 kSa/s.
 - **Pendiente:** exactitud del ADC calibrado v2 con multímetro en varios niveles. Para SPI falta validar respuestas de las 200 transferencias bajo carga y encontrar la máxima velocidad estable; para 40 kSa/s, prueba prolongada.
 
+## P-21. Comparación preliminar del ADC v2 con multímetro (2026-11-05)
+
+El usuario comparó el voltaje medido con multímetro y el valor **Prom** del dashboard con el potenciómetro conectado a CH A. Se calcula `error = dashboard − multímetro`; el error relativo usa el valor absoluto del error dividido por la lectura del multímetro. En 0 V no aplica el porcentaje.
+
+| Multímetro (V) | Dashboard (V) | Error (V) | Error relativo |
+|---:|---:|---:|---:|
+| 0,000 | 0,004 | +0,004 | N/A |
+| 0,519 | 0,525 | +0,006 | 1,16 % |
+| 1,537 | 1,557 | +0,020 | 1,30 % |
+| 2,996 | 3,031 | +0,035 | 1,17 % |
+
+En los cuatro puntos el error absoluto máximo observado fue 0,035 V. El error relativo de los tres puntos distintos de cero fue 1,16–1,30 %. Resultado **parcial**: no se informaron repeticiones, incertidumbre/modelo del multímetro ni lecturas del canal CH B; faltan más niveles y mediciones repetidas antes de concluir sobre la exactitud.
+
 ## Hallazgos principales
 
 1. Históricamente el enlace SPI perdió cerca de la mitad de transacciones (P-05); en las capturas y pruebas API de P-18/P-20 no hubo reintentos, pero falta un benchmark sostenido por velocidad para confirmar la estabilidad.
 2. El maestro debe validar y reintentar siempre; con eso la captura completa funciona.
-3. El ADC sin calibrar tenía errores de hasta 0,72 V; la calibración está implementada pero sin verificar.
+3. El ADC v1 sin calibrar tuvo errores de hasta 0,72 V (P-11). La comparación preliminar del v2 obtuvo errores de 0,004–0,035 V en cuatro puntos de CH A (P-21), pero aún no caracteriza la exactitud.
 4. El preset de 40 kSa/s produjo 15/15 capturas válidas, incluidas 5 con seno conocido; falta prueba prolongada. El fallo anterior queda registrado en P-10.
 5. Se estimó fs con generador en los cuatro presets y se midió caudal SPI entre 1 y 20 MHz; falta documentar tolerancia del generador, comprobar reloj SPI real y caracterizar la máxima velocidad estable.

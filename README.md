@@ -81,7 +81,7 @@ Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware
 - [x] Servidor nginx activo y sirviendo el dashboard en el puerto 80 (verificado el 2026-11-05); el proxy `/api/` fue verificado con HTTP 200 en P-18.
 - [x] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): verificado tras reiniciar la BeaglePlay (P-19).
 - [x] Frecuencia de muestreo estimada con generador en los cuatro presets; caudal SPI medido entre 1 y 20 MHz. La frecuencia nominal del generador no está calibrada y el máximo SPI estable no se ha determinado.
-- [ ] Exactitud del ADC calibrado v2 con multímetro, estabilidad prolongada de SPI y estrés de 40 kSa/s.
+- [ ] Completar la caracterización del ADC v2 (medición preliminar de cuatro puntos registrada en P-21), además de estabilidad prolongada de SPI y estrés de 40 kSa/s.
 - [ ] Video, declaración de participación y de uso de IA.
 
 Detalle en [13-pendientes-y-riesgos.md](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md).

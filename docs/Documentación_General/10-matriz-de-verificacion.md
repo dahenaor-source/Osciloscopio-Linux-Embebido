@@ -16,7 +16,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | FW-08 | Frecuencia de muestreo real de cada preset | Señal de frecuencia conocida o analizador lógico | Experimental | 🟡 Estimaciones con generador: 100→100,0; 1.000→1.000,09; 10.000→10.004,06; 40.000→40.307,74 Sa/s. La referencia es el valor nominal del generador; falta considerar su tolerancia/calibración | P-20 |
 | FW-09 | Captura a 40 kSa/s sin desbordamiento (bonificación) | `flags` bit0 = 0 y señal conocida | Experimental | 🟡 10/10 capturas sin señal y 5/5 con seno conocido de 1 kHz; todas con 256 muestras, `flags=0`, `retries=0`. Falta una prueba prolongada/estrés | P-10, P-20 |
 | FW-10 | Velocidad máxima de SPI estable y caudal real | `--bench` a distintas velocidades | Experimental | 🟡 Caudal medido: 0,10 / 0,18 / 0,33 / 0,47 / 0,54 MB/s a 1 / 2 / 5 / 10 / 20 MHz. 20 MHz es la máxima probada, no necesariamente la máxima estable; el caudal incluye sobrecarga del SO | P-05, P-06, P-20 |
-| FW-11 | Exactitud del ADC calibrado (0, 0,25 … 3 V) | Multímetro contra mV del dashboard | Experimental | 🟡 Sin calibrar (v1): error hasta 0,72 V. v2 sin medir | P-11, [08](08-calibracion-adc.md) |
+| FW-11 | Exactitud del ADC calibrado (0, 0,25 … 3 V) | Multímetro contra mV del dashboard | Experimental | 🟡 Medición preliminar v2 en CH A: 4 puntos, error absoluto 0,004–0,035 V; falta completar puntos y repeticiones. v1 tuvo error de hasta 0,72 V | P-11, P-21, [08](08-calibracion-adc.md) |
 | FW-12 | Calibración del ADC por eFuse en el arranque | Log `curve-fitting (eFuse)` en el monitor serie | Experimental | ✅ Ambos canales, 2026-11-04 | P-13 |
 
 ## 2. SBC y backend
@@ -61,7 +61,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | FW-08 frecuencia de muestreo | Estimada con generador en los cuatro presets (P-20); para cerrar, registrar modelo/tolerancia del generador o contrastar con analizador lógico |
 | FW-09 40 kSa/s | 15 capturas válidas, 5 con seno de 1 kHz; repetir bajo carga prolongada y conservar log/flags |
 | FW-10 SPI máximo y caudal | Caudal medido de 0,10–0,54 MB/s a 1–20 MHz (P-20); validar respuestas de las transferencias y probar límites superiores/errores |
-| FW-11 ADC | Procedimiento y tabla en [08](08-calibracion-adc.md), sección 4 |
+| FW-11 ADC | Cuatro puntos iniciales comparados en P-21; completar la tabla y repetir lecturas según [08](08-calibracion-adc.md), sección 4 |
 | Pérdida de transacciones | Contar transacciones inválidas por cada 1000 a distintas velocidades y con INT; añadir un contador de transacciones en el firmware |
 
 ## 6. Verificaciones locales adicionales (2026-11-05)
@@ -71,7 +71,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | `make -C firmware/tests/host test` | ✅ Pasan todas las pruebas del protocolo | Repetición local en PC; no verifica el firmware ni el enlace SPI en hardware |
 | Servir `dashboard/` con `python3 -m http.server` y solicitar `/`, `/scope.js` y `/vendor/chart.umd.js` | ✅ HTTP 200 para los tres recursos; comprobada la presencia del dashboard y de la opción API real en el HTML | Smoke test de archivos estáticos; no ejecuta Nginx, no prueba `/api/` ni reemplaza la prueba funcional en navegador |
 | Prueba local de la captura real/API y validación de Nginx en la BeaglePlay | ⏳ No ejecutada en este entorno | Aquí no están disponibles `/dev/spidev0.0` ni Nginx. En la placa, P-18 confirma que la página y el proxy API responden 200 con el backend activo |
-| Exactitud de calibración ADC v2 (FW-11) | ⏳ Sin cambio | Requiere comparar el promedio del dashboard con el multímetro en varios voltajes |
+| Exactitud de calibración ADC v2 (FW-11) | 🟡 Parcial | P-21 comparó 4 voltajes en CH A: error absoluto de 0,004–0,035 V; completar puntos, repeticiones y registrar incertidumbre |
 
 ## 7. Pruebas reales adicionales en la BeaglePlay (2026-11-05)
 
@@ -83,6 +83,6 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | Benchmark SPI `tools/spi_master_test.py --bench` | 🟡 0,10 / 0,18 / 0,33 / 0,47 / 0,54 MB/s a 1 / 2 / 5 / 10 / 20 MHz | 20 MHz fue el máximo probado; el benchmark mide caudal efectivo con sobrecarga, no el reloj con analizador lógico |
 | Captura a 100 Sa/s | ✅ HTTP 200, preset reportado 100 Sa/s, 256 muestras por canal, `flags=0`, `retries=0`, respuesta en 2,617 s | Latencia total de API, no medición instrumental de la frecuencia real del ADC |
 | Regresión de presets y restauración | ✅ Capturas válidas a 1 y 10 kSa/s; al terminar se restauró el preset habitual de 1 kSa/s | Una de tres capturas del primer bloque a 100 Sa/s respondió con preset 1; la prueba aislada posterior a 100 Sa/s sí coincidió con preset 0 |
-| Exactitud de calibración ADC v2 (FW-11) | ⏳ Pendiente | Requiere comparar el promedio del dashboard con el multímetro en varios voltajes |
+| Exactitud de calibración ADC v2 (FW-11) | 🟡 Parcial | Cuatro puntos iniciales registrados en P-21; falta ampliar la medición para concluir |
 
-FW-08 y FW-10 tienen mediciones experimentales parciales; FW-11 sigue pendiente. Las pruebas de P-20 se ejecutaron contra la BeaglePlay accesible por USB.
+FW-08, FW-10 y FW-11 tienen mediciones experimentales parciales. Las pruebas de P-20 se ejecutaron contra la BeaglePlay accesible por USB.

@@ -43,25 +43,29 @@ Impacto en el resto del sistema:
 
 - ✅ El firmware v2 compila (ESP-IDF 5.4.1) y las pruebas del protocolo en el PC pasan.
 - ✅ **El firmware v2 arranca en una ESP32-C6 real** y el log confirma `calibracion curve-fitting (eFuse)` en los dos canales (2026-11-04, [09](09-pruebas-y-resultados.md), P-13): esa placa sí trae datos de calibración.
-- ⏳ **Falta medir la exactitud** frente al multímetro (procedimiento en la sección 4).
+- 🟡 **Medición preliminar frente al multímetro:** cuatro puntos reportados por el usuario en CH A; diferencia dashboard menos multímetro de +0,004 a +0,035 V. Faltan más puntos, repeticiones e incertidumbre del instrumento para caracterizar la exactitud.
 - ⚠️ Cerca de 0 V y de plena escala el ADC del ESP32-C6 sigue siendo menos preciso, incluso calibrado.
 
 ## 4. Procedimiento para verificarla (FW-11)
 
 1. Flashear `release/osciloscopio_c6_v2.bin` ([11](11-guia-flasheo-esp32c6.md)) con el monitor serie abierto y confirmar `calibracion curve-fitting (eFuse)` en ambos canales. Si aparece otro mensaje, la placa no tiene calibración.
 2. Montar el potenciómetro ([03](03-hardware-y-conexiones.md)). Reiniciar el ESP32-C6 para salir del modo de prueba.
-3. Con el potenciómetro quieto en cada punto, anotar **a la vez** el multímetro (2 decimales) y el **Prom** del dashboard (3 decimales). Puntos: 0 V (cursor a GND), ≈ 0,25, 0,5, 1,0, 1,5, 2,0, 2,5 V y el tope.
+3. Con el potenciómetro quieto en cada punto, anotar **a la vez** el multímetro (2 decimales) y el **Prom** del dashboard (3 decimales). Cubrir puntos desde 0 V hasta el máximo seguro de la entrada, incluyendo niveles intermedios.
 4. Calcular error absoluto y relativo por punto y dibujar la curva.
 
+Resultados iniciales informados por el usuario el 2026-11-05 (CH A). Error con signo = dashboard − multímetro; error relativo = error absoluto / lectura del multímetro. En 0 V el error relativo no aplica.
+
 | Punto | Multímetro (V) | Dashboard v2 (V) | Error (V) | Error (%) |
-|---|---|---|---|---|
-| 1 | _pendiente_ | _pendiente_ | | |
-| 2 | _pendiente_ | _pendiente_ | | |
-| 3 | _pendiente_ | _pendiente_ | | |
-| 4 | _pendiente_ | _pendiente_ | | |
+|---|---:|---:|---:|---:|
+| 1 | 0,000 | 0,004 | +0,004 | N/A |
+| 2 | 0,519 | 0,525 | +0,006 | 1,16 |
+| 3 | 1,537 | 1,557 | +0,020 | 1,30 |
+| 4 | 2,996 | 3,031 | +0,035 | 1,17 |
 | 5 | _pendiente_ | _pendiente_ | | |
 | 6 | _pendiente_ | _pendiente_ | | |
 | 7 | _pendiente_ | _pendiente_ | | |
 | 8 | _pendiente_ | _pendiente_ | | |
+
+En estos cuatro puntos el error absoluto máximo observado fue 0,035 V (35 mV); el error relativo de los tres puntos distintos de cero fue de 1,16–1,30 %. Son lecturas puntuales, no una especificación de exactitud: no se registraron repeticiones, incertidumbre del multímetro ni variación temporal del promedio.
 
 Si el error sigue siendo grande, las alternativas son una tabla de interpolación en el SBC con estos mismos puntos o limitar el rango útil del instrumento.

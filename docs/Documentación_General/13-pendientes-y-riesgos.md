@@ -9,7 +9,7 @@ Estado a 2026-11-05. Ordenados por prioridad para la entrega.
 | A-1 | 🟢 **Resuelto funcionalmente**: Nginx sirve el dashboard y proxya `/api/scope/frame` con HTTP 200 y trama real (P-18) | R-02 verificado; falta hacer reproducible el despliegue | Documentar cómo se instaló nginx y cómo se copió/habilitó `beagleplay/nginx.conf` | Equipo SBC |
 | A-2 | 🟡 **El fallo de 40 kSa/s de P-10 no se reprodujo en P-20**: 10/10 capturas sin señal y 5/5 con seno de 1 kHz, `flags=0`, `retries=0` | Falta una prueba prolongada/estrés para cerrar R-08 | Repetir durante más tiempo y conservar log del backend/monitor serie | Firmware (David) y SBC |
 | A-3 | 🟡 **Las pérdidas históricas (~50 %, P-05) no se observaron en P-18/P-20**; 0 reintentos en capturas probadas | No se validaron las 200 transacciones del benchmark con respuesta SPI, ni se hizo prueba sostenida | Añadir/usar un contador de transacciones válidas e inválidas y medir bajo carga prolongada | Firmware (David) |
-| A-4 | **Calibración v2: falta medir la exactitud** (el arranque en hardware ya está verificado: calibra por eFuse en ambos canales) | No se sabe cuánto mejora el error | Repetir la tabla de [08](08-calibracion-adc.md) con multímetro | David |
+| A-4 | 🟡 **Medición preliminar de calibración v2** (4 puntos en CH A, P-21; error absoluto 0,004–0,035 V) | Aún no caracteriza la exactitud: faltan puntos, repeticiones y la incertidumbre del multímetro | Completar la tabla de [08](08-calibracion-adc.md) en CH A y CH B; repetir cada nivel y registrar el instrumento | David |
 | A-5 | 🟡 **Frecuencia estimada en los cuatro presets con generador (P-20)**: 100,0 / 1.000,09 / 10.004,06 / 40.307,74 Sa/s | La incertidumbre/calibración del generador no está documentada; estimación a 40 kSa/s difiere +0,77 % del nominal | Confirmar tolerancia del generador o contrastar con analizador lógico/osciloscopio calibrado | Todos |
 | A-6 | 🟡 **Caudal medido de 0,10 a 0,54 MB/s entre 1 y 20 MHz (P-20)** | 20 MHz es solo la máxima velocidad probada; no se ha determinado máximo estable ni velocidad real con analizador | Probar más velocidades y validar datos/respuestas bajo una carga prolongada | Equipo SBC |
 | A-7 | **Cómo se habilitó `/dev/spidev0.0` no está documentado** (según el equipo ya venía en la imagen Debian 13.7) | Si otra imagen no lo trae, el resto no puede reproducirlo | Comprobar `ls /dev/spidev*` en una imagen limpia y, si falta, documentar el overlay | Equipo SBC |
@@ -42,6 +42,6 @@ Estado a 2026-11-05. Ordenados por prioridad para la entrega.
 
 ## 4. Próximos pasos sugeridos (en orden)
 
-1. Medir la exactitud calibrada (A-4) y repetir 40 kSa/s con señal conocida durante más tiempo (A-2).
+1. Completar la caracterización del ADC calibrado (A-4) y repetir 40 kSa/s con señal conocida durante más tiempo (A-2).
 2. Documentar la tolerancia del generador y decidir si la precisión de fs y SPI requiere contraste instrumental (A-5/A-6).
 3. Documentar la instalación de nginx (A-1), completar [14](14-participacion-y-uso-de-ia.md) y grabar el video.
