@@ -57,5 +57,6 @@ El dashboard convierte `V = mV / 1000` (protocolo v2).
 
 - Escala Y fija 0 a 3,3 V; sin auto-escala, cursores ni selector de ventana (el backend usa la ventana del esclavo, 256 por defecto).
 - Sin disparo: la fase de una señal periódica cambia entre capturas.
+- **La ventana puede ser más corta que la señal.** Con 256 muestras a 40.000 Sa/s la ventana dura 6,4 ms; una señal de 20 Hz tiene un periodo de 50 ms, así que cada captura muestra solo ≈ 13 % de un ciclo (un tramo casi recto) y, sin disparo, un tramo distinto cada vez. Para ver ciclos completos conviene que `ventana ≥ periodo`: 20 Hz se ve bien a 1.000 Sa/s (256 ms, ≈ 5 ciclos). Regla: ciclos visibles = `256 × f / fs`. Ni siquiera con la ventana máxima (1020 muestras) a 40.000 Sa/s (25,5 ms) cabe un ciclo de 20 Hz.
 - El refresco real depende de la duración de la ventana: a 100 Sa/s con 256 muestras cada captura tarda ≥ 2,56 s.
-- El archivo `scope.js` no se ha revisado con un analizador de sintaxis (no hay Node.js en el entorno de desarrollo); su funcionamiento se comprobó en el navegador del equipo.
+- Verificación del 2026-11-05: la sintaxis de `scope.js` se comprobó con Node.js (`node --check`) y la lógica del bucle con una simulación de reloj virtual (sin navegador ni hardware): con el código anterior, 20 capturas en 20 s con refresco de 4 s tras cambiar ajustes y 0 envíos de preset al primer arranque; con el nuevo, una captura cada 4 s y el preset enviado al iniciar. **Falta probarlo en el navegador con el hardware real.**
