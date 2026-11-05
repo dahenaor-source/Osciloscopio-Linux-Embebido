@@ -206,6 +206,6 @@ La atribución individual de todas las interacciones históricas y sus modelos e
 
 | Integrante | Archivo del chat | Herramienta y modelo |
 |---|---|---|
-| David Henao Rojas | _por completar_ | Copilot (VS Code); _confirmar si también Gemini o ChatGPT_ |
-| Juan Camilo Giraldo | _por completar_ | Copilot (VS Code); modelo/versión exactos por confirmar |
-| Laura Daniela Barragán Silva | No anexado | ChatGPT; modelo y versión exactos no documentados |
+| David Henao Rojas | N/A | Copilot (VS Code);  |
+| Juan Camilo Giraldo | N/A | Copilot (VS Code);  |
+| Laura Daniela Barragán Silva | No anexado | ChatGPT |
