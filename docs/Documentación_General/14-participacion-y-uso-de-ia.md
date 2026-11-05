@@ -109,11 +109,51 @@ resultados.
 
 ### 4.1 Herramienta y alcance
 
-- Herramienta: asistente de IA integrado en VS Code (GitHub Copilot, modo agente con acceso a terminal y archivos), usado por **David Henao Rojas** y, para las tareas descritas en la sección 4.3, por **Juan Camilo Giraldo**.
+- Herramienta: asistente de IA integrado en VS Code (GitHub Copilot, modo agente con acceso a terminal y archivos), usado por **David Henao Rojas** y, para las tareas descritas en la sección 4.4, por **Juan Camilo Giraldo**.
+- Para **Laura Daniela Barragán Silva**, se documenta el uso de **ChatGPT** en las actividades de la sección 4.2; el modelo exacto no quedó registrado.
 - Herramientas de IA declaradas por el equipo: **Copilot, Gemini y ChatGPT**. Para Juan Camilo consta el uso de Copilot en VS Code en esta colaboración; no hay información para atribuirle uso de Gemini o ChatGPT. El modelo/versión exactos no quedaron registrados.
 - La autoría Git identifica quién registró los commits, pero por sí sola no demuestra si se utilizó IA para escribir el código de esos commits. Por eso, la participación de IA de Juan Camilo se limita abajo a las tareas confirmadas en esta colaboración.
 
-### 4.2 Tareas en las que se usó la IA (lado David)
+### 4.2 Tareas en las que se usó la IA (lado Laura Daniela Barragán Silva)
+
+Para las actividades descritas se utilizó **ChatGPT** como
+asistente de apoyo técnico, análisis y documentación.
+
+| Actividad | Apoyo de ChatGPT | Verificación realizada |
+|---|---|---|
+| Entorno Ubuntu y ESP-IDF | Orientación para configurar herramientas, ejecutar comandos y analizar errores del entorno ESP32-C6 | Revisión de las respuestas reales de la terminal y del estado de los programas instalados |
+| Compilación y flasheo | Análisis de mensajes de compilación, programación y problemas de acceso a `/dev/ttyACM0` y `/dev/ttyACM1` | Comprobación de resultados en consola, diferenciando compilaciones correctas de intentos de flasheo fallidos |
+| Diagnóstico e integración | Interpretación de registros SPI, inicialización del firmware, adquisición ADC y diferencias entre simulación y datos reales | Comparación con las evidencias documentadas del proyecto |
+| Control de versiones | Orientación para utilizar Git, actualizar ramas, resolver divergencias y sincronizar `Osc-V2`, `Osc-V3` y `main` | Confirmación mediante `git status`, `git log`, `git diff` y resultados de `git push` |
+| Depuración del repositorio | Identificación de documentos duplicados, organización de carpetas y corrección de referencias Markdown | Comprobación de los archivos conservados, enlaces internos y cambios publicados |
+| Manual y README | Revisión de instrucciones de instalación, funcionamiento y estados documentados | Comparación con los procedimientos y resultados existentes |
+| Matriz de verificación | Consolidación de pruebas y diferenciación entre resultados satisfactorios, históricos y parciales | Contraste con la bitácora P-01 a P-22, sin modificar los valores experimentales |
+| Documentación del backend | Corrección de afirmaciones históricas sobre pérdidas SPI, 40 kSa/s y recuperación del dispositivo | Contraste con las pruebas P-18, P-19, P-20 y P-22 |
+| Calibración ADC | Apoyo para interpretar las mediciones preliminares del firmware V2 | Revisión de los cuatro puntos documentados en P-21, sin atribuir nuevas mediciones |
+| Declaración de participación | Organización de los aportes individuales y del uso documentado de herramientas de IA | Revisión de la coherencia entre las actividades descritas y la evidencia disponible |
+
+#### Participación humana y alcance de la IA
+
+ChatGPT se utilizó para formular procedimientos, interpretar
+errores, revisar documentación y proponer comandos.
+
+La ejecución de los comandos, la comprobación de las
+salidas y las decisiones de integración correspondieron
+a las personas del equipo.
+
+La asistencia de IA no implica que ChatGPT haya
+programado originalmente la versión V3 del osciloscopio
+ni ejecutado físicamente las mediciones del laboratorio.
+
+Se conservó el código funcional integrado en `main`.
+Las modificaciones de esta etapa fueron documentales.
+
+No se adjunta en este repositorio el historial completo
+de las conversaciones de ChatGPT. Tampoco se dispone
+de un registro verificable de la versión exacta del
+modelo utilizada en cada interacción.
+
+### 4.3 Tareas en las que se usó la IA (lado David)
 
 | Tarea | Qué hizo la IA | Cómo se verificó |
 |---|---|---|
@@ -126,7 +166,7 @@ resultados.
 | Pinout y diagramas (SVG, Mermaid y gráfico) | Generó los diagramas y corrigió la numeración mikroBUS a partir de la corrección del equipo | El equipo corrigió el error de INT (11 → 15); los SVG se renderizaron para revisarlos |
 | Documentación (.md) | Redactó y organizó esta documentación | Revisión por el equipo y contraste con los archivos y logs del repositorio |
 
-### 4.3 Tareas en las que se usó la IA (lado Juan Camilo)
+### 4.4 Tareas en las que se usó la IA (lado Juan Camilo)
 
 | Tarea | Qué hizo la IA | Cómo se verificó / participación humana |
 |---|---|---|
@@ -168,4 +208,4 @@ La atribución individual de todas las interacciones históricas y sus modelos e
 |---|---|---|
 | David Henao Rojas | _por completar_ | Copilot (VS Code); _confirmar si también Gemini o ChatGPT_ |
 | Juan Camilo Giraldo | _por completar_ | Copilot (VS Code); modelo/versión exactos por confirmar |
-| Daniela Barragán | _por completar_ | _por completar_ |
+| Laura Daniela Barragán Silva | No anexado | ChatGPT; modelo y versión exactos no documentados |
