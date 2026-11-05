@@ -32,12 +32,8 @@ Toda la documentación técnica está en [**`docs/Documentación_General/`**](do
 | [08 Calibración del ADC](docs/Documentaci%C3%B3n_General/08-calibracion-adc.md) | Error medido y calibración por eFuse |
 | [09 Pruebas y resultados](docs/Documentaci%C3%B3n_General/09-pruebas-y-resultados.md) | Bitácora con evidencia |
 | [10 Matriz de verificación](docs/Documentaci%C3%B3n_General/10-matriz-de-verificacion.md) | Requisito → prueba → resultado |
-| [11 Guía de flasheo](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md) | Flashear y probar el ESP32-C6. **Empezar aquí** |
-| [12 Guía del equipo SBC](docs/Documentación_General/06-backend-beagleplay.md) | Contexto de la BeaglePlay. **Juan Camilo y Daniela** |
 | [13 Pendientes y riesgos](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md) | Qué falta |
-| [14 Participación y uso de IA](docs/Documentaci%C3%B3n_General/14-participacion-y-uso-de-ia.md) | Declaraciones (por completar) |
-| [15 Verificación de flasheo V2](docs/Documentación_General/09-pruebas-y-resultados.md) | Compilación y arranque del firmware |
-| [16 Estado de validación main](docs/Documentación_General/10-matriz-de-verificacion.md) | Evidencias P-18, P-19, P-20 y pendientes |
+| [14 Participación y uso de IA](docs/Documentaci%C3%B3n_General/14-participacion-y-uso-de-ia.md) | Participación del equipo y uso documentado de IA |
 
 Además: [dashboard/README.md](dashboard/README.md) y [beagleplay/backend/README.md](beagleplay/backend/README.md).
 

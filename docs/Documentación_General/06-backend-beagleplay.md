@@ -41,7 +41,7 @@ Se usa `sudo -E` para que `spidev` tenga permiso y se conserve la variable de en
 
 ### Arranque automático con systemd
 
-Para que al alimentar la placa todo funcione solo (nginx ya arranca solo; el backend no), se instala el backend como servicio:
+El arranque automático del backend fue verificado tras reiniciar la BeaglePlay (P-19). Para instalarlo, se instala el backend como servicio:
 
 ```bash
 sudo bash ~/Osciloscopio-Linux-Embebido/beagleplay/instalar_servicio.sh
@@ -103,7 +103,7 @@ Detalles de `spi_driver.py` que no estaban en la versión inicial:
 ## 5. Estado y limitaciones
 
 - ✅ Lectura de cabeceras válidas, captura en modo de prueba y captura real a 100 y 1.000 Sa/s sin problemas, y a 10.000 Sa/s con errores esporádicos (mensajes no registrados), a través del dashboard.
-- ❌ A **40.000 Sa/s** se observó un error constante; el mensaje exacto no se registró ([13](13-pendientes-y-riesgos.md)).
+- ✅ En P-20 se registraron **15 capturas válidas a 40.000 Sa/s**, incluidas cinco con seno de 1 kHz. El fallo de versiones anteriores no se reprodujo; la prueba fue de corta duración ([13](13-pendientes-y-riesgos.md)).
 - ⚠️ Con reintentos altos (24 a 39 por trama a 1 y 10 kSa/s) la latencia por captura sube; no se ha medido.
 - ⚠️ La línea INT no se usa; todo se resuelve con pausas y reintentos.
 - 🟡 **nginx**: el enunciado exige apache o nginx. El equipo del SBC añadió [`beagleplay/nginx.conf`](../../beagleplay/nginx.conf) (2026-11-04): `location /` sirve `dashboard/` desde `/home/camilo/Osciloscopio-Linux-Embebido/dashboard` y `location /api/` hace `proxy_pass` a `http://127.0.0.1:8000`, con el puerto 80. **Verificado en la BeaglePlay el 2026-11-05:**

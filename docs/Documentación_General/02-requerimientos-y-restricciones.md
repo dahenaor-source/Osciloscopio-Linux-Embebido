@@ -15,7 +15,7 @@
 | R-09 | Grupo de **máximo 6** personas, tareas bien definidas | 3 integrantes registrados | ✅ Ver [14](14-participacion-y-uso-de-ia.md) |
 | R-10 | Repositorio Git con documentación, instrucciones y código | Este repositorio | 🟡 En curso |
 | R-11 | **Matriz de verificación** con resultados detallados | [10](10-matriz-de-verificacion.md) | 🟡 Parcial |
-| R-12 | Declaración de participación y de uso de IA | [14](14-participacion-y-uso-de-ia.md) | ⏳ Plantilla; el equipo debe completarla |
+| R-12 | Declaración de participación y de uso de IA | [14](14-participacion-y-uso-de-ia.md) | 🟡 Documento de participación e IA disponible; los historiales de interacciones no están anexados |
 | R-13 | **Video** del funcionamiento | — | ⏳ Pendiente |
 | R-14 | Diagramas de bloques y de flujo | [01](01-descripcion-general.md) | ✅ |
 

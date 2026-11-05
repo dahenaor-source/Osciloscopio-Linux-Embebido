@@ -18,12 +18,8 @@ Proyecto 2 de *Programación de sistemas Linux embebidos* (docente Juan Bernardo
 | 08 | [Calibración del ADC](08-calibracion-adc.md) | Problema medido, solución en firmware, cómo verificarla |
 | 09 | [Pruebas y resultados](09-pruebas-y-resultados.md) | Bitácora cronológica con evidencia y hallazgos |
 | 10 | [Matriz de verificación](10-matriz-de-verificacion.md) | Requisito → prueba → resultado |
-| 11 | [Guía: flashear y probar el ESP32-C6](../Instrucciones_De_Uso/Instrucciones_De_Uso.md) | Para cualquier miembro del equipo, sin instalar ESP-IDF |
-| 12 | [Guía para el equipo del SBC](06-backend-beagleplay.md) | Contexto de la BeaglePlay y orden de pruebas |
 | 13 | [Pendientes y riesgos](13-pendientes-y-riesgos.md) | Qué falta, problemas abiertos, próximos pasos |
-| 14 | [Participación y uso de IA](14-participacion-y-uso-de-ia.md) | Roles, aportes y declaración de uso de IA (por completar por el equipo) |
-| 15 | [Verificación de flasheo V2](09-pruebas-y-resultados.md) | Compilación y arranque en hardware |
-| 16 | [Estado de validación main](10-matriz-de-verificacion.md) | Evidencias recientes y validaciones pendientes |
+| 14 | [Participación y uso de IA](14-participacion-y-uso-de-ia.md) | Participación y uso documentado de IA |
 
 ## Por dónde empezar
 

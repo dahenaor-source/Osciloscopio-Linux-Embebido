@@ -61,10 +61,6 @@ Resultados iniciales informados por el usuario el 2026-11-05 (CH A). Error con s
 | 2 | 0,519 | 0,525 | +0,006 | 1,16 |
 | 3 | 1,537 | 1,557 | +0,020 | 1,30 |
 | 4 | 2,996 | 3,031 | +0,035 | 1,17 |
-| 5 | _pendiente_ | _pendiente_ | | |
-| 6 | _pendiente_ | _pendiente_ | | |
-| 7 | _pendiente_ | _pendiente_ | | |
-| 8 | _pendiente_ | _pendiente_ | | |
 
 En estos cuatro puntos el error absoluto máximo observado fue 0,035 V (35 mV); el error relativo de los tres puntos distintos de cero fue de 1,16–1,30 %. Son lecturas puntuales, no una especificación de exactitud: no se registraron repeticiones, incertidumbre del multímetro ni variación temporal del promedio.
 

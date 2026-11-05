@@ -4,7 +4,7 @@ Esta guía te lleva **desde cero** hasta ver en tu navegador la gráfica de dos 
 
 Tiempo estimado: 1 a 2 horas la primera vez.
 
-> **Estado del proyecto (2026-11-05).** El sistema funciona de extremo a extremo con 100, 1.000 y 10.000 muestras por segundo. Hay limitaciones conocidas que **no son errores tuyos**: el preset de 40.000 Sa/s falla, cerca de la mitad de las lecturas SPI se pierden y el software las reintenta, y la calibración del ADC de la versión actual del firmware (v2) todavía no se ha medido con instrumentos. Están explicadas en la sección 11.
+> **Estado del proyecto (2026-11-05).** El sistema funciona de extremo a extremo con 100, 1.000 y 10.000 muestras por segundo. Hay limitaciones conocidas que **no son errores tuyos**: el preset de 40.000 Sa/s produjo 15 capturas válidas (5 con señal senoidal conocida), el enlace SPI funcionó sin reintentos en las pruebas recientes y el ADC v2 se comparó preliminarmente con un multímetro en cuatro puntos. Están explicadas en la sección 11.
 >
 > La BeaglePlay del equipo usa **Debian GNU/Linux 13.7 «trixie»** (imagen entregada por el profesor). Se **alimenta con un cable USB-C** y se configuró por **consola serie con minicom** usando un **adaptador USB a UART**. Los pasos marcados con ⚠️ son detalles que no se han podido verificar; se indica cómo comprobarlos.
 
@@ -544,7 +544,7 @@ Con el potenciómetro, la señal es **continua** (no cambia con el tiempo): ver�
 | Control | Qué hace |
 |---|---|
 | **▶ Start / ■ Stop** | Inicia o detiene las capturas |
-| **Frecuencia de muestreo** | Cuántas muestras por segundo: 100, 1.000, 10.000 o 40.000. Cambia la «velocidad de la cámara» del instrumento. **Con 40.000 hay un error conocido** (sección 11) |
+| **Frecuencia de muestreo** | Cuántas muestras por segundo: 100, 1.000, 10.000 o 40.000. Cambia la «velocidad de la cámara» del instrumento. **40.000 Sa/s fue probado satisfactoriamente en P-20** |
 | **Refresco** | Cada cuánto se pide una captura nueva: 0,25 Hz (4 s), 0,5 Hz (2 s) o 1 Hz (1 s) |
 
 La ventana siempre tiene 256 muestras, así que su **duración** depende de la frecuencia de muestreo:
@@ -598,9 +598,9 @@ A 100 Sa/s cada captura dura 2,56 s, por lo que el refresco real es de unos 0,38
 
 Para que sepas qué esperar (todas están en [13-pendientes-y-riesgos.md](../Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md)):
 
-1. **40.000 Sa/s falla:** con ese preset aparece un error constante; no está resuelto. Funcionan 100, 1.000 y 10.000 (este último con errores esporádicos).
+1. **40.000 Sa/s:** el fallo de las primeras versiones no se reprodujo en P-20. Se registraron 15 capturas válidas, 5 con seno de 1 kHz. La prueba fue de corta duración.
 2. **Se pierde cerca de la mitad de las lecturas SPI.** El software las repite automáticamente; sólo notarás algo más de espera y el aviso `reintentos SPI`.
-3. **Precisión del voltaje.** El ADC del ESP32-C6 sin calibrar se equivocó hasta 0,7 V frente a un multímetro. El firmware v2 incluye calibración de fábrica, pero **aún no se ha medido en hardware**: no confíes en el valor absoluto sin compararlo con un multímetro.
+3. **Precisión del voltaje.** El ADC del ESP32-C6 sin calibrar se equivocó hasta 0,7 V frente a un multímetro. El firmware v2 incorpora calibración eFuse. En P-21 se comparó el canal A con un multímetro en cuatro puntos y se observaron errores absolutos entre 0,004 y 0,035 V. Estos resultados son preliminares y no constituyen una caracterización metrológica completa.
 4. **Sin disparo (trigger):** cada captura empieza cuando se pide; una señal que cambia en el tiempo aparecerá en fases distintas en cada captura.
 5. **Arranque automático verificado en la BeaglePlay (P-19):** el servicio de systemd que arranca el backend al encender (`beagleplay/instalar_servicio.sh`) está implementado y fue comprobado después de reiniciar la BeaglePlay. La sección 8.4 describe cómo comprobarlo. nginx sí está verificado: activo, habilitado y sirviendo el dashboard (2026-11-05).
 6. **Rango de entrada:** de 0 a unos 3,1 V, solo positivo.

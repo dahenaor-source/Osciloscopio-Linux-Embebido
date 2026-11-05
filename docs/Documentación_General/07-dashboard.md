@@ -1,6 +1,6 @@
 # 07. Dashboard
 
-Carpeta [`dashboard/`](../../dashboard). Primera versión por David Henao Rojas; el backend de Juan Camilo lo sirve en `http://<IP_BEAGLEPLAY>:8000/`.
+Carpeta [`dashboard/`](../../dashboard). Primera versión por David Henao Rojas; nginx lo sirve en `http://<IP_BEAGLEPLAY>/` (puerto 80) y reenvía `/api/` a FastAPI. Integración verificada en P-18 y P-22.
 
 ## 1. Qué muestra y qué permite
 
