@@ -177,145 +177,26 @@ modelo utilizada en cada interacción.
 
 El historial registra que Juan Camilo es autor de commits del backend, el driver SPI, su README y los scripts de prueba. Ese dato documenta su contribución de software, pero no basta para afirmar que la IA escribió originalmente esos componentes; la participación de IA en esa implementación debe confirmarla el integrante si desea declararla.
 
-### 4.5 Uso previo de Gemini (Google) por Juan Camilo Giraldo
+### 4.5 Uso previo de Gemini (Juan Camilo Giraldo)
 
-#### Herramienta utilizada
+Juan Camilo declaró haber utilizado **Gemini (Google)**
+antes de migrar a **GitHub Copilot**.
+La versión exacta del modelo no quedó registrada.
 
-**Modelo o familia:** Gemini, de Google.
+| Tarea | Qué hizo Gemini | Verificación reportada |
+|---|---|---|
+| Diagnóstico de arquitectura | Analizó latencias cercanas a 40 segundos y bloqueos al cambiar entre 100 y 40.000 Sa/s. | Pruebas de integración en ESP32-C6 y BeaglePlay. |
+| Firmware ESP32-C6 | Revisó DMA dinámico, tiempos de espera del ADC y aborto de captura en `adc_capture.c` y `scope_link.c`. | Compilación y pruebas en hardware reportadas por Juan Camilo. |
+| Dashboard y polling | Apoyó la adaptación del refresco a ventanas de 2,56 s a 100 Sa/s y el control de bucles simultáneos en `scope.js`. | Pruebas de interfaz y respuesta al cambiar presets. |
+| Backend FastAPI | Revisó `/api/scope/frame` y `/api/scope/config` y su interacción con SPI. | Pruebas de integración del backend. |
+| Control de versiones | Orientó el uso de `git reflog`, `git fetch`, `git reset --hard` y la resolución de conflictos de `Osc-V2`. También se discutió `git push -f`. | Comprobación del historial y sincronización de ramas; los comandos destructivos no se recomiendan para `main`. |
+| Teoría de muestreo | Explicó Nyquist-Shannon y aliasing al adquirir señales cercanas a 2 kHz con 100 Sa/s. | Contraste teórico y experimentos con generador reportados por Juan Camilo. |
 
-Juan Camilo Giraldo informó que utilizó Gemini como
-asistente técnico durante una etapa anterior del
-desarrollo del osciloscopio y que posteriormente migró
-a GitHub Copilot.
-
-La versión específica de Gemini no fue indicada.
-
-#### Actividades realizadas con asistencia de Gemini
-
-| Área | Actividad declarada |
-|---|---|
-| Diagnóstico de arquitectura | Análisis de una latencia cercana a 40 segundos y de bloqueos al alternar frecuencias de muestreo entre 100 y 40.000 Sa/s. |
-| Firmware ESP32-C6 | Revisión de buffers DMA dinámicos, tiempos de espera del ADC y mecanismos de aborto de captura en `adc_capture.c` y `scope_link.c`. |
-| Interfaz web | Revisión del control de polling en `dashboard/scope.js`, adaptación del refresco a la duración física de captura y prevención de bucles de adquisición simultáneos. |
-| Control de versiones | Asistencia para diagnosticar conflictos de la rama `Osc-V2`, consultar el historial y restaurar versiones estables mediante Git. |
-| Procesamiento digital de señales | Explicación del teorema de muestreo de Nyquist-Shannon y del aliasing al adquirir señales de frecuencia superior a la permitida por la tasa de muestreo. |
-| Backend | Revisión de los endpoints `/api/scope/frame` y `/api/scope/config` y su interacción con los comandos SPI. |
-
-#### Detalles técnicos tratados en las conversaciones
-
-**Firmware y adquisición ADC**
-
-La declaración de Juan Camilo menciona:
-
-- Revisión de `firmware/main/adc_capture.c`.
-- Propuesta de buffers DMA de 128 bytes para tasas de
-  hasta 1.000 Sa/s y de 1024 bytes para tasas superiores.
-- Análisis de la reducción de tiempos de espera del ADC
-  a aproximadamente 20 ms.
-- Revisión de `firmware/main/scope_link.c`.
-- Uso de `abort_capture = true` para solicitar la
-  interrupción de una adquisición activa.
-- Análisis del rechazo de comandos durante la captura.
-
-Estos elementos se registran como parte de las
-discusiones de desarrollo. Su inclusión no significa
-que todas las propuestas correspondan exactamente
-al firmware V3 conservado en `main`.
-
-**Dashboard y control de refresco**
-
-Se abordaron:
-
-- La función `updateRefreshOptions()`.
-- La duración de una ventana de 256 muestras a
-  100 Sa/s, equivalente a 2,56 segundos.
-- El ajuste dinámico de opciones de refresco.
-- La sustitución de temporizadores periódicos rígidos
-  por un ciclo asíncrono de captura.
-- El uso de identificadores de ciclo para evitar
-  solicitudes HTTP simultáneas y bucles anteriores
-  que continuaran ejecutándose después de cambiar
-  la configuración.
-
-La declaración original menciona el identificador
-`activeLoopId`; la documentación del repositorio
-describe mecanismos equivalentes de control de ciclos.
-La nomenclatura exacta debe interpretarse según
-la versión del código a la que corresponda cada prueba.
-
-**Control de versiones**
-
-Gemini proporcionó orientación para procedimientos
-relacionados con:
-
-- `git reflog`.
-- Recuperación de commits específicos.
-- `git fetch`.
-- Resolución de divergencias en `Osc-V2`.
-- Uso de `git reset --hard`.
-- Sincronización de ramas entre computadores.
-
-También se discutieron actualizaciones forzadas
-mediante `git push -f`. Se documentan como parte
-del historial de asistencia, no como una recomendación
-para la rama compartida `main`, donde se han
-conservado los cambios mediante sincronización
-y commits normales.
-
-**Teoría de muestreo**
-
-Se analizaron el teorema de Nyquist-Shannon y el
-fenómeno de aliasing. Juan Camilo reportó discusiones
-sobre señales cercanas a 2 kHz adquiridas con
-frecuencias de muestreo de 100 Sa/s.
-
-Estas discusiones se registran como actividad de
-análisis teórico y no se presentan automáticamente
-como mediciones experimentales del proyecto.
-
-#### Metodología de verificación declarada
-
-Juan Camilo indicó que contrastó las sugerencias
-de Gemini mediante actividades como:
-
-1. Compilación y despliegue de firmware en ESP32-C6.
-2. Ejecución del backend FastAPI en la BeaglePlay.
-3. Observación de la respuesta del dashboard al
-   cambiar frecuencias de muestreo.
-4. Revisión de las restricciones de refresco
-   asociadas a la duración de las ventanas.
-5. Uso de un generador de funciones para estudiar
-   señales sinusoidales y efectos de muestreo.
-6. Comprobaciones del estado y sincronización
-   del repositorio Git entre integrantes.
-
-En la declaración recibida también se menciona
-una respuesta gráfica inferior a un segundo después
-de determinados cambios de configuración. Este dato
-se conserva como observación reportada por Juan Camilo,
-sin convertirlo en una nueva prueba aprobada de la
-matriz, ya que aquí no se incorpora una medición
-reproducible de esa latencia.
-
-#### Alcance de la evidencia
-
-Esta subsección procede de la declaración de uso de
-Gemini proporcionada por Juan Camilo Giraldo.
-
-Documenta las tareas para las que solicitó asistencia
-de IA, las soluciones discutidas y la metodología
-de comprobación que reportó.
-
-Los resultados experimentales formalmente registrados
-y sus limitaciones permanecen en:
-
-- [09. Pruebas y resultados](09-pruebas-y-resultados.md).
-- [10. Matriz de verificación](10-matriz-de-verificacion.md).
-
-No se dispone aquí de la transcripción íntegra de
-Gemini ni de la identificación de su versión exacta.
-Por ello, este apartado es una declaración resumida
-de interacciones, no un historial literal de chat.
+Las actividades anteriores corresponden a la declaración
+de Juan Camilo. No todas las propuestas de Gemini se
+consideran implementadas en V3, ni los resultados
+reportados constituyen automáticamente pruebas aprobadas
+en la matriz. El historial completo de Gemini no está anexado.
 
 ## 5. Verificación de resultados
 
