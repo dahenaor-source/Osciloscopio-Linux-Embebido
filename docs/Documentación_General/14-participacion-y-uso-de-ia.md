@@ -19,105 +19,16 @@ desarrollados de forma colaborativa.
 El historial de Git conserva la trazabilidad de los cambios.
 
 
-## 2. Aportes de Laura Daniela Barragán Silva
+## 2. Uso de inteligencia artificial en el proyecto
 
-La participación documentada comprende actividades de
-integración, diagnóstico, gestión del repositorio y
-documentación del proyecto.
+### 2.1 Herramienta y alcance
 
-### Entorno de desarrollo y ESP32-C6
-
-Se trabajó desde Ubuntu con ESP-IDF para preparar la
-compilación del firmware de las ramas de desarrollo.
-Se revisaron errores de compilación relacionados con
-la ubicación del proyecto y la activación del entorno.
-
-También se diagnosticaron dificultades de programación
-por USB, incluyendo cambios entre `/dev/ttyACM0` y
-`/dev/ttyACM1`, desaparición temporal del dispositivo
-serie y posibles ocupaciones del puerto.
-
-Los registros de compilación satisfactoria se distinguen
-de los intentos de flasheo fallidos. No se considera
-programada una placa por el solo hecho de generar
-correctamente el archivo binario.
-
-### Integración y diagnóstico
-
-Se revisaron registros del firmware, inicialización de
-SPI, calibración eFuse, errores de adquisición y
-comportamiento del dashboard.
-
-Se trabajó sobre la interpretación de las versiones del
-protocolo, el modo de simulación y la adquisición real,
-y la coherencia entre los resultados del backend y las
-evidencias experimentales.
-
-### Gestión de versiones
-
-Se realizaron operaciones de actualización, comparación
-y cambio entre las ramas `Osc-V2`, `Osc-V3` y `main`.
-Se respaldó el historial local cuando existieron ramas
-divergentes y se integraron modificaciones documentales
-respetando los commits de los demás integrantes.
-
-Se realizaron commits y publicaciones de documentación
-en GitHub, así como la depuración de documentos
-redundantes y corrección de sus referencias internas.
-
-### Documentación técnica
-
-Se revisaron y organizaron:
-
-- README principal y documentos de los componentes.
-- Manual de instalación y operación.
-- Guías de ESP32-C6 y BeaglePlay.
-- Documentación del protocolo SPI.
-- Bitácora de pruebas y matriz de verificación.
-- Resultados de calibración y sus limitaciones.
-- Declaración de participación y uso de IA.
-- Estructura y enlaces del repositorio.
-
-Se distinguieron resultados históricos, pruebas
-funcionales actuales y verificaciones parciales.
-
-Las mediciones identificadas como P-18 a P-22 se citan
-como evidencias del proyecto, sin atribuir su ejecución
-individual a partir de esta revisión documental.
-
-## 3. Uso de inteligencia artificial en estos aportes
-
-Se utilizó **ChatGPT** como herramienta de asistencia
-para analizar registros de terminal, errores de Git,
-flasheo y comunicación, interpretar resultados y
-preparar procedimientos de revisión documental.
-
-También se utilizó para elaborar y revisar comandos
-de actualización, consolidar información técnica y
-detectar contradicciones entre documentos.
-
-Las sugerencias generadas con asistencia de IA
-se contrastaron con los resultados proporcionados
-por las herramientas de desarrollo y las evidencias
-publicadas en el repositorio.
-
-La IA no reemplazó las verificaciones experimentales,
-la ejecución de comandos ni la revisión de sus
-resultados.
-
-## 4. Uso de inteligencia artificial en el proyecto
-
-### 4.1 Herramienta y alcance
-
-- Herramienta: asistente de IA integrado en VS Code (GitHub Copilot, modo agente con acceso a terminal y archivos), usado por **David Henao Rojas** y, para las tareas descritas en la sección 4.4, por **Juan Camilo Giraldo**.
-- Para **Laura Daniela Barragán Silva**, se documenta el uso de **ChatGPT** en las actividades de la sección 4.2; el modelo exacto no quedó registrado.
-- Herramientas de IA declaradas por el equipo: **Copilot, Gemini y ChatGPT**. Juan Camilo Giraldo declaró haber utilizado inicialmente Gemini (Google) y posteriormente GitHub Copilot en VS Code. Las actividades de ambas herramientas se documentan por separado en las secciones 4.4 y 4.5. El modelo/versión exactos no quedaron registrados.
+- Herramienta: asistente de IA integrado en VS Code (GitHub Copilot, modo agente con acceso a terminal y archivos), usado por **David Henao Rojas** y, para las tareas descritas en la sección 2.4, por **Juan Camilo Giraldo**.
+- Para **Laura Daniela Barragán Silva**, se documenta el uso de **ChatGPT** en las actividades de la sección 2.2; el modelo exacto no quedó registrado.
+- Herramientas de IA declaradas por el equipo: **Copilot, Gemini y ChatGPT**. Juan Camilo Giraldo declaró haber utilizado inicialmente Gemini (Google) y posteriormente GitHub Copilot en VS Code. Las actividades de ambas herramientas se documentan por separado en las secciones 2.4 y 2.5. El modelo/versión exactos no quedaron registrados.
 - La autoría Git identifica quién registró los commits, pero por sí sola no demuestra si se utilizó IA para escribir el código de esos commits. Por eso, la participación de IA de Juan Camilo se limita abajo a las tareas confirmadas en esta colaboración.
 
-### 4.2 Tareas en las que se usó la IA (lado Laura Daniela Barragán Silva)
-
-Para las actividades descritas se utilizó **ChatGPT** como
-asistente de apoyo técnico, análisis y documentación.
+### 2.2 Tareas en las que se usó la IA (lado Laura Daniela Barragán Silva)
 
 | Actividad | Apoyo de ChatGPT | Verificación realizada |
 |---|---|---|
@@ -132,28 +43,7 @@ asistente de apoyo técnico, análisis y documentación.
 | Calibración ADC | Apoyo para interpretar las mediciones preliminares del firmware V2 | Revisión de los cuatro puntos documentados en P-21, sin atribuir nuevas mediciones |
 | Declaración de participación | Organización de los aportes individuales y del uso documentado de herramientas de IA | Revisión de la coherencia entre las actividades descritas y la evidencia disponible |
 
-#### Participación humana y alcance de la IA
-
-ChatGPT se utilizó para formular procedimientos, interpretar
-errores, revisar documentación y proponer comandos.
-
-La ejecución de los comandos, la comprobación de las
-salidas y las decisiones de integración correspondieron
-a las personas del equipo.
-
-La asistencia de IA no implica que ChatGPT haya
-programado originalmente la versión V3 del osciloscopio
-ni ejecutado físicamente las mediciones del laboratorio.
-
-Se conservó el código funcional integrado en `main`.
-Las modificaciones de esta etapa fueron documentales.
-
-No se adjunta en este repositorio el historial completo
-de las conversaciones de ChatGPT. Tampoco se dispone
-de un registro verificable de la versión exacta del
-modelo utilizada en cada interacción.
-
-### 4.3 Tareas en las que se usó la IA (lado David)
+### 2.3 Tareas en las que se usó la IA (lado David)
 
 | Tarea | Qué hizo la IA | Cómo se verificó |
 |---|---|---|
@@ -166,7 +56,7 @@ modelo utilizada en cada interacción.
 | Pinout y diagramas (SVG, Mermaid y gráfico) | Generó los diagramas y corrigió la numeración mikroBUS a partir de la corrección del equipo | El equipo corrigió el error de INT (11 → 15); los SVG se renderizaron para revisarlos |
 | Documentación (.md) | Redactó y organizó esta documentación | Revisión por el equipo y contraste con los archivos y logs del repositorio |
 
-### 4.4 Tareas en las que se usó la IA (lado Juan Camilo)
+### 2.4 Tareas en las que se usó la IA (lado Juan Camilo)
 
 | Tarea | Qué hizo la IA | Cómo se verificó / participación humana |
 |---|---|---|
@@ -177,7 +67,7 @@ modelo utilizada en cada interacción.
 
 El historial registra que Juan Camilo es autor de commits del backend, el driver SPI, su README y los scripts de prueba. Ese dato documenta su contribución de software, pero no basta para afirmar que la IA escribió originalmente esos componentes; la participación de IA en esa implementación debe confirmarla el integrante si desea declararla.
 
-### 4.5 Uso previo de Gemini (Juan Camilo Giraldo)
+### 2.5 Uso previo de Gemini (Juan Camilo Giraldo)
 
 Juan Camilo declaró haber utilizado **Gemini (Google)**
 antes de migrar a **GitHub Copilot**.
@@ -198,7 +88,7 @@ consideran implementadas en V3, ni los resultados
 reportados constituyen automáticamente pruebas aprobadas
 en la matriz. El historial completo de Gemini no está anexado.
 
-## 5. Verificación de resultados
+## 3. Verificación de resultados
 
 - **Compilación y pruebas automáticas** donde fue posible (ESP-IDF, `make test`).
 - **Pruebas en hardware reales** hechas por personas (flasheo, SPI con la BeaglePlay, multímetro).
@@ -206,7 +96,7 @@ en la matriz. El historial completo de Gemini no está anexado.
 - **Corrección humana de errores de la IA**: el equipo detectó la numeración de pines mikroBUS errónea (INT) y aportó los logs que mostraron que `ARM` se perdía; el desajuste de la lectura del ADC se descubrió comparando con un multímetro.
 - Lo **no verificado** se marca explícitamente como pendiente en [09](09-pruebas-y-resultados.md) y [10](10-matriz-de-verificacion.md).
 
-## 6. Limitaciones de la documentación y de la IA
+## 4. Limitaciones de la documentación y de la IA
 
 ### Errores y límites conocidos de la IA
 
