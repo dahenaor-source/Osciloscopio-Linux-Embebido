@@ -112,7 +112,7 @@ artificial para apoyar actividades de desarrollo, diagnóstico,
 análisis de resultados y documentación.
 
 Las herramientas y actividades identificadas se describen
-en las secciones 4.2, 4.3 y 4.4.
+en las secciones 2.2 a 2.5.
 
 La siguiente tabla presenta el estado de los historiales
 de conversaciones dentro de este repositorio.
@@ -120,7 +120,7 @@ de conversaciones dentro de este repositorio.
 | Integrante | Herramienta documentada | Estado del historial |
 |---|---|---|
 | David Henao Rojas | GitHub Copilot en VS Code | No anexado. Versión exacta del modelo no documentada. |
-| Juan Camilo Giraldo | GitHub Copilot en VS Code | No anexado. Versión exacta del modelo no documentada. |
+| Juan Camilo Giraldo | Gemini (Google) y GitHub Copilot (VS Code) | No anexado. Versiones exactas de los modelos no documentadas. |
 | Laura Daniela Barragán Silva | ChatGPT | No anexado. Versión exacta del modelo no documentada. |
 
 La documentación registra las tareas apoyadas por IA y
