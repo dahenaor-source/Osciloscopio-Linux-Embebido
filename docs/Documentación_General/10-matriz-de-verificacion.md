@@ -52,7 +52,7 @@ Corte de pruebas en hardware y verificaciones locales: 2026-11-05. Cada fila enl
 | SYS-05 | R-06: refresco entre 0,25 y 1 Hz | DB-03 | 🟡 |
 | SYS-06 | R-07: tasa teórica de SPI y verificación experimental | [05](05-firmware-esp32c6.md) y FW-10 | 🟡 Teoría hecha; experimental parcial |
 | SYS-07 | R-08: bonificación ≥ 40 kSa/s verificada | FW-09 | 🟡 15 capturas funcionales sin overrun, incluidas 5 con señal conocida; estrés prolongado fuera del alcance de esta etapa |
-| SYS-08 | R-13: video del funcionamiento | — | ⏳ |
+| SYS-08 | R-13: video del funcionamiento | [Video demostrativo](../../videos/VIDEO_DEMOSTRACION.mp4) publicado en el repositorio | ✅ Archivo MP4 incorporado a `main`. La publicación está verificada; el contenido audiovisual no fue auditado en esta revisión documental. |
 
 ## 5. Pruebas que faltan y cómo hacerlas
 

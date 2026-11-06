@@ -14,6 +14,21 @@ Señales ─► ESP32-C6 (ADC + SPI esclavo) ══ SPI ══► BeaglePlay (SP
 | Dashboard web (HTML) | David Henao Rojas (primera versión) | [`dashboard/`](dashboard) |
 | Software del SBC (BeaglePlay, SPI maestro, backend, HTTP) | Juan Camilo Giraldo, Daniela Barragán | [`beagleplay/backend/`](beagleplay/backend) |
 
+## Video demostrativo
+
+[**Ver video del funcionamiento del osciloscopio**](videos/VIDEO_DEMOSTRACION.mp4)
+
+Archivo: `videos/VIDEO_DEMOSTRACION.mp4`.
+
+El video está incorporado al repositorio como
+material de demostración del proyecto.
+
+Las verificaciones experimentales y sus resultados
+se documentan por separado en la
+[matriz de verificación](docs/Documentación_General/10-matriz-de-verificacion.md)
+y en la
+[bitácora de pruebas](docs/Documentación_General/09-pruebas-y-resultados.md).
+
 ## Documentación
 
 **¿Quieres armarlo tú?** Sigue [**Instrucciones de uso**](docs/Instrucciones_De_Uso/Instrucciones_De_Uso.md): guía paso a paso desde cero (materiales, flasheo, montaje y uso).
@@ -78,6 +93,8 @@ Detalles en [05-firmware-esp32c6.md](docs/Documentaci%C3%B3n_General/05-firmware
 - [x] Arranque automático del backend con systemd (`beagleplay/instalar_servicio.sh`): verificado tras reiniciar la BeaglePlay (P-19).
 - [x] Frecuencia de muestreo estimada con generador en los cuatro presets; caudal SPI medido entre 1 y 20 MHz. La frecuencia nominal del generador no está calibrada y el máximo SPI estable no se ha determinado.
 - [ ] Completar la caracterización del ADC v2 (medición preliminar de cuatro puntos registrada en P-21) y documentar tolerancia de la referencia del generador. Pruebas prolongadas de SPI y 40 kSa/s fuera del alcance de esta etapa.
-- [ ] Video, declaración de participación y de uso de IA.
+- [x] Video demostrativo publicado en [videos/VIDEO_DEMOSTRACION.mp4](videos/VIDEO_DEMOSTRACION.mp4).
+- [x] Declaración de participación y uso de IA documentada en [14](docs/Documentación_General/14-participacion-y-uso-de-ia.md).
+- [ ] Anexar los contenidos completos de las interacciones con IA exigidos por el enunciado.
 
 Detalle en [13-pendientes-y-riesgos.md](docs/Documentaci%C3%B3n_General/13-pendientes-y-riesgos.md).
