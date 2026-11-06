@@ -105,18 +105,50 @@ en la matriz. El historial completo de Gemini no está anexado.
 - Los datos del AM62x (SPI maestro a 50 MHz) provienen de ejemplos de TI y **no se han confirmado** con la hoja de datos.
 - Las hipótesis sobre el ruido en CH A y las transacciones perdidas son explicaciones plausibles, **no probadas**.
 
-### Chats e historiales pendientes
+### Registro de interacciones con herramientas de IA
 
-El enunciado pide incluir el contenido de las interacciones. **Por completar antes de la entrega:**
+Durante el proyecto se utilizaron asistentes de inteligencia
+artificial para apoyar actividades de desarrollo, diagnóstico,
+análisis de resultados y documentación.
 
-1. Exportar o copiar el historial de la conversación con el asistente y guardarlo en `docs/Documentación_General/chats/` (carpeta por crear).
-2. Cada integrante que haya usado IA debe añadir el suyo.
-3. No incluir credenciales ni datos personales en los archivos exportados.
+Las herramientas y actividades identificadas se describen
+en las secciones 4.2, 4.3 y 4.4.
 
-La atribución individual de todas las interacciones históricas y sus modelos específicos no puede reconstruirse únicamente a partir de los archivos publicados. Las mediciones parciales se identifican como tales y no se presentan como certificaciones metrológicas completas.
+La siguiente tabla presenta el estado de los historiales
+de conversaciones dentro de este repositorio.
 
-| Integrante | Archivo del chat | Herramienta y modelo |
+| Integrante | Herramienta documentada | Estado del historial |
 |---|---|---|
-| David Henao Rojas | N/A | Copilot (VS Code);  |
-| Juan Camilo Giraldo | No anexado | Gemini (Google), posteriormente GitHub Copilot (VS Code) |
-| Laura Daniela Barragán Silva | No anexado | ChatGPT |
+| David Henao Rojas | GitHub Copilot en VS Code | No anexado. Versión exacta del modelo no documentada. |
+| Juan Camilo Giraldo | GitHub Copilot en VS Code | No anexado. Versión exacta del modelo no documentada. |
+| Laura Daniela Barragán Silva | ChatGPT | No anexado. Versión exacta del modelo no documentada. |
+
+La documentación registra las tareas apoyadas por IA y
+los procedimientos de comprobación disponibles.
+
+Sin embargo, las transcripciones completas de las
+conversaciones no forman parte de los archivos publicados.
+
+Por tanto, esta declaración documenta el uso de IA,
+pero no sustituye los historiales completos cuando
+estos sean exigidos como evidencia independiente.
+
+### Criterios de verificación y responsabilidad
+
+Las respuestas de los asistentes se consideraron
+propuestas sujetas a revisión humana.
+
+Las comprobaciones del firmware, del enlace SPI,
+del backend, del dashboard y de los servicios de
+la BeaglePlay se registran en la bitácora de pruebas
+y en la matriz de verificación.
+
+Los resultados experimentales pertenecen a las
+pruebas realizadas por los integrantes del equipo.
+No se atribuye a la IA la ejecución física de las
+mediciones ni se presentan resultados parciales
+como certificaciones completas.
+
+La autoría y participación individual se describen
+según las actividades documentadas, sin atribuir
+automáticamente el trabajo de un integrante a otro.
